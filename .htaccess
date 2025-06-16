@@ -1,0 +1,9 @@
+RewriteEngine On
+RewriteBase /proy_anticipos_rendiciones/
+
+# se evita redirección para archivos y directorios reales
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# se redirige absolutamente todo a index.php
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]

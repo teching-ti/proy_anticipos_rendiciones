@@ -1,0 +1,7 @@
+12052025 - jvalladares
+
+
+09052025 - jvalladares
+Se tiene completo el módulo de mantenimiento con centros de costos, validaciones de acceso, roles. Se debe terminar el sprint3 con la actualización de.
+Usuarios (Se debe listar e indicar si una cuenta de usuario esta apta para ingresar al sistema, apta si en caso existe registro por DNI en la otra base de datos y si un usuario se encuentra cesado)
+Deberá de poder acceder al sistema siempre y cuando se tenga todo en orden con estos parámetros.

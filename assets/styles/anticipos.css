@@ -1,0 +1,279 @@
+.anticipos-content {
+    padding: 20px;
+    /* background-color: #edf4fe; */
+}
+
+/* Contenedor de la sección de la tabla */
+/* .section-table {
+    margin-bottom: 30px;
+} */
+
+.section-table h2 {
+    margin-bottom: 15px;
+    font-size: 24px;
+    color: #153f65;
+}
+
+/* Botón de agregar */
+.btn{
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    font-family: 'Open Sans', sans-serif;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-add-anticipo {
+    background-color: #153f65;
+    color: #ffffff;
+    margin-bottom: 15px;
+}
+
+/* Contenedor responsive para la tabla */
+.table-responsive {
+    overflow-x: auto;
+    max-height: 600px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Estilos base de la tabla */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para celdas */
+.table th,
+.table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    color: #03131f;
+}
+
+/* Encabezado de la tabla */
+.table-head {
+    background-color: #f2f2f2;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+/* Efecto hover en las filas */
+.table-hover tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+.btn-close-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #153f65;
+    cursor: pointer;
+}
+
+/*Estilos para el modal inicia*/
+.modal{
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 99; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+  position: relative;
+  background-color: #fefefe;
+  border-radius: 1.2rem;
+  margin:12px auto;
+  border: 1px solid #888;
+  width: 94%;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  -webkit-animation-name: animatetop;
+  -webkit-animation-duration: 0.4s;
+  animation-name: animatetop;
+  animation-duration: 0.4s;
+  overflow: auto;
+}
+
+/* Add Animation */
+@-webkit-keyframes animatetop {
+  from {top:-300px; opacity:0} 
+  to {top:0; opacity:1}
+}
+
+@keyframes animatetop {
+  from {top:-300px; opacity:0}
+  to {top:0; opacity:1}
+}
+
+.modal-header {
+    padding: 8px 16px;
+    /* background-color: whitesmoke; */
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* background: #EDF4FE;
+    background: linear-gradient(331deg,rgba(237, 244, 254, 1) 13%, rgba(222, 242, 255, 1) 37%, rgba(42, 126, 235, 1) 100%); */
+    background: #EDF4FE;
+    background: linear-gradient(331deg, rgba(237, 244, 254, 1) 4%, rgba(222, 242, 255, 1) 14%, rgba(21, 63, 101, 1) 84%);
+}
+
+.modal-body {
+    padding: 2px 16px;
+    /* background: red; */
+}
+
+.modal-footer {
+    padding: 2px 16px;
+    color: white;
+    background: #ffffff;
+background: linear-gradient(331deg, rgba(255, 255, 255, 1) 0%, rgba(222, 242, 255, 1) 8%, rgba(125, 155, 186, 1) 41%, rgba(21, 63, 101, 1) 80%);
+}
+
+.btn-close-modal:hover{
+    transform: scale(104%);
+    transition: linear .4s;
+    font-weight: bold;
+    rotate: 90deg;
+    color: #0b2942;
+}
+
+.modal-elements-container{
+    display: flex;
+    justify-content: space-between;
+    padding: 2rem 0 0 0;
+    flex-wrap: wrap;
+}
+
+.modal-element{
+    display: grid;
+    width: fit-content;
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.modal-element input, .modal-element select{
+    width: 18rem;
+    padding: .4rem;
+    border: none;
+    border-bottom: 2px solid #ccc;
+    background: none;
+    /* border-radius: 5px; */
+    font-size: 15px;
+    outline: none;
+    transition: .3s;
+    border-radius: .4rem;
+    border: solid 1px rgb(211, 206, 206);
+}
+
+.placeholder{
+    position: absolute;
+    left: 8px;
+    background: white;
+    top: 50%;
+    transform: translateY(-28px);
+    padding: 0 .2rem;
+    color: #777;
+    pointer-events: none;
+    font-size: 12px;
+    transition: 0.3s;
+}
+/*Estilos para el modal termina*/
+
+/* Media query para tablets (≤800px) */
+@media (max-width: 800px) {
+    .table{
+        background: none;
+    }
+
+    .table th,
+    .table td {
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+
+    .section-table h2 {
+        font-size: 20px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .btn-add-anticipo {
+        font-size: 0.9rem;
+    }
+}
+
+/* Media query para móviles (≤600px) */
+@media (max-width: 600px) {
+    /* 
+    descomentar esta línea hará que todo se deforme
+    .table {
+        display: block;
+    } */
+
+    .table thead {
+        display: none;
+    }
+    
+    .table tbody tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #fff;
+    }
+
+    .table td {
+        display: block;
+        text-align: right;
+        padding: 8px;
+        font-size: 0.85rem;
+        border: none;
+        position: relative;
+    }
+
+    .table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 8px;
+        font-weight: 600;
+        color: #153f65;
+        text-transform: capitalize;
+    }
+
+    .table-responsive {
+        overflow-x: hidden;
+        max-height: 500px;
+    }
+
+    .anticipos-content {
+        padding: 10px;
+    }
+
+    .section-table h2 {
+        font-size: 18px;
+    }
+
+    .btn-add-anticipo {
+        width: 100%;
+        font-size: 0.85rem;
+    }
+
+    /* .modal-elements-container{
+        flex-direction: column;
+    } */
+}

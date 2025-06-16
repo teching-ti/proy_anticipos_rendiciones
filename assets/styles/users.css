@@ -1,0 +1,293 @@
+.users-content {
+    padding: 20px;
+    /*background-color: #edf4fe;*/ /* Fondo consistente con base.css */
+}
+
+.elemento-agregar-usuario{
+    margin-bottom: .8rem;
+}
+
+.elemento-agregar-usuario button{
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    background-color: #153f65;
+    color: #ffffff;
+    font-size: .9rem;
+}
+
+.elemento-agregar-usuario button:hover{
+    background-color: #0e2941;
+}
+
+/* Contenedor de la sección de la tabla */
+.section-table {
+    margin-bottom: 30px;
+}
+
+.section-table h2 {
+    margin-bottom: 15px;
+    font-size: 24px;
+    color: #153f65; /* Color de texto de base.css */
+}
+
+/* Contenedor responsive para la tabla */
+.table-responsive {
+    overflow-x: auto; /* Permite desplazamiento horizontal en pantallas pequeñas */
+    max-height: 600px; /* Limita la altura de la tabla para ~200 filas, con scroll vertical */
+    overflow-y: auto; /* Permite desplazamiento vertical */
+    -webkit-overflow-scrolling: touch; /* Mejora el desplazamiento en dispositivos táctiles */
+}
+
+/* Estilos base de la tabla */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave para destacar la tabla */
+}
+
+/* Estilos para celdas */
+.table th,
+.table td {
+    padding: 12px; /* Mayor padding para legibilidad en escritorio */
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    color: #03131f; /* Color de texto de base.css */
+}
+
+/* Encabezado de la tabla */
+.table-head {
+    background-color: #f2f2f2; /* Fondo gris claro para el encabezado */
+    position: sticky; /* Fija el encabezado al hacer scroll vertical */
+    top: 0; /* Ancla el encabezado en la parte superior */
+    z-index: 10; /* Asegura que el encabezado esté sobre el contenido */
+}
+
+/* Efecto hover en las filas */
+.table-hover tbody tr:hover {
+    background-color: #f5f5f5; /* Fondo al pasar el ratón, consistente con base.css */
+}
+
+/* Asegura que las celdas sean legibles */
+.table td {
+    vertical-align: middle;
+}
+
+
+
+/*Estilos para el modal de agregar usuario inicia*/
+.modal{
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 89; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+  position: relative;
+  background-color: #fefefe;
+  border-radius: 1.2rem;
+  margin:12px auto;
+  border: 1px solid #888;
+  width: 94%;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  -webkit-animation-name: animatetop;
+  -webkit-animation-duration: 0.4s;
+  animation-name: animatetop;
+  animation-duration: 0.4s;
+  overflow: auto;
+}
+
+/* Add Animation */
+@-webkit-keyframes animatetop {
+  from {top:-300px; opacity:0} 
+  to {top:0; opacity:1}
+}
+
+@keyframes animatetop {
+  from {top:-300px; opacity:0}
+  to {top:0; opacity:1}
+}
+
+.modal-header {
+    padding: 8px 16px;
+    /* background-color: whitesmoke; */
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* background: #EDF4FE;
+    background: linear-gradient(331deg,rgba(237, 244, 254, 1) 13%, rgba(222, 242, 255, 1) 37%, rgba(42, 126, 235, 1) 100%); */
+    background: #EDF4FE;
+    background: linear-gradient(331deg, rgba(237, 244, 254, 1) 4%, rgba(222, 242, 255, 1) 14%, rgba(21, 63, 101, 1) 84%);
+}
+
+.modal-body {
+    padding: 2px 16px;
+    /* background: red; */
+}
+
+.modal-footer {
+    padding: 2px 16px;
+    color: white;
+    background: #ffffff;
+background: linear-gradient(331deg, rgba(255, 255, 255, 1) 0%, rgba(222, 242, 255, 1) 8%, rgba(125, 155, 186, 1) 41%, rgba(21, 63, 101, 1) 80%);
+}
+
+.btn-close-modal:hover{
+    transform: scale(104%);
+    transition: linear .4s;
+    font-weight: bold;
+    rotate: 90deg;
+    color: #0b2942;
+}
+
+.modal-elements-container{
+    display: flex;
+    justify-content: space-between;
+    padding: 2rem 0 0 0;
+    flex-wrap: wrap;
+}
+
+.modal-element{
+    display: grid;
+    width: fit-content;
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.modal-element input, .modal-element select{
+    width: 18rem;
+    padding: .4rem;
+    border: none;
+    border-bottom: 2px solid #ccc;
+    background: none;
+    /* border-radius: 5px; */
+    font-size: 15px;
+    outline: none;
+    transition: .3s;
+    border-radius: .4rem;
+    border: solid 1px rgb(211, 206, 206);
+}
+
+.placeholder{
+    position: absolute;
+    left: 8px;
+    background: white;
+    top: 50%;
+    transform: translateY(-28px);
+    padding: 0 .2rem;
+    color: #777;
+    pointer-events: none;
+    font-size: 12px;
+    transition: 0.3s;
+}
+
+.lupa{
+    height: 100%;
+    display: flex;
+    align-items: center;
+    position: absolute;
+    top: auto;
+    right: 8px;
+    align-items: center;
+    padding: 0 .2rem;
+    color: #777;
+    transition: 0.3s;
+    cursor: pointer;
+    z-index: 99;
+}
+
+.lupa i{
+    float: left;
+    /* filter: drop-shadow(5px 5px 5px #0b2942); */
+}
+
+/* .doc-id{
+    display: flex;
+    align-items: center;
+    padding: .4rem;
+} */
+/*Estilos para el modal termina*/
+
+/* Media query para tablets (≤800px) */
+@media (max-width: 800px) {
+    /* Reducir padding y tamaño de fuente para ahorrar espacio */
+    .table th,
+    .table td {
+        padding: 8px; /* Menor padding para más contenido en pantalla */
+        font-size: 0.9rem; /* Tamaño de fuente más pequeño para legibilidad */
+    }
+
+    /* Ajustar el título para pantallas más pequeñas */
+    .section-table h2 {
+        font-size: 20px; /* Reducir tamaño del título */
+    }
+
+    /* Asegurar que el contenedor permita desplazamiento */
+    .table-responsive {
+        overflow-x: auto; /* Mantiene el desplazamiento horizontal */
+    }
+
+    .modal-content{
+        width: 60%;
+    }
+}
+
+/* Media query para móviles (≤600px) */
+@media (max-width: 600px) {
+    /* Transformar la tabla en un formato de tarjetas para mejor legibilidad */
+    .table {
+        display: grid; /* Cambia la tabla a un bloque para apilar filas */
+    }
+
+    /* Ocultar el encabezado de la tabla, ya que usaremos data-label */
+    .table thead {
+        display: none; /* Oculta los <th> en móviles */
+    }
+
+    /* Convertir cada fila en un bloque */
+    .table tbody tr {
+        display: block; /* Cada fila es un bloque (tarjeta) */
+        margin-bottom: 15px; /* Espacio entre filas */
+        border: 1px solid #ddd; /* Borde para definir cada tarjeta */
+        border-radius: 4px; /* Bordes redondeados para estética */
+        background-color: #fff; /* Fondo blanco para cada tarjeta */
+    }
+
+    /* Convertir cada celda en un bloque */
+    .table td {
+        display: flex;
+        text-align: right; /* Alinea el texto a la derecha para consistencia */
+        padding: 8px; /* Padding reducido para móviles */
+        font-size: 0.85rem; /* Fuente más pequeña para móviles */
+        border: none; /* Elimina bordes entre celdas */
+        position: relative; /* Para posicionar el pseudo-elemento */
+    }
+
+    .table td:before {
+        content: attr(data-label); /* Usa el valor de data-label como etiqueta */
+        position: absolute;
+        left: 8px; /* Alinea la etiqueta a la izquierda */
+        font-weight: 600; /* Negrita para las etiquetas */
+        color: #153f65; /* Color de base.css */
+        text-transform: capitalize; /* Capitaliza las etiquetas */
+    }
+
+    .modal-content{
+        width: 98%;
+    }
+}

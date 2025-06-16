@@ -1,0 +1,139 @@
+.main-title {
+    font-size: xx-large;
+    font-weight: bold;
+    background: linear-gradient(45deg, rgba(25,91,171,1) 6%, rgba(72,115,166,1) 42%, rgba(38,117,29,0.86) 89%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    width: fit-content;
+    padding: 1.4rem 0;
+}
+
+.dashboard-cards {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.principal-info{
+    margin-bottom: 2rem;
+}
+
+/* tarjetas del panel principal */
+.card {
+    background-color: rgba(221, 226, 240, 0.95);
+    border-radius: .8rem;
+    padding: 1.5rem;
+    width: 200px;
+    text-align: center;
+    transition: all ease-in-out 0.3s;
+    cursor: pointer;
+}
+
+/* sección de acceso rápido */
+.fast-access-card{
+    color: #333333;
+    text-decoration: none;
+    background-color: rgba(221, 226, 240, 0.95);
+    border-radius: .8rem;
+    display: flex;
+    align-items: center;
+    padding: .8rem;
+    width: 260px;
+    gap: .4rem;
+    font-size: .9rem;
+    transition: all ease-in-out 0.1s;
+    cursor: pointer;
+}
+
+/* hover para las carpetas */
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 0px 20px 8px rgba(0, 0, 0, 0.15);
+}
+
+.fast-access-card:hover{
+    transform: translateY(-5px);
+    box-shadow: 0px 0px 20px 8px rgba(0, 0, 0, 0.15);
+}
+
+.fast-access-card:hover .card-icon{
+    transition: all ease-in-out .2s;
+    background-color: #154888;
+    color: whitesmoke;
+}
+
+/*  */
+.card h2 {
+    font-size: 1.2rem;
+    color: #333333;
+    margin-bottom: 1rem;
+}
+
+.card-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #195BAB;
+}
+
+.card-icon{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    color: #195BAB;
+    background-color: #fff;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.fast-access-text{
+    color: #333333;
+    font-size: 1.2rem;
+}
+
+@media (max-width: 720px) {
+    .sidebar {
+        width: 200px;
+    }
+
+    .main-title {
+        font-size: x-large;
+        background: linear-gradient(138deg, rgba(25,91,171,1) 13%, rgba(72,115,166,1) 26%, rgba(38,117,29,0.86) 72%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .card {
+        width: 180px;
+    }
+}
+
+@media (max-width: 400px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 250px; /* Mantiene el ancho en móvil */
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        transform: translateX(-100%); /* Oculta la barra lateral por defecto */
+        z-index: 1000;
+    }
+
+    .sidebar.active {
+        transform: translateX(0); /* Muestra la barra lateral cuando está activa */
+    }
+
+    .main-content {
+        padding: 1rem;
+    }
+
+    .menu-toggle {
+        display: block; /* Muestra el botón hamburguesa en móviles */
+    }
+}
