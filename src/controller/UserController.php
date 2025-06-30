@@ -1,24 +1,43 @@
 <?php
 require_once 'src/config/Database.php';
 require_once 'src/models/UserModel.php';
+require_once 'src/models/TrabajadorModel.php';
 
 class UserController {
     private $db;
     private $userModel;
+    private $trabajadorModel;
 
     public function __construct() {
         $database = new Database();
         $this->db = $database->connect();
         $this->userModel = new UserModel();
+        $this->trabajadorModel = new TrabajadorModel();
+        if (!$this->trabajadorModel) {
+            error_log('Error: No se pudo inicializar TrabajadorModel');
+        }
     }
 
     public function index(){
+        $roles = $this->userModel->getAllRoles();
         if ($_SESSION['rol'] != 1) {
             header('Location: /proy_anticipos_rendiciones/iniciar_sesion');
             exit;
         }
         $users_data = $this->userModel->getUsersData();
         require_once 'src/views/users.php';
+    }
+
+    public function generarContrasena($username) {
+        if (empty($username) || strlen($username) < 2) {
+            return "Nombre de usuario inválido";
+        }
+
+        $primeraLetra = $username[0];
+        $resto = substr($username, 1);
+        $numeroAleatorio = rand(100, 999);
+
+        return $primeraLetra . '*' . $resto . '+-' . $numeroAleatorio;
     }
 
     // Mostrar el formulario de agregar usuario
@@ -28,47 +47,112 @@ class UserController {
             header('Location: /proy_anticipos_rendiciones/iniciar_sesion');
             exit;
         }
-        
-        $roles = $this->userModel->getAllRoles();
-        $error = '';
-        $success = '';
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $nombre_usuario = trim($_POST['nombre_usuario'] ?? '');
-            $contrasena = trim($_POST['contrasena'] ?? '');
-            $dni = trim($_POST['dni'] ?? '');
-            $rol = (int)($_POST['rol'] ?? 0);
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $nombre_usuario = trim($_POST['user-nombre']);
+
+            $primeraLetra = $nombre_usuario[0];
+            $resto = substr($nombre_usuario, 1);
+            $numeroAleatorio = rand(1000, 9999);
+            $contrasena = '@'.strtoupper($primeraLetra).'*' .$resto.'+-'.$numeroAleatorio;
+
+            $dni = trim($_POST['doc-identidad']);
+            $rol = (int)($_POST['user-rol']);
+            error_log("Datos de usuario a registrar: $nombre_usuario, $contrasena, $dni, $rol");
 
             // Validaciones
-            if (empty($nombre_usuario) || empty($contrasena) || empty($dni) || $rol === 0) {
+            if (empty($nombre_usuario) || empty($contrasena) || empty($dni)) {
                 $error = 'Todos los campos son obligatorios.';
-            } elseif (!preg_match('/^[0-9]{8}$/', $dni)) {
-                $error = 'El DNI debe tener 8 dígitos.';
+                error_log($error);
+            } elseif (!preg_match('/^\d+$/', $dni)) {
+                $error = 'El documento debe ser únicamente un número.';
+                error_log($error);
             } elseif ($this->userModel->dniExists($dni)) {
-                $error = 'El DNI ya está registrado.';
-            } elseif (strlen($contrasena) < 6) {
-                $error = 'La contraseña debe tener al menos 6 caracteres.';
+                $error = 'Un usuario con este número de DNI ya existe.';
+                error_log($error);
             } else {
-                // Verificar que el rol exista
-                $valid_role = false;
-                foreach ($roles as $r) {
-                    if ($r['id'] === $rol) {
-                        $valid_role = true;
-                        break;
-                    }
-                }
-                if (!$valid_role) {
-                    $error = 'Rol inválido.';
+                // Agregar usuario
+                if ($this->userModel->addUser($nombre_usuario, $contrasena, $dni, $rol)) {
+                    $success = 'Usuario registrado correctamente.';
+                    error_log($success);
                 } else {
-                    // Agregar usuario
-                    if ($this->userModel->addUser($nombre_usuario, $contrasena, $dni, $rol)) {
-                        $success = 'Usuario registrado correctamente.';
-                    } else {
-                        $error = 'Error al registrar el usuario.';
-                    }
+                    $error = 'Error al registrar el usuario.';
+                    error_log($error);
                 }
+                
             }
         }
-        require_once 'src/views/add_user.php';
+
+        header('Location: /proy_anticipos_rendiciones');
+        exit;
     }
+
+    // Buscar trabajador por DNI (AJAX), se utiliza para completar los campos del formulario de crear usuario
+    public function searchByDni() {
+        // session_start();
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+            exit;
+        }
+
+        $dni = trim($_POST['doc-identidad'] ?? '');
+        error_log('Buscando DNI en controlador: ' . $dni);
+
+        // if (!preg_match('/^[0-9]{8}$/', $dni)) {
+        //     echo json_encode(['success' => false, 'message' => 'El DNI debe tener 8 dígitos']);
+        //     exit;
+        // }
+
+        //error_log($dni);
+        $trabajador = $this->trabajadorModel->findByDni($dni);
+        if ($trabajador) {
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'nombres' => $trabajador['nombres'],
+                    'apellidos' => $trabajador['apellidos'],
+                    'cargo' => $trabajador['cargo'],
+                    'departamento' => $trabajador['departamento'],
+                    'departamento_nombre' => $trabajador['departamento_nombre'],
+                    'correo' => $trabajador['correo']
+                ]
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Trabajador no encontrado']);
+        }
+        exit;
+    }
+
+    // Buscar trabajador por DNI (AJAX), se utiliza para completar los campos del formulario de crear usuario
+    public function anticipoBuscarDni() {
+        header('Content-Type: application/json');
+
+        if (!isset($_GET['doc-identidad'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'cargo_id no proporcionado']);
+            return;
+        }
+
+        $dni = trim($_GET['doc-identidad'] ?? '');
+        error_log('Buscando DNI en controlador: ' . $dni);
+
+        error_log($dni);
+        $trabajador = $this->trabajadorModel->findByDni($dni);
+        if ($trabajador) {
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'nombres' => $trabajador['nombres'],
+                    'apellidos' => $trabajador['apellidos']
+                ]
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Trabajador no encontrado']);
+        }
+        exit;
+    }
+
+
 }

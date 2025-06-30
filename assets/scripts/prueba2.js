@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const activo = cells[4].textContent === 'Sí' ? 1 : 0;
 
             // Hacer solicitud AJAX para obtener cc_codigo
-            fetch('/proy_anticipos_rendiciones/centro_costos/get_scc?codigo=' + encodeURIComponent(codigo))
+            fetch('centro_costos/get_scc?codigo=' + encodeURIComponent(codigo))
                 .then(response => response.json())
                 .then(data => {
                     if (!data || data.error) {
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const activo = cells[4].textContent === 'Sí' ? 1 : 0;
 
             // Hacer solicitud AJAX para obtener scc_codigo
-            fetch('/proy_anticipos_rendiciones/centro_costos/get_sscc?codigo=' + encodeURIComponent(codigo))
+            fetch('centro_costos/get_sscc?codigo=' + encodeURIComponent(codigo))
                 .then(response => response.json())
                 .then(data => {
                     if (!data || data.error) {

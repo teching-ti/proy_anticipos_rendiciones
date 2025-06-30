@@ -39,7 +39,7 @@ class CostCenterController {
             $activo = isset($_POST['activo']) ? 1 : 0;
             // expresión regular que se utilizará para validar campos del formulario
             $val_cod = '/^[a-zA-Z0-9_-]{4,}$/';
-            $val_nom = '/^[a-zA-Z0-9., _-]{4,}$/';
+            $val_nom = '/^.{4,}$/u';
 
             if (empty($codigo) || empty($nombre) || empty($nombre_corto)) {
                 // Se valida que no ingresen campos vacíos
@@ -73,7 +73,7 @@ class CostCenterController {
 
             // expresión regular que se utilizará para validar campos del formulario
             $val_cod = '/^[a-zA-Z0-9_-]{4,}$/';
-            $val_nom = '/^[a-zA-Z0-9., _-]{4,}$/';
+            $val_nom = '/^.{4,}$/u';
 
             if (empty($codigo) || empty($nombre) || empty($nombre_corto) || empty($cc_codigo)) {
                 // Se valida que no ingresen campos vacíos
@@ -107,7 +107,8 @@ class CostCenterController {
 
             // expresión regular que se utilizará para validar campos del formulario
             $val_cod = '/^[a-zA-Z0-9_-]{4,}$/';
-            $val_nom = '/^[a-zA-Z0-9., _-]{4,}$/';
+            // $val_nom = '/^[a-zA-Z0-9., _-°]{4,}$/';
+            $val_nom = '/^.{4,}$/u';
 
             if (empty($codigo) || empty($nombre) || empty($nombre_corto) || empty($scc_codigo)) {
                 // Se valida que no ingresen campos vacíos
@@ -138,7 +139,7 @@ class CostCenterController {
             $activo = isset($_POST['activo']) ? 1 : 0;
 
             // expresión regular que se utilizará para validar campos del formulario
-            $val_texto = '/^[a-zA-Z0-9., _-]{4,}$/';
+            $val_texto = '/^.{4,}$/u';
 
             if (empty($nombre)) {
                 $_SESSION['error'] = 'El nombre es obligatorio.';
@@ -166,7 +167,7 @@ class CostCenterController {
             $cc_codigo = $_POST['cc_codigo'] ?? '';
 
             // expresión regular que se utilizará para validar campos del formulario
-            $val_texto = '/^[a-zA-Z0-9., _-]{4,}$/';
+            $val_texto = '/^.{4,}$/u';
 
             if (empty($nombre)) {
                 $_SESSION['error'] = 'El nombre es obligatorio.';
@@ -194,7 +195,7 @@ class CostCenterController {
             $scc_codigo = $_POST['scc_codigo'] ?? '';
 
             // expresión regular que se utilizará para validar campos del formulario
-            $val_texto = '/^[a-zA-Z0-9., _-]{4,}$/';
+            $val_texto = '/^.{4,}$/u';
 
             if (empty($nombre) || empty($scc_codigo)) {
                 $_SESSION['error'] = 'El nombre y el subcentro de costo son obligatorios.';

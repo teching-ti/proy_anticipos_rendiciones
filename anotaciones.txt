@@ -1,3 +1,7 @@
+30062025 - jvalladares
+A la fecha se pueden registrar anticipos, para el tema de visualización y cargado de un anticipo se deberá hacer doble clic sobre el anticipo listado y posteriormente se mostrará el formulario de visualizar y editar anticipo. Por el momento se están obteniendo todos los datos del anticipo, se encuentra pendiente que se pueda editar dicho anticipo, lo que involucra retirar elementos o añadir elementos adicionales. Estas acciones están siendo trabajadas a la fecha.
+
+
 12052025 - jvalladares
 
 

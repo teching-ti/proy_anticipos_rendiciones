@@ -78,6 +78,14 @@
                         <span>Centro de Costos</span>
                     </a>
                 </li>
+                <?php if($_SESSION['rol']==1): ?>
+                    <li>
+                        <a href='#' class='link-text'>
+                            <i class='fa-solid fa-money-bill-wave'></i>
+                            <span>CC. Presupuestos</span>
+                        </a>
+                    </li>
+                <?php endif; ?>
             </ul>
         </nav>
     </aside>
@@ -92,10 +100,14 @@
                 <li><a href="/proy_anticipos_rendiciones/dashboard">Inicio</a></li>
                 <li><a href="/proy_anticipos_rendiciones/anticipos">Anticipos</a></li>
                 <li><a href="#">Rendiciones</a></li>
-                <li><a href="/proy_anticipos_rendiciones/centro_costos">Centro de Costos</a></li>
                 <?php if ($_SESSION['rol'] == 1): ?>
                     <li><a href="/proy_anticipos_rendiciones/usuarios">Usuarios</a></li>
                 <?php endif; ?>
+                <li><a href="/proy_anticipos_rendiciones/centro_costos">Centro de Costos</a></li>
+                <?php if ($_SESSION['rol'] == 1): ?>
+                    <li><a href="#">CC. Presupuestos</a></li>
+                <?php endif; ?>
+                
             </ul>
             <div class="close-responsive-menu" id="close-responsive-menu">
                 <span><i class="fa-regular fa-circle-xmark fa-2xl"></i></span>
@@ -113,22 +125,22 @@
                 <i class="fa-solid fa-caret-down"></i>
             </div>
             <div class="user-dropdown" id="user-dropdown">
-                <p><strong>Departamento:</strong> <?php echo htmlspecialchars($_SESSION['trabajador']['departamento'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></p>    
+                <p><strong>Departamento:</strong> <?php echo htmlspecialchars($_SESSION['trabajador']['departamento_nombre'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></p>    
                 <p><strong>Cargo:</strong> <?php echo htmlspecialchars($_SESSION['trabajador']['cargo'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></p>
                 <p><strong>Correo:</strong> <?php echo htmlspecialchars($_SESSION['trabajador']['correo'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></p>
                 <?php
-                    $rol = "";
-                    if($_SESSION['rol']==1){
-                        $rol = "Administrador";
-                    }else if($_SESSION['rol']==2){
-                        $rol = "Aprobador";
-                    }else if($_SESSION['rol']==3){
-                        $rol = "Contador";
-                    }else{
-                        $rol = "Usuario";
-                    }
+                    // $rol = "";
+                    // if($_SESSION['rol']==1){
+                    //     $rol = "Administrador";
+                    // }else if($_SESSION['rol']==2){
+                    //     $rol = "Aprobador";
+                    // }else if($_SESSION['rol']==3){
+                    //     $rol = "Contador";
+                    // }else{
+                    //     $rol = "Usuario";
+                    // }
                 ?>
-                <p><strong>Rol:</strong> <?php echo htmlspecialchars($rol, ENT_QUOTES, 'UTF-8'); ?></p>
+                <p><strong>Rol:</strong> <?php echo htmlspecialchars($_SESSION['rol_nombre'], ENT_QUOTES, 'UTF-8'); ?></p>
                 <p class="line-exit-session">
                     <a href="/proy_anticipos_rendiciones/logout" class="exit-session">
                         <i class="fas fa-sign-out-alt"></i><span>Salir</span>

@@ -10,7 +10,7 @@ unset($_SESSION['success'], $_SESSION['error']);
 
 <section class="anticipos-content">
     <!-- Incluir alert.js -->
-    <script src="/proy_anticipos_rendiciones/assets/scripts/modalAlert.js"></script>
+    <script src="assets/scripts/modalAlert.js"></script>
 
     <!-- Notificaciones -->
     <?php if (isset($_SESSION['success'])): ?>
@@ -35,20 +35,19 @@ unset($_SESSION['success'], $_SESSION['error']);
     <!-- Tabla de anticipos -->
     <section class="section-table">
         <h2>Listado de Anticipos</h2>
-        <button type="button" class="btn btn-primary btn-add-anticipo"><i class="fa-solid fa-circle-plus fa-lg"></i> Agregar Anticipo</button>
+        <div class="btn btn-add-anticipo"><i class="fa-solid fa-circle-plus fa-lg"></i> Agregar Anticipo</div>
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead class="table-head">
                     <tr>
                         <th>ID</th>
-                        <th>Área</th>
-                        <th>Sub-subcentro</th>
-                        <th>Solicitante</th>
-                        <th>Fecha Solicitud</th>
+                        <th>Fecha creación</th>
+                        <th>Nombre y apellido</th>
+                        <th>Departamento</th>
+                        <th>SSCC</th>
                         <th>Monto</th>
                         <th>Estado</th>
-                        <th>Act. Usuario</th>
-                        <th>Mov. Reciente</th>
+                        <th>Ult. Actualizacion</th>
                         <?php if (isset($_SESSION['rol']) && $_SESSION['rol'] == 2): ?>
                             <th>Acciones</th>
                         <?php endif; ?>
@@ -61,14 +60,16 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <?php foreach ($anticipos_data as $anticipo): ?>
                             <tr>
                                 <td data-label="ID"><?php echo htmlspecialchars($anticipo['id'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                <td data-label="Área"><?php echo htmlspecialchars($anticipo['area'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                <td data-label="Sub-subcentro"><?php echo htmlspecialchars($anticipo['codigo_sscc'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
-                                <td data-label="Solicitante"><?php echo htmlspecialchars($anticipo['solicitante'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td data-label="Fecha Solicitud"><?php echo htmlspecialchars($anticipo['fecha_solicitud'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td data-label="Solicitante"><?php echo htmlspecialchars($anticipo['solicitante_nombres'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td data-label="Departamento"><?php echo htmlspecialchars($anticipo['departamento_nombre'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td data-label="SSCC"><?php echo htmlspecialchars($anticipo['codigo_sscc'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td data-label="Monto"><?php echo number_format($anticipo['monto_total_solicitado'], 2); ?></td>
-                                <td data-label="Estado"><?php echo htmlspecialchars($anticipo['estado'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                <td data-label="Act. Usuario"><?php echo htmlspecialchars($anticipo['historial_usuario_nombre'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
-                                <td data-label="Mov. Reciente"><?php echo htmlspecialchars($anticipo['historial_fecha'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td data-label="Estado" class="td-estado">
+                                    <span class="span-td-estado <?=strtolower($anticipo['estado']);?>"><?php echo htmlspecialchars($anticipo['estado'], ENT_QUOTES, 'UTF-8'); ?>
+                                </span></td>
+
+                                <td data-label="Ult. Actualizacion"><?php echo htmlspecialchars($anticipo['historial_fecha'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
                                 <?php if (isset($_SESSION['rol']) && $_SESSION['rol'] == 2): ?>
                                     <td data-label="Acciones">
                                         <?php if ($anticipo['estado'] == 'Nuevo' || $anticipo['estado'] == 'Pendiente'): ?>
@@ -100,90 +101,279 @@ unset($_SESSION['success'], $_SESSION['error']);
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Creando anticipo</h2>
-                <button type="button" class="btn-close-modal" data-modal="addAnticipoModal"><i class="fa-solid fa-lg fa-xmark"></i></button>
+                <div class="btn-close-modal" data-modal="addAnticipoModal"><i class="fa-solid fa-lg fa-xmark"></i></div>
             </div>
             <form action="/proy_anticipos_rendiciones/anticipos/add" method="POST">
                 <div class="modal-body">
                     <input type="hidden" name="id_usuario" value="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                    <input type="hidden" name="id_cat_documento" value="<?php echo htmlspecialchars($id_cat_documento, ENT_QUOTES, 'UTF-8'); ?>">
-                    <div class="modal-elements-container">
-                        <div class="modal-element">
-                            <!-- <label for="solicitante">Solicitante</label> -->
-                            <span class="placeholder">Solicitante</span>
-                            <input type="text" class="form-control" id="solicitante" name="solicitante" value="<?php echo htmlspecialchars($_SESSION['trabajador']['nombres'], ENT_QUOTES, 'UTF-8'); ?> <?php echo htmlspecialchars($_SESSION['trabajador']['apellidos'], ENT_QUOTES, 'UTF-8'); ?>" readonly>
+                    <input type="hidden" name="id_cat_documento" value="1">
+                    <!-- 1. Datos del solicitante -->
+                    <div class="form-step active" id="step-1">
+
+                        <h3>1. Datos del solicitante</h3>
+                        
+                        <div class="datos-solicitantes-container">
+                            <div class="modal-element">
+                                <span class="input-icon-left">
+                                    <i class="fa-solid fa-user-tie"></i>
+                                </span>
+                                <span class="placeholder">Solicitante</span>
+                                <input type="text" class="form-control" id="solicitante" name="solicitante" value="<?php echo htmlspecialchars($_SESSION['trabajador']['nombres'], ENT_QUOTES, 'UTF-8'); ?> <?php echo htmlspecialchars($_SESSION['trabajador']['apellidos'], ENT_QUOTES, 'UTF-8'); ?>" readonly>
+                            </div>
+                            <div class="modal-element">
+                                <span class="input-icon-left">
+                                    <i class="fa-solid fa-id-card"></i>
+                                </span>
+                                <span class="placeholder">Documento Identidad</span>
+                                <input type="text" class="form-contro" id="dni_solicitante" name="dni_solicitante" value="<?php echo htmlspecialchars($_SESSION['dni'], ENT_QUOTES, 'UTF-8'); ?>" readonly>
+                            </div>
+                            <div class="modal-element">
+                                <span class="input-icon-left">
+                                    <i class="fa-solid fa-tag"></i>
+                                </span>
+                                <span class="placeholder">Departamento</span>
+                                <input type="text" class="form-control" id="departamento" name="departamento" value="<?php echo htmlspecialchars($_SESSION['trabajador']['departamento_nombre'], ENT_QUOTES, 'UTF-8'); ?>" readonly>
+                            </div>
+                            <div class="modal-element">
+                                <span class="input-icon-left">
+                                    <i class="fa-solid fa-briefcase"></i>
+                                </span>
+                                <span class="placeholder">Cargo</span>
+                                <input type="text" class="form-control" id="cargo" name="cargo" value="<?php echo htmlspecialchars($_SESSION['trabajador']['cargo'], ENT_QUOTES, 'UTF-8'); ?>" readonly>
+                            </div>
                         </div>
-                        <div class="modal-element">
-                            <span class="placeholder">Documento Identidad</span>
-                            <input type="text" class="form-control" id="dni_solicitante" name="dni_solicitante" value="<?php echo htmlspecialchars($_SESSION['dni'], ENT_QUOTES, 'UTF-8'); ?>" readonly>
+                        
+                        <div class="datos-solicitantes-container">
+                            <div class="modal-element">
+                                <span class="placeholder">Sub centro de costo</span>
+                                <select class="form-control" id="codigo_scc" name="codigo_scc" required>
+                                    <option value="">Seleccione</option>
+                                    <?php foreach ($sccs as $scc): ?>
+                                        <option value="<?php echo htmlspecialchars($scc['codigo'], ENT_QUOTES, 'UTF-8'); ?>">
+                                            <?php echo htmlspecialchars($scc['codigo'].' - '. $scc['nombre'], ENT_QUOTES, 'UTF-8'); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="modal-element">
+                                <span class="placeholder">Sub-subcentro de Costo</span>
+                                <select class="form-control" id="codigo_sscc" name="codigo_sscc" required>
+                                    <option value="">Seleccione</option>
+                                    
+                                </select>
+                            </div>
+                            <div class="modal-element">
+                                <span class="placeholder">Nombre del Proyecto</span>
+                                <input type="text" class="form-control" id="nombre_proyecto" name="nombre_proyecto" required>
+                            </div>
+                            <div class="modal-element">
+                                <span class="placeholder">Motivo del Anticipo</span>
+                                <input type="text" class="form-control" id="motivo-anticipo" name="motivo-anticipo" required>
+                            </div>
                         </div>
-                        <div class="modal-element">
-                            <span class="placeholder">Departamento</span>
-                            <input type="text" class="form-control" id="area" name="area" value="<?php echo htmlspecialchars($_SESSION['trabajador']['departamento'], ENT_QUOTES, 'UTF-8'); ?>" readonly>
+
+                        <div class="datos-solicitantes-container">
+                            <div class="modal-element">
+                                <span class="placeholder">Fecha de Solicitud</span>
+                                <input type="date" class="form-control" id="fecha_solicitud" name="fecha_solicitud" required readonly>
+                            </div>
                         </div>
-                        <div class="modal-element">
-                            <span class="placeholder">Cargo</span>
-                            <input type="text" class="form-control" id="cargo" name="cargo" value="<?php echo htmlspecialchars($_SESSION['trabajador']['cargo'], ENT_QUOTES, 'UTF-8'); ?>" readonly>
-                        </div>
-                    </div>
-                    
-                    <div class="modal-elements-container">
-                        <div class="modal-element">
-                            <span class="placeholder">Sub centro de costo</span>
-                            <select class="form-control" id="codigo_scc" name="codigo_scc" required>
-                                <option value="">Seleccione</option>
-                                <?php foreach ($sccs as $scc): ?>
-                                    <option value="<?php echo htmlspecialchars($scc['codigo'], ENT_QUOTES, 'UTF-8'); ?>">
-                                        <?php echo htmlspecialchars($scc['nombre'], ENT_QUOTES, 'UTF-8'); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="modal-element">
-                            <span class="placeholder">Sub-subcentro de Costo</span>
-                            <select class="form-control" id="codigo_sscc" name="codigo_sscc" required>
-                                <option value="">Seleccione</option>
-                                <?php foreach ($ssccs as $sscc): ?>
-                                    <option value="<?php echo htmlspecialchars($sscc['codigo'], ENT_QUOTES, 'UTF-8'); ?>">
-                                        <?php echo htmlspecialchars($sscc['nombre'], ENT_QUOTES, 'UTF-8'); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                        <hr>
+                        <div class="modal-footer">
+                            <div class="btn btn-default" onclick="nextStep()">Siguiente</div>
                         </div>
                     </div>
-                    
-                    <div class="form-group1">
-                        <label for="nombre_proyecto">Nombre del Proyecto</label>
-                        <input type="text" class="form-control" id="nombre_proyecto" name="nombre_proyecto" required>
+
+                    <!-- 2. Concepto -->
+                    <div class="form-step" id="step-2">
+                        <div class="title-concepto" style="">
+                            <h3>2. Concepto</h3>
+                            <div class="concepto-categoria">
+                                <div>
+                                    <input type="radio" name="concepto" id="compras-menores" value="compras-menores" checked>
+                                    <label for="compras-menores">Compras</label>
+                                </div>
+                                <div>
+                                    <input type="radio" name="concepto" id="viajes" value="viajes">
+                                    <label for="viajes">Viajes</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="panel-compras-menores" id="panel-compras-menores">
+                            <p class="indicacion-compras"><span>*</span>Las compras no deberán superar los S/. 400, a excepción de combustibles.</p>
+                            <div  id="add-gasto-btn" class="btn">Añadir</div>
+                        </div>
+                        
+                        <div class="panel-viajes" id="panel-viajes">
+                            <div id="viajes-tabs">
+                                <div class="tabs-header" id="tabs-header">
+                                    <div class="tab-button add-tab" id="add-tab">+</div>
+                                </div>
+                                <div class="tabs-body" id="tabs-body">
+                                    <!--here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-element">
+                            <span class="input-icon-left"><i class="fa-solid fa-money-bill-wave"></i></span>
+                            <span class="placeholder">Monto Total</span>
+                            <input type="number" class="form-control" id="monto-total" name="monto-total" required readonly>
+                        </div>
+
+                        <hr>
+                        <div class="modal-footer">
+                            <div class="btn btn-default" onclick="prevStep()">Atrás</div>
+                            <button type="submit" class="btn btn-default">Terminar</button>
+                        </div>
                     </div>
-                    <div class="form-group1">
-                        <label for="fecha_solicitud">Fecha de Solicitud</label>
-                        <input type="date" class="form-control" id="fecha_solicitud" name="fecha_solicitud" required>
-                    </div>
-                    <div class="form-group1">
-                        <label for="motivo_anticipo">Motivo del Anticipo</label>
-                        <textarea class="form-control" id="motivo_anticipo" name="motivo_anticipo" required></textarea>
-                    </div>
-                    <div class="form-group1">
-                        <label for="monto_total_solicitado">Monto Total Solicitado</label>
-                        <input type="number" class="form-control" id="monto_total_solicitado" name="monto_total_solicitado" step="0.01" required>
-                    </div>
-                    <div class="form-group1">
-                        <label for="jefe_aprobador">Jefe Aprobador</label>
-                        <select class="form-control" id="jefe_aprobador" name="jefe_aprobador">
-                            <option value="">Seleccione (opcional)</option>
-                            <?php foreach ($jefes as $jefe): ?>
-                                <option value="<?php echo htmlspecialchars($jefe['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                    <?php echo htmlspecialchars($jefe['nombre_usuario'], ENT_QUOTES, 'UTF-8'); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
                 </div>
             </form>
         </div>
     </div>
+
+    <!-- Modal para Editar Anticipo -->
+    <div id="editAnticipoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="edit-modal-title" id="edit-modal-title"></h2>
+                <div class="btn-close-modal" data-modal="editAnticipoModal"><i class="fa-solid fa-lg fa-xmark"></i></div>
+            </div>
+            <form action="/proy_anticipos_rendiciones/" method="POST">
+                <div class="btn-container">
+                    <!-- <span><i class="fa-solid fa-eye"></i></span> -->
+                        <label class="switch btn-color-mode-switch">
+                            <input value="1" id="color_mode" name="color_mode" type="checkbox">
+                            <label class="btn-color-mode-switch-inner" data-off="Ver" data-on="Editar" for="color_mode"></label>
+                        </label>
+                    <!-- <span><i class="fa-solid fa-pen-to-square"></i></span> -->
+                </div>
+                <div class="modal-body">
+                    <div class="form-step active" id="edit-step-1">
+                        <h3>1. Datos del solicitante</h3>
+                        <input class="form-control" type="hidden" id="edit-id-anticipo" name="edit-id-anticipo" readonly> <!--Id del anticipo-->
+                        <div class="datos-solicitantes-container">
+                            <div class="modal-element">
+                                <span class="input-icon-left">
+                                    <i class="fa-solid fa-user-tie"></i>
+                                </span>
+                                <span class="placeholder">Solicitante</span>
+                                <input type="text" class="form-control" id="edit-solicitante" name="edit-solicitante" readonly>
+                            </div>
+                            <div class="modal-element">
+                                <span class="input-icon-left">
+                                    <i class="fa-solid fa-id-card"></i>
+                                </span>
+                                <span class="placeholder">Documento Identidad</span>
+                                <input type="text" class="form-contro" id="edit-dni-solicitante" name="edit-dni-solicitante" readonly>
+                            </div>
+                            <div class="modal-element">
+                                <span class="input-icon-left">
+                                    <i class="fa-solid fa-tag"></i>
+                                </span>
+                                <span class="placeholder">Departamento</span>
+                                <input type="text" class="form-control" id="edit-departamento" name="edit-departamento" readonly>
+                            </div>
+                            <div class="modal-element">
+                                <span class="input-icon-left">
+                                    <i class="fa-solid fa-briefcase"></i>
+                                </span>
+                                <span class="placeholder">Cargo</span>
+                                <input type="text" class="form-control" id="edit-cargo" name="edit-cargo" readonly>
+                            </div>
+                        </div>
+
+                        <div class="datos-solicitantes-container">
+                            <div class="modal-element">
+                                <span class="placeholder">Sub centro de costo</span>
+                                <select class="form-control" id="edit-codigo-scc" name="edit-codigo-scc" required>
+                                    <option value="">Seleccione</option>
+                                    <?php foreach ($sccs as $scc): ?>
+                                        <option value="<?php echo htmlspecialchars($scc['codigo'], ENT_QUOTES, 'UTF-8'); ?>">
+                                            <?php echo htmlspecialchars($scc['codigo'].' - '. $scc['nombre'], ENT_QUOTES, 'UTF-8'); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="modal-element">
+                                <span class="placeholder">Sub-subcentro de Costo</span>
+                                <select class="form-control" id="edit-codigo-sscc" name="edit-codigo-sscc" required>
+                                    <option value="">Seleccione</option>
+                                    
+                                </select>
+                            </div>
+                            <div class="modal-element">
+                                <span class="placeholder">Nombre del Proyecto</span>
+                                <input type="text" class="form-control" id="edit-nombre-proyecto" name="edit-nombre-proyecto" required>
+                            </div>
+                            <div class="modal-element">
+                                <span class="placeholder">Motivo del Anticipo</span>
+                                <input type="text" class="form-control" id="edit-motivo-anticipo" name="edit-motivo-anticipo" required>
+                            </div>
+                        </div>
+
+                        <div class="datos-solicitantes-container">
+                            <div class="modal-element">
+                                <span class="placeholder">Fecha de Solicitud</span>
+                                <input type="date" class="form-control" id="edit-fecha-solicitud" name="edit-fecha-solicitud" required readonly>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        <!-- <div class="modal-footer">
+                            <div class="btn btn-default" onclick="nextStep()">Siguiente</div>
+                        </div> -->
+                    </div>
+
+                    <!-- 2. Concepto -->
+                    <div class="edit-form-step" id="edit-step-2">
+                        <div class="title-concepto" style="">
+                            <h3>2. Concepto</h3>
+                            <div class="concepto-categoria">
+                                <div>
+                                    <input type="radio" name="concepto" id="edit-compras-menores" value="edit-compras-menores" checked>
+                                    <label for="edit-compras-menores">Compras</label>
+                                </div>
+                                <div>
+                                    <input type="radio" name="concepto" id="edit-viajes" value="edit-viajes">
+                                    <label for="edit-viajes">Viajes</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="panel-compras-menores" id="edit-panel-compras-menores">
+                            <p class="indicacion-compras"><span>*</span>Las compras no deberán superar los S/. 400, a excepción de combustibles.</p>
+                            <div  id="add-gasto-btn" class="btn">Añadir</div>
+                        </div>
+                        
+                        <div class="panel-viajes" id="edit-panel-viajes">
+                            <div id="edit-viajes-tabs">
+                                <div class="tabs-header" id="edit-tabs-header">
+                                    <div class="tab-button add-tab" id="edit-add-tab">+</div>
+                                </div>
+                                <div class="tabs-body" id="edit-tabs-body">
+                                    <!--here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-element">
+                            <span class="input-icon-left"><i class="fa-solid fa-money-bill-wave"></i></span>
+                            <span class="placeholder">Monto Total</span>
+                            <input type="number" class="form-control" id="edit-monto-total" name="edit-monto-total" required readonly>
+                        </div>
+
+                        <hr>
+                        <div class="modal-footer">
+                            <!-- <div class="btn btn-default" onclick="prevStep()">Atrás</div> -->
+                            <button type="submit" class="btn btn-default" disabled>Terminar</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </section>
 <?php include "footer.php"; ?>

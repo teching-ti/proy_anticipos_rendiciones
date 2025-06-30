@@ -74,12 +74,49 @@
     background-color: #f5f5f5; /* Fondo al pasar el ratón, consistente con base.css */
 }
 
+.btn{
+    border-radius: .4rem;
+    padding: .4rem .8rem;
+    cursor: pointer;
+    font-weight: 900;
+    background-color: white;
+    transition: all ease-in-out .6s;
+}
+
+.btn-close-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: white;
+    cursor: pointer;
+}
+
+.btn-guardar-usuario{
+    color: #153f65;
+    border: #153f65 solid 1px;
+}
+
+.btn-limpiar{
+    border: solid 1px #e66161;
+    color: #e66161;
+}
+
+.btn-guardar-usuario:hover{
+    background: #153f65;
+    color: white;
+    transform: translateY(2px);
+}
+
+.btn-limpiar:hover{
+    background: #ce4949;
+    color: white;
+    transform: translateY(2px);
+}
+
 /* Asegura que las celdas sean legibles */
 .table td {
     vertical-align: middle;
 }
-
-
 
 /*Estilos para el modal de agregar usuario inicia*/
 .modal{
@@ -98,12 +135,14 @@
 /* Modal Content */
 .modal-content {
   position: relative;
-  background-color: #fefefe;
+  /* background-color: white; */
+  /* background-color: #F9FAFB; */
+  background-color: white;
   border-radius: 1.2rem;
   margin:12px auto;
-  border: 1px solid #888;
-  width: 94%;
-  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  /* border: 1px solid #888; */
+  width: 336px;
+  /* box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19); */
   -webkit-animation-name: animatetop;
   -webkit-animation-duration: 0.4s;
   animation-name: animatetop;
@@ -122,17 +161,26 @@
   to {top:0; opacity:1}
 }
 
-.modal-header {
-    padding: 8px 16px;
-    /* background-color: whitesmoke; */
+/* .modal-header {
+    padding: .8rem .6rem;
     color: white;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    /* background: #EDF4FE;
-    background: linear-gradient(331deg,rgba(237, 244, 254, 1) 13%, rgba(222, 242, 255, 1) 37%, rgba(42, 126, 235, 1) 100%); */
-    background: #EDF4FE;
-    background: linear-gradient(331deg, rgba(237, 244, 254, 1) 4%, rgba(222, 242, 255, 1) 14%, rgba(21, 63, 101, 1) 84%);
+    background: #ffffff;
+    background: linear-gradient(331deg,rgba(255, 255, 255, 1) 0%, rgba(222, 242, 255, 1) 0%, rgba(125, 155, 186, 1) 17%, rgba(63, 100, 135, 1) 45%, rgba(21, 63, 101, 1) 78%);
+} */
+
+.modal-header {
+    padding: 1rem 1.2rem;
+    background: linear-gradient(135deg, #1A4E8A 0%, #336FA9 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .modal-body {
@@ -141,10 +189,12 @@
 }
 
 .modal-footer {
-    padding: 2px 16px;
+    padding: .8rem 0;
     color: white;
-    background: #ffffff;
-background: linear-gradient(331deg, rgba(255, 255, 255, 1) 0%, rgba(222, 242, 255, 1) 8%, rgba(125, 155, 186, 1) 41%, rgba(21, 63, 101, 1) 80%);
+    border-top: rgb(175, 173, 173) 1px solid;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
 }
 
 .btn-close-modal:hover{
@@ -152,7 +202,6 @@ background: linear-gradient(331deg, rgba(255, 255, 255, 1) 0%, rgba(222, 242, 25
     transition: linear .4s;
     font-weight: bold;
     rotate: 90deg;
-    color: #0b2942;
 }
 
 .modal-elements-container{
@@ -164,23 +213,23 @@ background: linear-gradient(331deg, rgba(255, 255, 255, 1) 0%, rgba(222, 242, 25
 
 .modal-element{
     display: grid;
-    width: fit-content;
+    width: 100% ;
     position: relative;
     margin-bottom: 20px;
 }
 
 .modal-element input, .modal-element select{
-    width: 18rem;
-    padding: .4rem;
-    border: none;
-    border-bottom: 2px solid #ccc;
+    background-color: white;
+    /* padding: .4rem; */
+    padding: 0.6rem 0.75rem 0.6rem 2.2rem;
     background: none;
-    /* border-radius: 5px; */
     font-size: 15px;
-    outline: none;
     transition: .3s;
-    border-radius: .4rem;
-    border: solid 1px rgb(211, 206, 206);
+    border-radius: 6px;
+    color: #1F2937;
+    /* border: solid 1px rgb(211, 206, 206); */
+    border: solid 1px #D1D5DB;
+    transition: border-color 0.3s ease;
 }
 
 .placeholder{
@@ -192,8 +241,17 @@ background: linear-gradient(331deg, rgba(255, 255, 255, 1) 0%, rgba(222, 242, 25
     padding: 0 .2rem;
     color: #777;
     pointer-events: none;
-    font-size: 12px;
+    font-size: 13px;
     transition: 0.3s;
+}
+
+#doc-identidad, #user-rol{
+    outline: solid 3px rgba(0,0,0,0);
+}
+
+#doc-identidad:focus, #user-rol:focus{
+    outline: solid 3px #466a8a;
+    border: rgba(0,0,0,0) solid 1px;
 }
 
 .lupa{
@@ -211,16 +269,30 @@ background: linear-gradient(331deg, rgba(255, 255, 255, 1) 0%, rgba(222, 242, 25
     z-index: 99;
 }
 
+.lupa:hover{
+    color: #0b2942;
+    font-weight: bold;
+}
+
 .lupa i{
     float: left;
     /* filter: drop-shadow(5px 5px 5px #0b2942); */
 }
 
-/* .doc-id{
-    display: flex;
-    align-items: center;
-    padding: .4rem;
-} */
+.input-icon-left {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    color: #777;
+    z-index: 10;
+    pointer-events: none;
+    font-size: 14px;
+}
+
+.modal-element input {
+    padding-left: 2rem; /* Ajusta este valor según el tamaño del ícono */
+}
 /*Estilos para el modal termina*/
 
 /* Media query para tablets (≤800px) */
@@ -243,7 +315,7 @@ background: linear-gradient(331deg, rgba(255, 255, 255, 1) 0%, rgba(222, 242, 25
     }
 
     .modal-content{
-        width: 60%;
+        width: 342px;
     }
 }
 
@@ -288,6 +360,6 @@ background: linear-gradient(331deg, rgba(255, 255, 255, 1) 0%, rgba(222, 242, 25
     }
 
     .modal-content{
-        width: 98%;
+        width: 340px;
     }
 }

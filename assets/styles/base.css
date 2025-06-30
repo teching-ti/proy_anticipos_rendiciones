@@ -30,9 +30,9 @@ body {
 .sidebar {
     background: rgba(215, 229, 247, 1);
     /* background: #EDF4FE;
-    background: linear-gradient(151deg, rgba(237, 244, 254, 1) 1%, rgba(222, 242, 255, 1) 51%, rgba(215, 229, 247, 1) 100%); */
-    padding: .8rem;
-    width: 14%;
+    background: linear-gradient(151deg, rgb(132, 170, 223) 1%, rgb(97, 130, 160) 51%, rgb(58, 86, 122) 100%); */
+    width: 240px;
+    padding: 0.8rem;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease-in-out;
 }
@@ -54,31 +54,36 @@ body {
 
 .sidebar-menu ul {
     list-style: none;
+    display: flex;
+    justify-content: center;
 }
 
 .sidebar-menu li {
     margin: .2rem 0;
     list-style: none;
     text-decoration: none;
+        border-radius: 0.4rem;
 }
 
 .link-text {
     text-decoration: none;
     color: #333333;
+    /* width: 100%; */
     font-weight: bold;
     font-size: 1.1rem;
     display: flex;
     align-items: center;
     padding: 0.8rem;
-    border-radius: 0.4rem;
-    transition: all ease-in-out 0.3s;
     gap: .8rem;
 }
 
-.sidebar-menu li.active a,
-.sidebar-menu a:hover {
+/* hover a  todos los elementos, excepto a l primero que cuenta con la imagen*/
+.sidebar-menu li:hover:not(:first-child){
     background: #333333;
-    color: whitesmoke;
+}
+
+.sidebar-menu li:hover a{
+    color:white;
 }
 
 .principal-content {
@@ -90,7 +95,7 @@ body {
     padding: 0 1.4rem;
 }
 
-/* Información perteneciente al header */
+/* información perteneciente al header */
 .header {
     display: flex;
     margin-top: 1.2rem;
@@ -163,7 +168,6 @@ body {
     position: absolute;
     top: 100%;
     width: 100%;
-    /* right: 0; */
     background: rgba(215, 229, 247, 1);
     border-radius: .4rem 0 0 .4rem;
     padding: .4rem;
@@ -188,13 +192,11 @@ body {
 .user-dropdown p {
     margin: .3rem 0;
     font-size: 0.9rem;
-    /* color: #153f65; */
     color: #333333;
 }
 
 .user-dropdown p strong {
     color: #153f65;
-    /* color: #333333; */
     font-weight: 600;
 }
 
@@ -220,7 +222,6 @@ body {
 }
 
 .exit-session:hover{
-    /* background: #333333; */
     background: #2c2c2c;
 }
 
@@ -260,7 +261,7 @@ footer {
 }
 
 
-/* Oculta menú responsive por defecto */
+/* oculta menú responsive por defecto */
 .responsive-menu {  
     position: fixed;
     top: 0;

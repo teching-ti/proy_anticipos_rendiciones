@@ -16,7 +16,9 @@ function loadController($controllerName) {
 }
 
 // Obtener la URL solicitada
-$request_uri = trim($_SERVER['REQUEST_URI'], '/');
+// $request_uri = trim($_SERVER['REQUEST_URI'], '/');
+
+$request_uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 $base_path = 'proy_anticipos_rendiciones';
 if (strpos($request_uri, $base_path) === 0) {
     $request_uri = trim(substr($request_uri, strlen($base_path)), '/');
@@ -39,10 +41,17 @@ $routes = [
     'cost_center/edit_scc' => ['controller' => 'costcenter', 'action' => 'edit_scc'],
     'cost_center/edit_sscc' => ['controller' => 'costcenter', 'action' => 'edit_sscc'],
     'usuarios' => ['controller' => 'user', 'action'=> 'index'],
+    'usuarios/searchByDni' => ['controller' => 'user', 'action'=> 'searchByDni'],
+    'usuarios/anticipoBuscarDni' => ['controller' => 'user', 'action'=> 'anticipoBuscarDni'],
     'anticipos' => ['controller' => 'anticipo', 'action' => 'index'],
     'anticipos/add' => ['controller' => 'anticipo', 'action' => 'add'],
+    'anticipos/getSsccByScc' => ['controller' => 'anticipo', 'action' => 'getSsccByScc'],
+    'anticipos/getSaldoDisponibleTiempoReal' => ['controller' => 'anticipo', 'action' => 'getSaldoDisponibleTiempoReal'],
+    'anticipos/getAnticipoDetails' => ['controller' => 'anticipo', 'action' => 'getAnticipoDetails'],
     'anticipos/approve' => ['controller' => 'anticipo', 'action' => 'approve'],
-    'anticipos/reject' => ['controller' => 'anticipo', 'action' => 'reject']
+    'anticipos/reject' => ['controller' => 'anticipo', 'action' => 'reject'],
+    'tarifario/cargos' => ['controller' => 'tarifario', 'action' => 'obtenerCargos'], //ruta para obtener los cargos del tarifario
+    'tarifario/montosCargo' => ['controller' => 'tarifario', 'action' => 'obtenerMontosPorCargo']
 ];
 
 // Buscar la ruta en el arreglo de rutas

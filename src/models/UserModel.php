@@ -61,7 +61,7 @@ class UserModel {
     // Obtener todos los roles para el desplegable
     public function getAllRoles() {
         try {
-            $query = "SELECT id, nombre FROM tb_roles ORDER BY nombre";
+            $query = "SELECT id, nombre FROM tb_roles WHERE nombre!='Administrador' ORDER BY nombre DESC";
             $stmt = $this->db->prepare($query);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -69,7 +69,7 @@ class UserModel {
             return [];
         }
     }
-
+    
     // Verificar si un DNI ya existe
     public function dniExists($dni) {
         try {

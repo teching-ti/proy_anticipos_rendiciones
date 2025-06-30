@@ -59,7 +59,7 @@ class LoginController {
                     $_SESSION['trabajador'] = $trabajador; // Almacenar apellidos, nombre, cargo, departamento, correo ?-
                     /*Revisar error_log*/
                     error_log("Datos de trabajador cargados de forma exitosa: " . json_encode($trabajador));
-
+                    
                     header('Location: /proy_anticipos_rendiciones/dashboard');
                     exit;
                 } else {

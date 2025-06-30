@@ -7,27 +7,7 @@ include "base.php";
 
 <section class="users-content">
     <!-- Incluir alert.js -->
-    <script src="/proy_anticipos_rendiciones/assets/js/alert.js"></script>
-
-    <!-- Notificaciones -->
-    <?php if (isset($_SESSION['success'])): ?>
-        <script>
-            showAlert({
-                title: 'Éxito',
-                message: '<?php echo htmlspecialchars($_SESSION['success'], ENT_QUOTES, 'UTF-8'); ?>',
-                type: 'success'
-            });
-        </script>
-    <?php endif; ?>
-    <?php if (isset($_SESSION['error'])): ?>
-        <script>
-            showAlert({
-                title: 'Error',
-                message: '<?php echo htmlspecialchars($_SESSION['error'], ENT_QUOTES, 'UTF-8'); ?>',
-                type: 'error'
-            });
-        </script>
-    <?php endif; ?>
+    <script src="assets/scripts/modalAlert.js"></script>
 
     <!-- Tabla de usuarios -->
     <section class="section-table">
@@ -71,44 +51,72 @@ include "base.php";
                 <h2>Agregar usuario</h2>
                 <button type="button" class="btn-close-modal" data-modal="addUserModal"><i class="fa-solid fa-lg fa-xmark"></i></button>
             </div>
-            <form action="/proy_anticipos_rendiciones/anticipos/add" method="POST">
+            <form action="agregar_usuario" method="POST">
                 <div class="modal-body">
                     <div class="modal-elements-container">
                         <div class="modal-element doc-id">
                             <span class="placeholder">Documento de Identidad</span>
+                            <span class="input-icon-left">
+                                <i class="fa-solid fa-id-card"></i>
+                            </span>
                             <input type="text" class="form-control" id="doc-identidad" name="doc-identidad">
                             <span class="lupa">
                                 <i class="fa-solid fa-lg fa-magnifying-glass"></i>
                             </span>
                         </div>
                         <div class="modal-element">
+                            <span class="input-icon-left">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </span>
                             <span class="placeholder">Usuario</span>
-                            <input type="text" class="form-control" id="user-nombre" name="user-nombre">
+                            <input type="text" class="form-control" id="user-nombre" name="user-nombre" readonly>
                         </div>
                         <div class="modal-element">
+                            <span class="input-icon-left">
+                                <i class="fa-solid fa-key"></i>
+                            </span>
                             <span class="placeholder">Contraseña</span>
-                            <input type="text" class="form-control" id="user-contra" name="user-contra">
+                            <input type="text" class="form-control" id="user-contra" name="user-contra" readonly>
                         </div>
                         <div class="modal-element">
+                            <span class="input-icon-left">
+                                <i class="fa-solid fa-pen-nib"></i>
+                            </span>
                             <span class="placeholder">Rol</span>
-                            <input type="text" class="form-control" id="user-rol" name="user-rol">
+                            <select class="form-control" id="user-rol" name="user-rol">
+                                <?php foreach ($roles as $rol):?>
+                                        <option value="<?php echo htmlspecialchars($rol['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                            <?php echo htmlspecialchars($rol['nombre'], ENT_QUOTES, 'UTF-8'); ?>
+                                        </option>
+                                <?php endforeach ;?>
+                            </select>
                         </div>
                         <div class="modal-element">
+                            <span class="input-icon-left">
+                                <i class="fa-solid fa-circle-user"></i>
+                            </span>
                             <span class="placeholder">Nombres</span>
-                            <input type="text" class="form-control" id="user-nombre-completo" name="user-nombre-completo">
+                            <input type="text" class="form-control" id="user-nombre-completo" name="user-nombre-completo" disabled>
                         </div>
                         <div class="modal-element">
+                            <span class="input-icon-left">
+                                <i class="fa-solid fa-briefcase"></i>
+                            </span>
                             <span class="placeholder">Cargo</span>
-                            <input type="text" class="form-control" id="user-cargo" name="user-cargo">
+                            <input type="text" class="form-control" id="user-cargo" name="user-cargo" disabled>
                         </div>
                         <div class="modal-element">
+                            <span class="input-icon-left">
+                                <i class="fa-solid fa-tag"></i>
+                            </span>
                             <span class="placeholder">Departameto</span>
-                            <input type="text" class="form-control" id="user-departamento" name="user-departamento">
+                            <input type="text" class="form-control" id="user-departamento" name="user-departamento" disabled>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="submit" class="btn btn-guardar-usuario">Guardar <i class="fa-solid fa-floppy-disk"></i></button>
+                    <button type="submit" class="btn btn-limpiar">Limpiar<i class="fa-solid fa-eraser"></i></button>
                 </div>
             </form>
         </div>
