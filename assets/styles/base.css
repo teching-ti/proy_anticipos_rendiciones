@@ -158,8 +158,8 @@ body {
     font-weight: bold;
     cursor: pointer;
     color: whitesmoke;
-    border: solid 1px #153f65;
-    background: #153f65;
+    border: none;
+    background-color: #1f58a8;
     border-radius: .4rem;
     padding: .1rem .6rem;
 }

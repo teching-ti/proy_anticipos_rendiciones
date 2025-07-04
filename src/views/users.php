@@ -11,11 +11,10 @@ include "base.php";
 
     <!-- Tabla de usuarios -->
     <section class="section-table">
-        <div class="elemento-agregar-usuario">
-            <button class="btn-add-usuario"><i class='fa-solid fa-circle-plus'></i>Nuevo usuario</button>
-        </div>
-        
         <h2>Listado de Usuarios</h2>
+        <div class="elemento-agregar-usuario">
+            <div class="btn btn-add-usuario"><i class='fa-solid fa-circle-plus'></i> Nuevo usuario</div>
+        </div>
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead class="table-head">

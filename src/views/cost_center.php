@@ -34,124 +34,130 @@ include "base.php";
     <section class="section-table">
         <h2>Centros de Costo</h2>
         <?php if($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
-            <button type='button' class='btn btn-primary btn-add-cc'><i class='fa-solid fa-circle-plus fa-lg'></i></button>
+            <button type='button' class='btn btn-add-cc'><i class='fa-solid fa-circle-plus fa-lg'></i></button>
         <?php endif; ?>
-        <table class="table table-hover">
-            <thead class="table-head">
-                <tr>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Nombre Corto</th>
-                    <th>Activo</th>
-                    <?php if($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
-                        <th>Editar</th>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-head">
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Nombre Corto</th>
+                        <th>Activo</th>
+                        <?php if($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
+                            <th>Editar</th>
+                        <?php endif; ?>
+                    </tr>
+                </thead>
+                <tbody class="table-body">
+                    <?php if (empty($cc_data)): ?>
+                        <tr><td colspan="4">No hay datos disponibles</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($cc_data as $row): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($row['codigo'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><?php echo htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><?php echo htmlspecialchars($row['nombre_corto'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><?php echo $row['activo'] ? 'Sí' : 'No'; ?></td>
+                                <?php if($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
+                                    <td class="td-action">
+                                        <button type="button" class="btn btn-edit-cc"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    </td>
+                                <?php endif; ?>
+                            </tr>
+                        <?php endforeach; ?>
                     <?php endif; ?>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($cc_data)): ?>
-                    <tr><td colspan="4">No hay datos disponibles</td></tr>
-                <?php else: ?>
-                    <?php foreach ($cc_data as $row): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($row['codigo'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><?php echo htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><?php echo htmlspecialchars($row['nombre_corto'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><?php echo $row['activo'] ? 'Sí' : 'No'; ?></td>
-                            <?php if($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
-                                <td class="td-action">
-                                    <button type="button" class="btn btn-primary btn-edit-cc"><i class="fa-solid fa-pen-to-square"></i></button>
-                                </td>
-                            <?php endif; ?>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </section>
 
     <!-- Tabla para tb_scc -->
     <section class="section-table">
         <h2>Subcentros de Costo</h2>
         <?php if($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
-            <button type='button' class='btn btn-primary btn-add-scc'><i class='fa-solid fa-circle-plus fa-lg'></i></button>
+            <button type='button' class='btn btn-add-scc'><i class='fa-solid fa-circle-plus fa-lg'></i></button>
         <?php endif; ?>
-        <table class="table table-hover">
-            <thead class="table-head">
-                <tr>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Nombre Corto</th>
-                    <th>Activo</th>
-                    <th>Centro de Costo</th>
-                    <?php if($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
-                        <th>Editar</th>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-head">
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Nombre Corto</th>
+                        <th>Activo</th>
+                        <th>Centro de Costo</th>
+                        <?php if($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
+                            <th>Editar</th>
+                        <?php endif; ?>
+                    </tr>
+                </thead>
+                <tbody class="table-body">
+                    <?php if (empty($scc_data)): ?>
+                        <tr><td colspan="5">No hay datos disponibles</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($scc_data as $row): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($row['codigo'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><?php echo htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><?php echo htmlspecialchars($row['nombre_corto'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><?php echo $row['activo'] ? 'Sí' : 'No'; ?></td>
+                                <td><?php echo htmlspecialchars($row['cc_nombre'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <?php if($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
+                                    <td class="td-action">
+                                        <button type="button" class="btn btn-edit-scc"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    </td>
+                                <?php endif; ?>
+                            </tr>
+                        <?php endforeach; ?>
                     <?php endif; ?>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($scc_data)): ?>
-                    <tr><td colspan="5">No hay datos disponibles</td></tr>
-                <?php else: ?>
-                    <?php foreach ($scc_data as $row): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($row['codigo'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><?php echo htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><?php echo htmlspecialchars($row['nombre_corto'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><?php echo $row['activo'] ? 'Sí' : 'No'; ?></td>
-                            <td><?php echo htmlspecialchars($row['cc_nombre'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <?php if($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
-                                <td class="td-action">
-                                    <button type="button" class="btn btn-primary btn-edit-scc"><i class="fa-solid fa-pen-to-square"></i></button>
-                                </td>
-                            <?php endif; ?>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </section>
 
     <!-- Tabla para tb_sscc -->
     <section class="section-table">
         <h2>Sub-subcentros de Costo</h2>
         <?php if ($_SESSION['rol']==1 || $_SESSION['rol']==4): ?>
-            <button type='button' class='btn btn-primary btn-add-sscc'><i class='fa-solid fa-circle-plus'></i></button>
+            <button type='button' class='btn btn-add-sscc'><i class='fa-solid fa-circle-plus'></i></button>
         <?php endif; ?>
-        <table class="table table-hover">
-            <thead class="table-head">
-                <tr>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Nombre Corto</th>
-                    <th>Activo</th>
-                    <th>Subcentro de Costo</th>
-                    <?php if ($_SESSION['rol']==1 || $_SESSION['rol']==4): ?>
-                        <th>Editar</th>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-head">
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Nombre Corto</th>
+                        <th>Activo</th>
+                        <th>Subcentro de Costo</th>
+                        <?php if ($_SESSION['rol']==1 || $_SESSION['rol']==4): ?>
+                            <th>Editar</th>
+                        <?php endif; ?>
+                    </tr>
+                </thead>
+                <tbody class="table-body">
+                    <?php if (empty($sscc_data)): ?>
+                        <tr><td colspan="5">No hay datos disponibles</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($sscc_data as $row): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($row['codigo'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><?php echo htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><?php echo htmlspecialchars($row['nombre_corto'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><?php echo $row['activo'] ? 'Sí' : 'No'; ?></td>
+                                <td><?php echo htmlspecialchars($row['scc_nombre'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <?php if ($_SESSION['rol']==1 || $_SESSION['rol']==4): ?>
+                                    <td class="td-action">
+                                        <button type="button" class="btn btn-edit-sscc"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    </td>
+                                <?php endif; ?>
+                            </tr>
+                        <?php endforeach; ?>
                     <?php endif; ?>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($sscc_data)): ?>
-                    <tr><td colspan="5">No hay datos disponibles</td></tr>
-                <?php else: ?>
-                    <?php foreach ($sscc_data as $row): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($row['codigo'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><?php echo htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><?php echo htmlspecialchars($row['nombre_corto'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><?php echo $row['activo'] ? 'Sí' : 'No'; ?></td>
-                            <td><?php echo htmlspecialchars($row['scc_nombre'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <?php if ($_SESSION['rol']==1 || $_SESSION['rol']==4): ?>
-                                <td class="td-action">
-                                    <button type="button" class="btn btn-primary btn-edit-sscc"><i class="fa-solid fa-pen-to-square"></i></button>
-                                </td>
-                            <?php endif; ?>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </section>
 
     
@@ -183,7 +189,7 @@ include "base.php";
                     </div>
                 </div>
                 <div class='modal-footer'>
-                    <button type='submit' class='btn btn-primary'>Guardar</button>
+                    <button type='submit' class='btn'>Guardar</button>
                 </div>
             </form>
         </div>
@@ -220,7 +226,7 @@ include "base.php";
                     </div>
                 </div>
                 <div class='modal-footer'>
-                    <button type='submit' class='btn btn-primary'>Guardar</button>
+                    <button type='submit' class='btn'>Guardar</button>
                 </div>
             </form>
         </div>
@@ -268,7 +274,7 @@ include "base.php";
                     </div>
                 </div>
                 <div class='modal-footer'>
-                    <button type='submit' class='btn btn-primary'>Guardar</button>
+                    <button type='submit' class='btn'>Guardar</button>
                 </div>
             </form>
         </div>
@@ -316,7 +322,7 @@ include "base.php";
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="submit" class="btn">Guardar</button>
                 </div>
             </form>
         </div>
@@ -358,7 +364,7 @@ include "base.php";
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="submit" class="btn">Guardar</button>
                 </div>
             </form>
         </div>
@@ -404,7 +410,7 @@ include "base.php";
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="submit" class="btn">Guardar</button>
                 </div>
             </form>
         </div>

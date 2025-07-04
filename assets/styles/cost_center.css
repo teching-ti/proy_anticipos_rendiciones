@@ -10,23 +10,35 @@
     margin-bottom: 1rem;
 }
 
+.table-responsive {
+    overflow-x: auto;
+    max-height: 600px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: .8rem;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 50px;
+}
+
 .table {
     /* width: 100%; */
+    width: 100%;
     border-collapse: collapse;
-    background: #ffffff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: #fff;
 }
 
 .table th, .table td {
-    padding: 0.4rem;
-    text-align: left;
-    font-size: .8rem;
-    border: 1px solid #c1daff;
+    padding: 6px;
+    border-bottom: 1px solid #ddd;
+    color: #03131f;
 }
 
 .table-head {
-    background-color: #153f65;
-    color: #ffffff;
+background: #7FAFE6;
+    background: linear-gradient(100deg, rgb(193, 221, 255) 0%, rgba(227, 244, 255, 1) 46%, rgba(228, 238, 247, 1) 58%, rgba(217, 237, 255, 1) 78%, rgba(220, 233, 245, 1) 100%);
+    position: sticky;
+    text-align: left;
+    top: 0;
+    z-index: 2;
 }
 
 .table-hover tbody tr:hover {
@@ -38,26 +50,20 @@
     border: none;
     border-radius: 0.4rem;
     cursor: pointer;
-    font-family: 'Open Sans', sans-serif;
     transition: all 0.3s ease-in-out;
+    width: fit-content;
 }
 
-.btn-primary {
-    background-color: #153f65;
+.btn-add-cc, .btn-add-scc, .btn-add-sscc{
+    background-color: #1f58a8;
     color: #ffffff;
+    margin-bottom: 15px;
 }
 
-.btn-primary:hover {
-    background-color: #03131f;
-}
-
-.btn-secondary {
-    background-color: #c1daff;
-    color: #153f65;
-}
-
-.btn-secondary:hover {
-    background-color: #70bdf2;
+.btn-edit-cc, .btn-edit-scc, .btn-edit-sscc{
+    border: solid 2px #1f58a8;
+    background: none;
+    color: #1f58a8;
 }
 
 .section-table{
@@ -184,4 +190,15 @@
 
 .form-check label {
     color: #153f65;
+}
+
+@media (max-width: 600px) {
+    .table-head tr th{
+        font-size: .8rem;
+        font-weight: bold;
+    }
+    .table-body tr td{
+        font-size: .8rem;
+        /* font-weight: bold; */
+    }
 }

@@ -42,29 +42,29 @@
                     <img src="assets/img/logo_color_teching.png" alt="Logo Teching" id="img-logo">
                 </li>
                 <li>
-                    <a href="/proy_anticipos_rendiciones/dashboard" class="link-text">
+                    <a href="dashboard" class="link-text">
                         <i class="fas fa-home"></i>
                         <span>Inicio</span>
                     </a>
                 </li>
                 <li>
-                    <a href="/proy_anticipos_rendiciones/anticipos" class="link-text">
+                    <a href="anticipos" class="link-text">
                         <i class="fa-solid fa-hand-holding-dollar fa-lg"></i>
                         <span>Anticipos</span>
                     </a>
                 </li>
 
                 <li>
-                    <a href='#' class='link-text'>
+                    <a href='rendiciones' class='link-text'>
                         <i class='fa-solid fa-circle-dollar-to-slot'></i>
                         <span>Rendiciones</span>
                     </a>
                 </li>
                 <?php
-                    if($_SESSION['rol']==1){
+                    if($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4){
                         echo "
                         <li>
-                            <a href='/proy_anticipos_rendiciones/usuarios' class='link-text'>
+                            <a href='usuarios' class='link-text'>
                                 <i class='fa-solid fa-users-line fa-lg'></i>
                                 <span>Usuarios</span>
                             </a>
@@ -73,16 +73,16 @@
                 ?>
                 
                 <li>
-                    <a href='/proy_anticipos_rendiciones/centro_costos' class='link-text'>
+                    <a href='centro_costos' class='link-text'>
                         <i class='fa-solid fa-coins'></i>
                         <span>Centro de Costos</span>
                     </a>
                 </li>
-                <?php if($_SESSION['rol']==1): ?>
+                <?php if($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
                     <li>
-                        <a href='#' class='link-text'>
+                        <a href='presupuestos' class='link-text'>
                             <i class='fa-solid fa-money-bill-wave'></i>
-                            <span>CC. Presupuestos</span>
+                            <span>Presupuestos</span>
                         </a>
                     </li>
                 <?php endif; ?>
@@ -97,15 +97,15 @@
                 <li class="logo-teching">
                     <img src="assets/img/logo_color_teching.png" alt="Logo Teching" id="img-logo">
                 </li>
-                <li><a href="/proy_anticipos_rendiciones/dashboard">Inicio</a></li>
-                <li><a href="/proy_anticipos_rendiciones/anticipos">Anticipos</a></li>
-                <li><a href="#">Rendiciones</a></li>
-                <?php if ($_SESSION['rol'] == 1): ?>
-                    <li><a href="/proy_anticipos_rendiciones/usuarios">Usuarios</a></li>
+                <li><a href="dashboard">Inicio</a></li>
+                <li><a href="anticipos">Anticipos</a></li>
+                <li><a href="rendiciones">Rendiciones</a></li>
+                <?php if ($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
+                    <li><a href="usuarios">Usuarios</a></li>
                 <?php endif; ?>
-                <li><a href="/proy_anticipos_rendiciones/centro_costos">Centro de Costos</a></li>
-                <?php if ($_SESSION['rol'] == 1): ?>
-                    <li><a href="#">CC. Presupuestos</a></li>
+                <li><a href="centro_costos">Centro de Costos</a></li>
+                <?php if ($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
+                    <li><a href="presupuestos">Presupuestos</a></li>
                 <?php endif; ?>
                 
             </ul>

@@ -1,6 +1,10 @@
+04072025 - jvalladares
+A la fecha se pueden agregar y editar los anticipos según lo mencionado en el punto anterior. Ya se puede iniciar con el apartado de cambios de estado de un anticipo, por el momento únicamente figura como nuevo. Se debería de poder contar con cambios d estado y notificaciones, posterior a ello tambie´n se debe dar incio al trabajo con las rendiciones. (Diseñar las tablas necesarias para poder trabajar con este servicio).
+Por ahora tenemos en funcionamiento el módulo de usuarios, anticipos, presupuestos y centros de costos.
+
 30062025 - jvalladares
 A la fecha se pueden registrar anticipos, para el tema de visualización y cargado de un anticipo se deberá hacer doble clic sobre el anticipo listado y posteriormente se mostrará el formulario de visualizar y editar anticipo. Por el momento se están obteniendo todos los datos del anticipo, se encuentra pendiente que se pueda editar dicho anticipo, lo que involucra retirar elementos o añadir elementos adicionales. Estas acciones están siendo trabajadas a la fecha.
-
+(Se pueden actualizar los detalles de compras menores e incluso recalcular el monto en js y en la tabla general de anticipos, estaría pendiente todavía el que se pueda "eliminar" algunos de estos detalles de compras menores y el de actualizar los detalles de viajes)
 
 12052025 - jvalladares
 
@@ -9,3 +13,8 @@ A la fecha se pueden registrar anticipos, para el tema de visualización y carga
 Se tiene completo el módulo de mantenimiento con centros de costos, validaciones de acceso, roles. Se debe terminar el sprint3 con la actualización de.
 Usuarios (Se debe listar e indicar si una cuenta de usuario esta apta para ingresar al sistema, apta si en caso existe registro por DNI en la otra base de datos y si un usuario se encuentra cesado)
 Deberá de poder acceder al sistema siempre y cuando se tenga todo en orden con estos parámetros.
+
+
+-----------------------------------------
+Funcionalidades del sistema
+- Los detalles de compras menores poseen un campo de valido, servirá si en caso se desea eliminar algún detalle de compra menor, entonces si por alguna razón este detalle es eliminado, solo sería cuestión de editar la columna correspondiente de valido a 0.

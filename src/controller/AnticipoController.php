@@ -41,6 +41,16 @@ class AnticipoController {
         exit;
     }
 
+    public function getAllScc() {
+        header('Content-Type: application/json');
+        try {
+            $sccs = $this->anticipoModel->getAllScc();
+            echo json_encode($sccs);
+        } catch (Exception $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+    }
+
     // función que se utiliza en tiempo real para consultar el saldo disponible cada vez que se calcula el monto total cuando se va llenando el formulario de anticipos
     public function getSaldoDisponibleTiempoReal(){
         header('Content-Type: application/json');
@@ -61,15 +71,17 @@ class AnticipoController {
     public function add() {
 
         if (!isset($_SESSION['id'])) {
-            header('Location: /proy_anticipos_rendiciones/iniciar_sesion');
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Sesión no iniciada.']);
             exit;
         }
-
+        
         $sccs = $this->anticipoModel->getAllScc();
         $ssccs2 = $this->anticipoModel->getAllSscc();
         
-
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $response = ['success' => false, 'message' => '']; 
+            
             $id_usuario = $_SESSION['id'];
             $solicitante = $_SESSION['nombre_usuario'];
             $solicitante_nombres = trim($_POST['solicitante'] ?? '');
@@ -89,7 +101,7 @@ class AnticipoController {
             $detalles_gastos = isset($_POST['detalles_gastos']) ? $_POST['detalles_gastos'] : [];//here
             $detalles_viajes = [];
 
-                        // Procesar datos de viajes
+            // Procesar datos de viajes
             if ($concepto === 'viajes') {
                 // Obtener conceptos válidos de tb_viaticos_concepto
                 $conceptos_validos = array_column($this->anticipoModel->getConceptosViaticos(), 'id', 'nombre');
@@ -137,36 +149,30 @@ class AnticipoController {
 
             error_log("Datos recibidos en controlador: codigo_sscc=$codigo_sscc, proyecto=$nombre_proyecto, fecha=$fecha_solicitud, motivo=$motivo_anticipo, monto=$monto_total_solicitado, id_cat_documento=$id_cat_documento, concepto=$concepto, detalles_gastos=" . json_encode($detalles_gastos) . ", detalles_viajes=" . json_encode($detalles_viajes));
 
-            //error_log("Datos id: $codigo_sscc, proyecto: $nombre_proyecto, fecha: $fecha_solicitud, motivo: $motivo_anticipo, monto: $monto_total_solicitado, cat: $id_cat_documento, detalles_gastos=" .json_encode($detalles_gastos));
-
             // Validaciones
             if (empty($codigo_sscc) || empty($nombre_proyecto) || empty($fecha_solicitud) || empty($motivo_anticipo) || $monto_total_solicitado <= 0 || !$id_cat_documento) {
-                $_SESSION['error'] = 'Los campos sub-subcentro, proyecto, fecha, motivo y monto son obligatorios. El monto debe ser mayor a 0.';
-                error_log($_SESSION['error']);
+                $response['message'] = 'Los campos sub-subcentro, proyecto, fecha, motivo y monto son obligatorios. El monto debe ser mayor a 0.';
+                error_log($response['message']);
             } elseif (!preg_match('/^[a-zA-Z0-9\s]+$/', $nombre_proyecto)) {
-                $_SESSION['error'] = 'El nombre del proyecto solo puede contener letras, números y espacios.';
-                error_log($_SESSION['error']);
+                $response['message'] = 'El nombre del proyecto solo puede contener letras, números y espacios.';
+                error_log($response['message']);
             } elseif (!preg_match('/^[a-zA-Z0-9\s]+$/', $motivo_anticipo)) {
-                $_SESSION['error'] = 'El motivo del anticipo solo puede contener letras, números y espacios.';
-                error_log($_SESSION['error']);
+                $response['message'] = 'El motivo del anticipo solo puede contener letras, números y espacios.';
+                error_log($response['message']);
             } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_solicitud) || !strtotime($fecha_solicitud)) {
-                $_SESSION['error'] = 'La fecha de solicitud debe tener el formato YYYY-MM-DD.';
-                error_log($_SESSION['error']);
+                $response['message'] = 'La fecha de solicitud debe tener el formato YYYY-MM-DD.';
+                error_log($response['message']);
             } else {
                 if ($concepto == 'compras-menores' && !empty($detalles_gastos)) {
                     // Validar detalles de gastos menores
                     foreach ($detalles_gastos as $index => $detalle) {
                         if (empty($detalle['descripcion']) || empty($detalle['motivo']) || !isset($detalle['importe']) || empty($detalle['moneda'])) {
-                            $_SESSION['error'] = "El detalle de gasto #$index tiene campos incompletos.";
-                            error_log($_SESSION['error']);
-                            header('Location: /proy_anticipos_rendiciones/anticipos');
-                            exit;
+                            $response['message'] = "El detalle de gasto #$index tiene campos incompletos.";
+                            error_log($response['message']);
                         }
                         if (!preg_match('/^[a-zA-Z0-9\sáéíóúÁÉÍÓÚñÑ]+$/', $detalle['motivo'])) {
-                            $_SESSION['error'] = "El motivo del detalle de gasto #$index contiene caracteres no permitidos.";
-                            error_log($_SESSION['error']);
-                            header('Location: /proy_anticipos_rendiciones/anticipos');
-                            exit;
+                            $response['message'] = "El motivo del detalle de gasto #$index contiene caracteres no permitidos.";
+                            error_log($response['message']);
                         }
                     }
                 }
@@ -176,134 +182,210 @@ class AnticipoController {
                     foreach ($detalles_viajes as $index => $persona) {
                         error_log("Validando persona de viaje #$index: " . json_encode($persona));
                         if (empty($persona['doc_identidad']) || !preg_match('/^[0-9A-Za-z]{1,11}$/', $persona['doc_identidad'])) {
-                            $_SESSION['error'] = "El documento de identidad de la persona #$index es inválido.";
-                            error_log($_SESSION['error']);
-                            header('Location: /proy_anticipos_rendiciones/anticipos');
-                            exit;
+                            $response['message'] = "El documento de identidad de la persona #$index es inválido.";
+                            error_log($response['message']);
                         }
                         if (empty($persona['nombre_persona']) || !preg_match('/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/', $persona['nombre_persona'])) {
-                            $_SESSION['error'] = "El nombre de la persona #$index es inválido.";
-                            error_log($_SESSION['error']);
-                            header('Location: /proy_anticipos_rendiciones/anticipos');
-                            exit;
+                            $response['message'] = "El nombre de la persona #$index es inválido.";
+                            error_log($response['message']);
                         }
                         if (empty($persona['id_cargo']) || !$this->anticipoModel->cargoExists($persona['id_cargo'])) {
-                            $_SESSION['error'] = "El cargo de la persona #$index es inválido.";
-                            error_log($_SESSION['error']);
-                            header('Location: /proy_anticipos_rendiciones/anticipos');
-                            exit;
+                            $response['message'] = "El cargo de la persona #$index es inválido.";
+                            error_log($response['message']);
                         }
                         foreach ($persona['viaticos'] as $viatico) {
                             if ($viatico['dias'] < 0 || $viatico['monto'] < 0) {
-                                $_SESSION['error'] = "Los días y el monto de viáticos para la persona #$index deben ser no negativos.";
-                                error_log($_SESSION['error']);
-                                header('Location: /proy_anticipos_rendiciones/anticipos');
-                                exit;
+                                $response['message'] = "Los días y el monto de viáticos para la persona #$index deben ser no negativos.";
+                                error_log($response['message']);
                             }
                             // Validar monto contra tb_tarifario
                             $tarifa = $this->anticipoModel->getTarifaByCargoAndConcepto($persona['id_cargo'], $viatico['id_concepto']);
                             if ($tarifa && abs($viatico['monto'] - ($viatico['dias'] * $tarifa)) > 0.01) {
-                                $_SESSION['error'] = "El monto de viático (concepto ID {$viatico['id_concepto']}) para la persona #$index no coincide con la tarifa oficial.";
-                                error_log($_SESSION['error']);
-                                header('Location: /proy_anticipos_rendiciones/anticipos');
-                                exit;
+                                $response['message'] = "El monto de viático (concepto ID {$viatico['id_concepto']}) para la persona #$index no coincide con la tarifa oficial.";
+                                error_log($response['message']);
                             }
                         }
                         foreach ($persona['transporte'] as $subindex => $transp) {
                             if (empty($transp['tipo_transporte']) || !in_array($transp['tipo_transporte'], ['terrestre', 'aereo'])) {
-                                $_SESSION['error'] = "El tipo de transporte #$subindex para la persona #$index es inválido.";
-                                error_log($_SESSION['error']);
-                                header('Location: /proy_anticipos_rendiciones/anticipos');
-                                exit;
+                                $response['message'] = "El tipo de transporte #$subindex para la persona #$index es inválido.";
+                                error_log($response['message']);
                             }
                             if (empty($transp['ciudad_origen']) || empty($transp['ciudad_destino']) || !preg_match('/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/', $transp['ciudad_origen']) || !preg_match('/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/', $transp['ciudad_destino'])) {
-                                $_SESSION['error'] = "Las ciudades de transporte #$subindex para la persona #$index son inválidas.";
-                                error_log($_SESSION['error']);
-                                header('Location: /proy_anticipos_rendiciones/anticipos');
-                                exit;
+                                $response['message'] = "El tipo de transporte #$subindex para la persona #$index es inválido.";
+                                error_log($response['message']);
                             }
                             if (empty($transp['fecha']) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $transp['fecha'])) {
-                                $_SESSION['error'] = "La fecha de transporte #$subindex para la persona #$index es inválida.";
-                                error_log($_SESSION['error']);
-                                header('Location: /proy_anticipos_rendiciones/anticipos');
-                                exit;
+                                $response['message'] = "Las ciudades de transporte #$subindex para la persona #$index son inválidas.";
+                                error_log($response['message']);
                             }
                             if ($transp['monto'] <= 0) {
-                                $_SESSION['error'] = "El monto de transporte #$subindex para la persona #$index debe ser mayor a 0.";
-                                error_log($_SESSION['error']);
-                                header('Location: /proy_anticipos_rendiciones/anticipos');
-                                exit;
+                                $response['message'] = "La fecha de transporte #$subindex para la persona #$index es inválida.";
+                                error_log($response['message']);
                             }
                         }
                     }
                 }
 
-                // Validar monto total
-                // $suma_total = 0;
-                // if ($concepto === 'compras-menores') {
-                //     $suma_total = array_sum(array_column($detalles_gastos, 'importe'));
-                // } elseif ($concepto === 'viajes') {
-                //     foreach ($detalles_viajes as $persona) {
-                //         foreach ($persona['viaticos'] as $viatico) {
-                //             $suma_total += $viatico['monto'];
-                //         }
-                //         foreach ($persona['transporte'] as $transp) {
-                //             $suma_total += $transp['monto'];
-                //         }
-                //     }
-                // }
-                // if (abs($monto_total_solicitado - $suma_total) > 0.01) {
-                //     $_SESSION['error'] = "El monto total ($monto_total_solicitado) no coincide con la suma de los detalles ($suma_total).";
-                //     error_log($_SESSION['error']);
-                //     header('Location: /proy_anticipos_rendiciones/anticipos');
-                //     exit;
-                // }
-
-                // Verificar relaciones
-                // $sscc_exists = false;
-                // error_log("Mostrando los ssccs");
-
-                // foreach ($ssccs2 as $s) {
-                //     error_log("El SSCC del formulario es: $codigo_sscc");
-                //     if ($s['codigo'] === $codigo_sscc) {
-                //         error_log("El SSCC con el que s compara es: ".$s['codigo']);
-                //         $sscc_exists = true;
-                //         break;
-                //     }
-                // }
-
-                // if (!$sscc_exists) {
-                //     $_SESSION['error'] = 'Sub-subcentro de costo inválido.';
-                //     error_log($_SESSION['error']);
-                // } 
-
-                if ($this->anticipoModel->anticipoPendiente($id_usuario)) {
-                    $_SESSION['error'] = 'El solicitante aún tiene pendiente un anticipo.';
-                    error_log($_SESSION['error']);
-                } else {
-                    // Verificar saldo disponible
-                    $saldo_disponible = $this->anticipoModel->getSaldoDisponibleBySscc($codigo_sscc);
-                    if ($saldo_disponible === null) {
-                        $_SESSION['error'] = 'No se encontró un presupuesto activo para el sub-subcentro seleccionado.';
-                        error_log($_SESSION['error']);
-                    } elseif ($monto_total_solicitado > $saldo_disponible) {
-                        $_SESSION['error'] = "No se registró el anticipo. El monto solicitado ($monto_total_solicitado) excede el saldo disponible ($saldo_disponible) para el sub-subcentro.";
-                        error_log($_SESSION['error']);
+                if ($response['message'] === '') {
+                    if ($this->anticipoModel->anticipoPendiente($id_usuario)) {
+                    $response['message'] = 'El solicitante aún tiene pendiente un anticipo.';
+                    error_log($response['message']);
                     } else {
-                        if ($this->anticipoModel->addAnticipo($id_usuario, $solicitante, $solicitante_nombres, $dni_solicitante, $departamento, $departamento_nombre, $codigo_sscc, $cargo, $nombre_proyecto, $fecha_solicitud, $motivo_anticipo, $monto_total_solicitado, $id_cat_documento, $detalles_gastos, $detalles_viajes)) {
-                            $_SESSION['success'] = 'Anticipo registrado correctamente.';
-                            error_log('Anticipo registrado con éxito');
+                        // Verificar saldo disponible
+                        $saldo_disponible = $this->anticipoModel->getSaldoDisponibleBySscc($codigo_sscc);
+                        if ($saldo_disponible === null) {
+                            $response['message'] = 'No se encontró un presupuesto activo para el sub-subcentro seleccionado.';
+                            error_log($response['message']);
+                        } elseif ($monto_total_solicitado > $saldo_disponible) {
+                            $response['message'] = "No se registró el anticipo. El monto solicitado ($monto_total_solicitado) excede el saldo disponible ($saldo_disponible) para el sub-subcentro.";
+                            error_log($response['message']);
                         } else {
-                            $_SESSION['error'] = 'Error al registrar el anticipo.';
-                            error_log($_SESSION['error']);
+                            if ($this->anticipoModel->addAnticipo($id_usuario, $solicitante, $solicitante_nombres, $dni_solicitante, $departamento, $departamento_nombre, $codigo_sscc, $cargo, $nombre_proyecto, $fecha_solicitud, $motivo_anticipo, $monto_total_solicitado, $id_cat_documento, $detalles_gastos, $detalles_viajes)) {
+                                $response['success'] = true;
+                                $response['message'] = 'Anticipo registrado con éxito';
+                                error_log($response['message']);
+                            } else {
+                                $response['message'] = 'Error al registrar el anticipo.';
+                                error_log($response['message']);
+                            }
                         }
                     }
                 }
             }
-            header('Location: /proy_anticipos_rendiciones/anticipos');
+            header('Content-Type: application/json');
+            echo json_encode($response);
             exit;
         }
         require_once 'src/views/anticipos.php';
+    }
+
+    public function update() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = [
+                'id_anticipo' => $_POST['edit-id-anticipo'] ?? null,
+                'codigo_sscc' => $_POST['edit-codigo-sscc'] ?? null,
+                'nombre_proyecto' => $_POST['edit-nombre-proyecto'] ?? null,
+                'motivo_anticipo' => $_POST['edit-motivo-anticipo'] ?? null,
+                'monto_total_solicitado' => $_POST['edit-monto-total'] ?? 0,
+                'detalles_gastos' => $_POST['edit-detalles_gastos'] ?? [],
+                'detalles_viajes' => $_POST['edit-detalles_viajes'] ?? []
+            ];
+
+            // Procesar detalles_gastos
+            foreach ($_POST as $key => $value) {
+                if (preg_match('/^edit-detalles_gastos\[(\d+)\]\[(\w+)\]$/', $key, $matches)) {
+                    $index = $matches[1];
+                    $field = $matches[2];
+                    // Asegurar que el campo 'valido' esté presente
+                    if (!isset($data['detalles_gastos'][$index]['valido'])) {
+                        $data['detalles_gastos'][$index]['valido'] = '1';
+                    }
+                }
+            }
+
+            // Procesar detalles_viajes
+            foreach ($_POST as $key => $value) {
+                if (preg_match('/^edit-detalles_viajes\[(\d+)\]\[(\w+)\]$/', $key, $matches)) {
+                    $index = $matches[1];
+                    $field = $matches[2];
+                    $data['detalles_viajes'][$index][$field] = $value;
+                    // Asegurar que el campo 'valido' esté presente
+                    if (!isset($data['detalles_viajes'][$index]['valido'])) {
+                        $data['detalles_viajes'][$index]['valido'] = '1';
+                    }
+                } elseif (preg_match('/^edit-detalles_viajes\[(\d+)\]\[transporte\]\[(\d+)\]\[(\w+)\]$/', $key, $matches)) {
+                    $index = $matches[1];
+                    $transporteIndex = $matches[2];
+                    $field = $matches[3];
+                    $data['detalles_viajes'][$index]['transporte'][$transporteIndex][$field] = $value;
+                    // Asegurar que el campo 'valido' esté presente
+                    if (!isset($data['detalles_viajes'][$index]['transporte'][$transporteIndex]['valido'])) {
+                        $data['detalles_viajes'][$index]['transporte'][$transporteIndex]['valido'] = '1';
+                    }
+                } elseif (preg_match('/^edit-dias-(hospedaje|movilidad|alimentacion)-(\d+)$/', $key, $matches)) {
+                    $concepto = $matches[1];
+                    $index = $matches[2] - 1;
+                    $data['detalles_viajes'][$index]['viaticos'][strtolower($concepto)]['dias'] = $value;
+                } elseif (preg_match('/^edit-monto-(hospedaje|movilidad|alimentacion)-(\d+)$/', $key, $matches)) {
+                    $concepto = $matches[1];
+                    $index = $matches[2] - 1;
+                    $data['detalles_viajes'][$index]['viaticos'][strtolower($concepto)]['monto'] = $value;
+                } elseif (preg_match('/^edit-tipo-transporte-(\d+)-(\d+)$/', $key, $matches)) {
+                    $index = $matches[1] - 1;
+                    $transporteIndex = $matches[2];
+                    $data['detalles_viajes'][$index]['transporte'][$transporteIndex]['tipo_transporte'] = $value;
+                }
+            }
+
+            error_log("Datos recibidos en update: " . print_r($data, true));
+
+            if (!$data['id_anticipo'] || !$data['codigo_sscc'] || !$data['nombre_proyecto'] || !$data['motivo_anticipo']) {
+                echo json_encode(['error' => 'Faltan datos requeridos']);
+                return;
+            }
+
+            if (!is_numeric($data['monto_total_solicitado']) || $data['monto_total_solicitado'] <= 0) {
+                echo json_encode(['error' => 'Monto total inválido']);
+                return;
+            }
+
+            $saldo_disponible = $this->anticipoModel->getSaldoDisponibleBySscc($data['codigo_sscc']);
+            if ($data['monto_total_solicitado'] > $saldo_disponible) {
+                echo json_encode(['error' => 'El monto total solicitado excede el saldo disponible']);
+                return;
+            }
+
+            foreach ($data['detalles_gastos'] as $index => $gasto) {
+                if ($gasto['valido'] === '1') {
+                    if (empty($gasto['descripcion']) || empty($gasto['motivo']) || empty($gasto['moneda']) || !isset($gasto['importe']) || $gasto['importe'] < 0) {
+                        echo json_encode(['error' => "Datos incompletos o inválidos en detalles_gastos[$index]"]);
+                        return;
+                    }
+                    if (!in_array($gasto['moneda'], ['PEN', 'USD'])) {
+                        echo json_encode(['error' => "Moneda inválida en detalles_gastos[$index]"]);
+                        return;
+                    }
+                    if ($gasto['descripcion'] !== 'Combustible' && $gasto['importe'] > 400) {
+                        echo json_encode(['error' => "El importe no puede exceder 400 para el tipo de gasto en detalles_gastos[$index]"]);
+                        return;
+                    }
+                }
+            }
+
+            foreach ($data['detalles_viajes'] as $index => $viaje) {
+                if ($viaje['valido'] === '1') {
+                    if (empty($viaje['doc_identidad']) || empty($viaje['nombre_persona']) || empty($viaje['id_cargo'])) {
+                        echo json_encode(['error' => "Datos incompletos en detalles_viajes[$index]"]);
+                        return;
+                    }
+                    foreach ($viaje['transporte'] as $tIndex => $transporte) {
+                        if ($transporte['valido'] === '1') {
+                            if (empty($transporte['tipo_transporte']) || empty($transporte['ciudad_origen']) || empty($transporte['ciudad_destino']) || empty($transporte['fecha']) || empty($transporte['monto']) || empty($transporte['moneda'])) {
+                                echo json_encode(['error' => "Datos incompletos en detalles_viajes[$index][transporte][$tIndex]"]);
+                                return;
+                            }
+                        }
+                    }
+                    foreach ($viaje['viaticos'] as $concepto => $viatico) {
+                        if (!isset($viatico['dias']) || !isset($viatico['monto']) || $viatico['dias'] < 0 || $viatico['monto'] < 0) {
+                            echo json_encode(['error' => "Datos incompletos o inválidos en detalles_viajes[$index][viaticos][$concepto]"]);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            $result = $this->anticipoModel->updateAnticipo($data);
+            error_log(print_r($result, true));
+            if (!empty($result['success'])) {
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['error' => $result['error'] ?? 'Error desconocido']);
+            }
+        } else {
+            echo json_encode(['error' => 'Método no permitido']);
+        }
     }
 
     public function approve() {
@@ -313,7 +395,7 @@ class AnticipoController {
             header('Location: /proy_anticipos_rendiciones/anticipos');
             exit;
         }
-
+        
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
             $id = (int)$_POST['id'];
             $comentario = trim($_POST['comentario'] ?? 'Anticipo aprobado');
@@ -366,6 +448,6 @@ class AnticipoController {
         }
         exit;
     }
-    
+
 }
 ?>

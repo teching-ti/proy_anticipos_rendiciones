@@ -45,13 +45,22 @@ $routes = [
     'usuarios/anticipoBuscarDni' => ['controller' => 'user', 'action'=> 'anticipoBuscarDni'],
     'anticipos' => ['controller' => 'anticipo', 'action' => 'index'],
     'anticipos/add' => ['controller' => 'anticipo', 'action' => 'add'],
+    'anticipos/update' => ['controller' => 'anticipo', 'action' => 'update'],
+    'anticipos/getAllScc' => ['controller' => 'anticipo', 'action' => 'getAllScc'],
     'anticipos/getSsccByScc' => ['controller' => 'anticipo', 'action' => 'getSsccByScc'],
     'anticipos/getSaldoDisponibleTiempoReal' => ['controller' => 'anticipo', 'action' => 'getSaldoDisponibleTiempoReal'],
     'anticipos/getAnticipoDetails' => ['controller' => 'anticipo', 'action' => 'getAnticipoDetails'],
     'anticipos/approve' => ['controller' => 'anticipo', 'action' => 'approve'],
     'anticipos/reject' => ['controller' => 'anticipo', 'action' => 'reject'],
     'tarifario/cargos' => ['controller' => 'tarifario', 'action' => 'obtenerCargos'], //ruta para obtener los cargos del tarifario
-    'tarifario/montosCargo' => ['controller' => 'tarifario', 'action' => 'obtenerMontosPorCargo']
+    'tarifario/montosCargo' => ['controller' => 'tarifario', 'action' => 'obtenerMontosPorCargo'],
+    'presupuestos' => ['controller' => 'presupuestosscc', 'action' => 'index'],
+    'presupuestos/get_ccs' => ['controller' => 'presupuestosscc', 'action' => 'get_ccs'],
+    'presupuestos/get_sccs' => ['controller' => 'presupuestosscc', 'action' => 'get_sccs'],
+    'presupuestos/get_ssccs' => ['controller' => 'presupuestosscc', 'action' => 'get_ssccs'],
+    'presupuestos/add' => ['controller' => 'presupuestosscc', 'action' => 'add'],
+    'presupuesto_sscc/add_funds' => ['controller' => 'presupuestosscc', 'action' => 'add_funds'],
+    'rendiciones' => ['controller' => 'rendiciones', 'action' => 'index']
 ];
 
 // Buscar la ruta en el arreglo de rutas

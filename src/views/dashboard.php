@@ -5,7 +5,6 @@ $fun = "dashboard.js?v=".time();
 include "base.php";
 ?>
     <!-- <button class="menu-toggle" id="menu-toggle"><i class="fas fa-bars"></i></button> -->
-    
         <!-- sección para mostrar datos del trabajador -->
         <section class="principal-info">
             <h1 class="main-title">Panel Principal</h1>
@@ -13,15 +12,19 @@ include "base.php";
             <div class="dashboard-cards">
                 <div class="card">
                     <h2>Anticipos Solicitados</h2>
-                    <p class="card-number">15</p>
+                    <p class="card-number"><?=$cantidad_anticipos['cantidad_solicitudes'];?></p>
                 </div>
                 <div class="card">
-                    <h2>Rendiciones Registradas</h2>
-                    <p class="card-number">8</p>
+                    <h2>Anticipos Completados</h2>
+                    <p class="card-number"><?=$cantidad_rendido['cantidad'];?></p>
                 </div>
                 <div class="card">
-                    <h2>Anticipos Pendientes por Rendir</h2>
-                    <p class="card-number">1</p>
+                    <h2>Anticipos Observados</h2>
+                    <p class="card-number"><?=$cantidad_observado['cantidad'];?></p>
+                </div>
+                <div class="card">
+                    <h2>Anticipos Autorizados</h2>
+                    <p class="card-number"><?=$cantidad_autorizado['cantidad'];?></p>
                 </div>
             </div>
         </section>

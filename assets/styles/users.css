@@ -38,10 +38,12 @@
 
 /* Contenedor responsive para la tabla */
 .table-responsive {
-    overflow-x: auto; /* Permite desplazamiento horizontal en pantallas pequeñas */
-    max-height: 600px; /* Limita la altura de la tabla para ~200 filas, con scroll vertical */
-    overflow-y: auto; /* Permite desplazamiento vertical */
-    -webkit-overflow-scrolling: touch; /* Mejora el desplazamiento en dispositivos táctiles */
+    overflow-x: auto;
+    max-height: 600px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: .8rem;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 50px;
 }
 
 /* Estilos base de la tabla */
@@ -63,10 +65,19 @@
 
 /* Encabezado de la tabla */
 .table-head {
-    background-color: #f2f2f2; /* Fondo gris claro para el encabezado */
-    position: sticky; /* Fija el encabezado al hacer scroll vertical */
-    top: 0; /* Ancla el encabezado en la parte superior */
-    z-index: 10; /* Asegura que el encabezado esté sobre el contenido */
+    /* background-color: #f2f2f2; */
+    background: #7FAFE6;
+    background: linear-gradient(100deg, rgb(193, 221, 255) 0%, rgba(227, 244, 255, 1) 46%, rgba(228, 238, 247, 1) 58%, rgba(217, 237, 255, 1) 78%, rgba(220, 233, 245, 1) 100%);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table-head tr th{
+    /* color: #1a4faa; */
+    color: #153f65;
+    font-weight: bold;
+    /* font-size: 1.2rem; */
 }
 
 /* Efecto hover en las filas */
@@ -75,12 +86,18 @@
 }
 
 .btn{
-    border-radius: .4rem;
-    padding: .4rem .8rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.4rem;
     cursor: pointer;
-    font-weight: 900;
-    background-color: white;
-    transition: all ease-in-out .6s;
+    transition: all 0.3s ease-in-out;
+    width: fit-content;
+}
+
+.btn-add-usuario{
+    background-color: #1f58a8;
+    color: #ffffff;
+    margin-bottom: 15px;
 }
 
 .btn-close-modal {
@@ -297,6 +314,11 @@
 
 /* Media query para tablets (≤800px) */
 @media (max-width: 800px) {
+
+    .table{
+        background: none;
+    }
+    
     /* Reducir padding y tamaño de fuente para ahorrar espacio */
     .table th,
     .table td {
@@ -340,25 +362,24 @@
         background-color: #fff; /* Fondo blanco para cada tarjeta */
     }
 
-    /* Convertir cada celda en un bloque */
     .table td {
-        display: flex;
-        text-align: right; /* Alinea el texto a la derecha para consistencia */
-        padding: 8px; /* Padding reducido para móviles */
-        font-size: 0.85rem; /* Fuente más pequeña para móviles */
-        border: none; /* Elimina bordes entre celdas */
-        position: relative; /* Para posicionar el pseudo-elemento */
+        display: block;
+        text-align: right;
+        padding: 8px;
+        font-size: 0.85rem;
+        border: none;
+        position: relative;
     }
 
     .table td:before {
-        content: attr(data-label); /* Usa el valor de data-label como etiqueta */
+        content: attr(data-label);
         position: absolute;
-        left: 8px; /* Alinea la etiqueta a la izquierda */
-        font-weight: 600; /* Negrita para las etiquetas */
-        color: #153f65; /* Color de base.css */
-        text-transform: capitalize; /* Capitaliza las etiquetas */
+        left: 8px;
+        font-weight: 600;
+        color: #153f65;
+        text-transform: capitalize;
     }
-
+    
     .modal-content{
         width: 340px;
     }

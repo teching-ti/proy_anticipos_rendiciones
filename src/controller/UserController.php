@@ -20,7 +20,7 @@ class UserController {
 
     public function index(){
         $roles = $this->userModel->getAllRoles();
-        if ($_SESSION['rol'] != 1) {
+        if ($_SESSION['rol'] != 1 && $_SESSION['rol'] != 4) {
             header('Location: /proy_anticipos_rendiciones/iniciar_sesion');
             exit;
         }
@@ -39,11 +39,11 @@ class UserController {
 
         return $primeraLetra . '*' . $resto . '+-' . $numeroAleatorio;
     }
-
+    
     // Mostrar el formulario de agregar usuario
     public function add() {
         // Solo permitir acceso a administradores (por ejemplo)
-        if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 1) { // 1 = Administrador
+        if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 1 && $_SESSION['rol'] != 4) { // 1 = Administrador
             header('Location: /proy_anticipos_rendiciones/iniciar_sesion');
             exit;
         }
@@ -153,6 +153,5 @@ class UserController {
         }
         exit;
     }
-
 
 }

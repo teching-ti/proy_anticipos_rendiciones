@@ -22,6 +22,7 @@
 /* tarjetas del panel principal */
 .card {
     background-color: rgba(221, 226, 240, 0.95);
+    /* background-color: #e0edff; */
     border-radius: .8rem;
     padding: 1.5rem;
     width: 200px;
@@ -67,13 +68,16 @@
 .card h2 {
     font-size: 1.2rem;
     color: #333333;
+    font-weight: bold;
+    /* color: #1c5ece; */
     margin-bottom: 1rem;
 }
 
 .card-number {
     font-size: 2rem;
     font-weight: bold;
-    color: #195BAB;
+    /* color: #195BAB; */
+    color: #1c5ece;
 }
 
 .card-icon{
@@ -90,7 +94,9 @@
 
 .fast-access-text{
     color: #333333;
-    font-size: 1.2rem;
+    font-weight: bold;
+    /* color: #1c5ece; */
+    font-size: 1.1rem;
 }
 
 @media (max-width: 720px) {

@@ -20,73 +20,73 @@ document.addEventListener('DOMContentLoaded', () => {
         return regex.test(input);
     }
     
-    // Validar formulario de agregar anticipo
-    function validateAddForm(form) {
-        const fields = ['solicitante', 'area', 'cargo', 'nombre_proyecto', 'motivo_anticipo'];
-        for (const field of fields) {
-            const value = form.querySelector(`[name="${field}"]`).value.trim();
-            if (!validateInput(value)) {
-                showAlert({
-                    title: 'Error',
-                    message: `El campo ${field.replace('_', ' ')} solo puede contener letras, números y espacios.`,
-                    type: 'error'
-                });
-                return false;
-            }
-        }
-        const dni = form.querySelector('[name="dni_solicitante"]').value.trim();
-        if (!/^[0-9]{8}$/.test(dni)) {
-            showAlert({
-                title: 'Error',
-                message: 'El DNI del solicitante debe tener 8 dígitos.',
-                type: 'error'
-            });
-            return false;
-        }
-        const monto = form.querySelector('[name="monto_total_solicitado"]').value;
-        if (monto <= 0) {
-            showAlert({
-                title: 'Error',
-                message: 'El monto debe ser mayor a 0.',
-                type: 'error'
-            });
-            return false;
-        }
-        const fecha = form.querySelector('[name="fecha_solicitud"]').value;
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
-            showAlert({
-                title: 'Error',
-                message: 'La fecha de solicitud debe tener el formato YYYY-MM-DD.',
-                type: 'error'
-            });
-            return false;
-        }
-        return true;
-    }
+    // Validar formulario de agregar anticipo here here, esta validación era muy usada
+    // function validateAddForm(form) {
+    //     const fields = ['solicitante', 'area', 'cargo', 'nombre_proyecto', 'motivo_anticipo'];
+    //     for (const field of fields) {
+    //         const value = form.querySelector(`[name="${field}"]`).value.trim();
+    //         if (!validateInput(value)) {
+    //             showAlert({
+    //                 title: 'Error',
+    //                 message: `El campo ${field.replace('_', ' ')} solo puede contener letras, números y espacios.`,
+    //                 type: 'error'
+    //             });
+    //             return false;
+    //         }
+    //     }
+    //     const dni = form.querySelector('[name="dni_solicitante"]').value.trim();
+    //     if (!/^[0-9]{8}$/.test(dni)) {
+    //         showAlert({
+    //             title: 'Error',
+    //             message: 'El DNI del solicitante debe tener 8 dígitos.',
+    //             type: 'error'
+    //         });
+    //         return false;
+    //     }
+    //     const monto = form.querySelector('[name="monto_total_solicitado"]').value;
+    //     if (monto <= 0) {
+    //         showAlert({
+    //             title: 'Error',
+    //             message: 'El monto debe ser mayor a 0.',
+    //             type: 'error'
+    //         });
+    //         return false;
+    //     }
+    //     const fecha = form.querySelector('[name="fecha_solicitud"]').value;
+    //     if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+    //         showAlert({
+    //             title: 'Error',
+    //             message: 'La fecha de solicitud debe tener el formato YYYY-MM-DD.',
+    //             type: 'error'
+    //         });
+    //         return false;
+    //     }
+    //     return true;
+    // }
 
     // Validar formularios de aprobar/rechazar
-    function validateActionForm(form) {
-        const comentario = form.querySelector('[name="comentario"]').value.trim();
-        if (comentario && !validateInput(comentario)) {
-            showAlert({
-                title: 'Error',
-                message: 'El comentario solo puede contener letras, números y espacios.',
-                type: 'error'
-            });
-            return false;
-        }
-        return true;
-    }
+    // function validateActionForm(form) {
+    //     const comentario = form.querySelector('[name="comentario"]').value.trim();
+    //     if (comentario && !validateInput(comentario)) {
+    //         showAlert({
+    //             title: 'Error',
+    //             message: 'El comentario solo puede contener letras, números y espacios.',
+    //             type: 'error'
+    //         });
+    //         return false;
+    //     }
+    //     return true;
+    // }
 
     // Validar formulario de agregar anticipo
-    const addForm = document.querySelector('#addAnticipoModal form');
-    if (addForm) {
-        addForm.addEventListener('submit', (e) => {
-            if (!validateAddForm(addForm)) {
-                e.preventDefault();
-            }
-        });
-    }
+    // const addForm = document.querySelector('#addAnticipoModal form');
+    // if (addForm) {
+    //     addForm.addEventListener('submit', (e) => {
+    //         if (!validateAddForm(addForm)) {
+    //             e.preventDefault();
+    //         }
+    //     });
+    // }
 
     // Validar formularios de aprobar/rechazar
     const actionForms = document.querySelectorAll('form[action*="/anticipos/approve"], form[action*="/anticipos/reject"]');
@@ -156,6 +156,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Evento para agregar nueva pestaña
     document.getElementById("add-tab").addEventListener("click", agregarNuevaPersona);
+
+
+
+
+    
 });
 
 /*Inicia funcionalidad para cambiar de pestañas dentro del formulario de creación de anticipos*/
@@ -398,7 +403,7 @@ async function agregarNuevaPersona() {
             calcularMonto(index, tipo);
         });
     }
-    
+
     // Implementación de funcionalidad para que se realice el recálculo correspondiente
     ['alimentacion', 'hospedaje', 'movilidad'].forEach(tipo => {
         conectarCalculoAutomatico(newIndex, tipo);
@@ -585,7 +590,13 @@ document.getElementById("add-gasto-btn").addEventListener("click", () => {
             // Validar el monto actual si ya tiene un valor
             const monto = parseFloat(inputMonto.value);
             if (monto > 400) {
-                alert("El monto no puede ser superior a 400 soles para este tipo de gasto.");
+                //alert("El monto no puede ser superior a 400 soles para este tipo de gasto.");
+                showAlert({
+                    title: 'Advertencia',
+                    message: `El monto no puede ser superior a 400 soles para este tipo de gasto.`,
+                    type: 'warning',
+                    event: 'warning'
+                });
                 inputMonto.value = "";
                 inputMonto.style.outline = "2px solid red";
                 inputMonto.focus();
@@ -601,7 +612,13 @@ document.getElementById("add-gasto-btn").addEventListener("click", () => {
         if (selectDescripcion.value !== "Combustible") {
             const monto = parseFloat(inputMonto.value);
             if (monto > 400) {
-                alert("El monto no puede ser superior a 400 soles para este tipo de gasto.");
+                // alert("El monto no puede ser superior a 400 soles para este tipo de gasto.");
+                showAlert({
+                    title: 'Advertencia',
+                    message: `El monto no puede ser superior a 400 soles para este tipo de gasto.`,
+                    type: 'warning',
+                    event: 'warning'
+                });
                 inputMonto.value = "";
                 inputMonto.style.outline = "2px solid red";
                 inputMonto.focus();
@@ -672,11 +689,11 @@ async function actualizarTotalGastos() {
         //console.log(`No se podrá crear este anticipo el monto total ${montoTotal.value} supera a ${data}`)
         montoTotal.style.outline = "2px solid red";
         showAlert({
-            title: 'Error',
-            message: `Advertencia. Esta solicitud de anticipo no podrá culminarse, por favor, presente estas observaciones a personal del área de contabilidad.`,
-            type: 'error'
+            title: 'Advertencia',
+            message: `Esta solicitud no puede ser procesada porque supera el limite del presupuesto asignado para el [SSCC]. Por favor, contacte al área de contabilidad.`,
+            type: 'error',
+            event: 'error'
         });
-        //alert("Advertencia. Esta solicitud de anticipo no podrá culminarse, por favor, presente estas observaciones a personal del área de contabilidad.");//here
     }else{
         console.log("Todo en orden");
         montoTotal.style.outline = "";
@@ -707,7 +724,6 @@ sccSelect.addEventListener('change', async function() {
         try {
             const response = await fetch(`anticipos/getSsccByScc?codigo_scc=${codigoScc}`);
             const ssccs = await response.json();
-            console.log(ssccs);
             
             ssccs.forEach(sscc => {
                 const option = document.createElement('option');
@@ -722,65 +738,1240 @@ sccSelect.addEventListener('change', async function() {
     }
 });
 
-// funcionalidad para mostrar datos de la solicitud de anticipo
-document.querySelectorAll("tr").forEach((e)=>{
-    e.addEventListener("dblclick", async function(){
-        const anticipoId = e.children[0].textContent;
-        
-        const res = await fetch(`anticipos/getAnticipoDetails?id_anticipo=${anticipoId}`);
-        const data = await res.json();
+//here here here
+document.getElementById('addAnticipoForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    showAlert({
+        title: 'Confirmación',
+        message: '¿Estás seguro de que deseas registrar este anticipo? Esta acción no se puede deshacer.',
+        type: 'confirm',
+        event: 'confirm'
+    });
 
-        //console.log(data);
-        //console.log(data.solicitante_nombres);
-        showAnticipoDetails(data);
-    })
+    const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+    const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+    
+    acceptButton.onclick = () => {
+        const modal = document.getElementById('custom-alert-modal');
+        if (modal.style.display !== 'none') {
+            const formData = new FormData(this);
+
+            fetch('/proy_anticipos_rendiciones/anticipos/add', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                modal.style.display = 'none';
+
+                showAlert({
+                    title: data.success ? 'Éxito' : 'Error',
+                    message: data.message,
+                    type: data.success ? 'success' : 'error',
+                    event: data.success ? 'envio' : ''
+                });
+            })
+            .catch(error => {
+                modal.style.display = 'none';
+                showAlert({
+                    title: 'Error',
+                    message: 'Error al procesar la solicitud.',
+                    type: 'error'
+                });
+                console.error('Error de algo:', error);
+            });
+        }
+    };
+
+    cancelButton.onclick = () => {
+        const modal = document.getElementById('custom-alert-modal');
+        modal.style.display = 'none';
+    };
+
+});
+
+/*********************************************************************here */
+/********************************Desde aquí inicia todo lo correspondiente a la edición de anticipos */
+
+const editAnticipoModal = document.getElementById("editAnticipoModal");
+const editModalTitle = document.getElementById("edit-modal-title");
+const editForm = editAnticipoModal.querySelector("form");
+const editSubmitButton = editForm.querySelector("button[type='submit']");
+const colorModeSwitch = editForm.querySelector("#color_mode");
+const editComprasMenoresPanel = document.getElementById("edit-panel-compras-menores");
+const editViajesPanel = document.getElementById("edit-panel-viajes");
+const editTabsBody = document.getElementById("edit-tabs-body");
+const editTabsHeader = document.getElementById("edit-tabs-header");
+const editAddGastoBtn = editComprasMenoresPanel.querySelector("#edit-add-gasto-btn");
+const editAddTabBtn = editTabsHeader.querySelector("#add-tab");
+
+let gastoCounter = 0;
+let editpersonaIndices = [];
+
+async function actualizarTotalGastosEdit(formPrefix = '') {
+    let total = 0;
+
+    // Sumar montos de gastos menores
+    const montosGastos = document.querySelectorAll(`input[name*='${formPrefix}detalles_gastos'][name$='[importe]']`);
+    montosGastos.forEach(input => {
+        const valor = parseFloat(input.value);
+        const validoInput = input.closest('.gasto-menor').querySelector(`input[name*='[valido]']`);
+        if (!isNaN(valor) && (!validoInput || validoInput.value === '1')) total += valor;
+    });
+
+    // Sumar montos de viáticos
+    const montosViaticos = document.querySelectorAll(`
+        input[name^='${formPrefix}monto-hospedaje-'],
+        input[name^='${formPrefix}monto-movilidad-'],
+        input[name^='${formPrefix}monto-alimentacion-']
+    `);
+    montosViaticos.forEach(input => {
+        const valor = parseFloat(input.value);
+        const container = input.closest('.tab-content');
+        const validoInput = container.querySelector(`input[name*='[valido]']`);
+        const diasInput = input.name.includes('monto-') ? container.querySelector(`input[name='${input.name.replace('monto-', 'dias-')}']`) : null;
+        if (!isNaN(valor) && (!validoInput || validoInput.value === '1') && (!diasInput || parseInt(diasInput.value) > 0)) total += valor;
+    });
+
+    // Sumar montos de transporte // here revisar
+    const montosTransporte = document.querySelectorAll(`input[name*='${formPrefix}detalles_viajes'][name*='[transporte]'][name$='[monto]']`);
+    montosTransporte.forEach(input => {
+        const valor = parseFloat(input.value);
+        const container = input.closest('.transp-prov-element');
+        const validoInput = container.querySelector(`input[name*='[valido]']`);
+        if (!isNaN(valor) && (!validoInput || validoInput.value === '1')) {
+            total += valor;
+            console.log(`Transporte: ${input.name} = ${valor}`);
+        }
+    });
+
+    // const montosTransporte = document.querySelectorAll(`input[name*='${formPrefix}detalles_viajes'][name*='[transporte]'][name$='[monto]']`);
+    // montosTransporte.forEach(input => {
+    //     const valor = parseFloat(input.value);
+    //     const container = input.closest('.transp-prov-element');
+    //     const validoInput = container.querySelector(`input[name*='[valido]']`);
+    //     if (!isNaN(valor) && (!validoInput || validoInput.value === '1')) total += valor;
+    // });
+
+
+    const montoTotalInput = document.querySelector(`#${formPrefix}monto-total`);
+    if (montoTotalInput) {
+        montoTotalInput.value = total.toFixed(2);
+    }
+
+    const ssccSelect = document.querySelector(`#${formPrefix}codigo-sscc`);
+    const codigoSscc = ssccSelect.value;
+    if (codigoSscc && total > 0) {
+        try {
+            const response = await fetch(`anticipos/getSaldoDisponibleTiempoReal?codigo_sscc=${encodeURIComponent(codigoSscc)}`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+            const saldoDisponible = parseFloat(data) || 0;
+
+            if (total > saldoDisponible) {
+                montoTotalInput.style.border = '2px solid red';
+                console.log(`No se podrá actualizar este anticipo. El monto total ${total.toFixed(2)} supera el saldo disponible ${saldoDisponible.toFixed(2)}.`);
+            } else {
+                montoTotalInput.style.border = '';
+                console.log('Monto total dentro del saldo disponible.');
+            }
+        } catch (error) {
+            console.error('Error al validar monto total:', error);
+            montoTotalInput.style.border = '';
+        }
+    } else {
+        montoTotalInput.style.border = '';
+    }
+
+    // Depuración
+    console.log('Montos gastos menores:', Array.from(montosGastos).map(input => input.value));
+    console.log('Montos viáticos:', Array.from(montosViaticos).map(input => input.value));
+    console.log('Montos transporte:', Array.from(montosTransporte).map(input => input.value));
+    console.log('Total calculado:', total.toFixed(2));
+}
+
+
+
+
+// Cargar SSCC al cambiar SCC
+function cargarSscc(selectScc, selectSscc, formPrefix = '') {
+    selectScc.addEventListener('change', async function() {
+        const codigoScc = this.value;
+        selectSscc.innerHTML = '<option value="">Seleccione</option>';
+        if (codigoScc) {
+            try {
+                const response = await fetch(`anticipos/getSsccByScc?codigo_scc=${encodeURIComponent(codigoScc)}`);
+                const ssccs = await response.json();
+                ssccs.forEach(sscc => {
+                    const option = document.createElement('option');
+                    option.value = sscc.codigo;
+                    option.textContent = `${sscc.codigo} - ${sscc.nombre}`;
+                    selectSscc.appendChild(option);
+                });
+                await actualizarTotalGastosEdit(formPrefix);
+            } catch (error) {
+                console.error('Error al cargar SSCC:', error);
+                selectSscc.innerHTML = '<option value="">Error al cargar</option>';
+            }
+        }
+    });
+}
+
+cargarSscc(document.getElementById('edit-codigo-scc'), document.getElementById('edit-codigo-sscc'), 'edit-');
+
+// Validar monto total al cambiar SSCC
+document.getElementById('edit-codigo-sscc').addEventListener('change', async function() {
+    await actualizarTotalGastosEdit('edit-');
+});
+
+// Validar monto total al cambiar inputs de gastos o viáticos
+document.addEventListener('input', async function(event) {
+    if (
+        event.target.matches("input[name*='edit-detalles_viajes']") ||// se agregó a este malcriado y funcionó el cálculo del monto total
+        event.target.matches("input[name*='edit-detalles_gastos'][name$='[importe]']") ||
+        event.target.matches("input[name^='edit-monto-hospedaje-']") ||
+        event.target.matches("input[name^='edit-monto-movilidad-']") ||
+        event.target.matches("input[name^='edit-monto-alimentacion-']") ||
+        event.target.matches("input[name^='edit-gasto-viaje-']") ||
+        event.target.matches("input[name^='edit-dias-hospedaje-']") ||
+        event.target.matches("input[name^='edit-dias-movilidad-']") ||
+        event.target.matches("input[name^='edit-dias-alimentacion-']")
+    ) {
+        await actualizarTotalGastosEdit('edit-');
+    }
+});
+
+// Agregar nuevo gasto en modo edición
+editAddGastoBtn.addEventListener('click', function() {
+    const gastoDiv = document.createElement('div');
+    gastoDiv.className = 'gasto-menor compras-menores-container';
+    gastoDiv.innerHTML = `
+        <div class="edit-remove-gasto-btn"><i class="fa-regular fa-trash-can"></i></div>
+        <input type="hidden" name="edit-detalles_gastos[${gastoCounter}][id]" value="">
+        <input type="hidden" name="edit-detalles_gastos[${gastoCounter}][valido]" value="1">
+        <div class="modal-element">
+            <span class="placeholder">Descripción</span>
+            <select name="edit-detalles_gastos[${gastoCounter}][descripcion]" class="descripcion-gasto form-control">
+                <option value="">- seleccionar -</option>
+                <option value="Combustible">Combustible</option>
+                <option value="Peaje">Peaje</option>
+                <option value="Parqueo">Parqueo</option>
+                <option value="Otros gastos menores">Otros gastos menores</option>
+            </select>
+        </div>
+        <div class="modal-element">
+            <span class="placeholder">Motivo</span>
+            <input type="text" class="form-control" name="edit-detalles_gastos[${gastoCounter}][motivo]" value="">
+        </div>
+        <div class="modal-element">
+            <span class="placeholder">Moneda</span>
+            <select class="form-control" name="edit-detalles_gastos[${gastoCounter}][moneda]">
+                <option value="PEN" selected>PEN</option>
+            </select>
+        </div>
+        <div class="modal-element">
+            <span class="placeholder">Importe</span>
+            <input type="number" class="form-control" name="edit-detalles_gastos[${gastoCounter}][importe]" value="0" min="0" step="0.01">
+        </div>
+    `;
+    editComprasMenoresPanel.insertBefore(gastoDiv, editAddGastoBtn);
+    gastoCounter++;
+    toggleEditMode(colorModeSwitch.checked);
+
+    const selectDescripcion = gastoDiv.querySelector(".descripcion-gasto");
+    const inputMonto = gastoDiv.querySelector("input[name*='[importe]']");
+    selectDescripcion.addEventListener("change", () => {
+        if (selectDescripcion.value !== "Combustible") {
+            inputMonto.setAttribute("max", "400");
+            const monto = parseFloat(inputMonto.value);
+            if (monto > 400) {
+                showAlert({
+                    title: 'Advertencia',
+                    message: `El monto no puede ser superior a 400 soles para este tipo de gasto.`,
+                    type: 'warning',
+                    event: 'warning'
+                });
+                inputMonto.value = "";
+                inputMonto.style.outline = "2px solid red";
+                inputMonto.focus();
+            } else {
+                inputMonto.style.outline = "";
+            }
+        } else {
+            inputMonto.removeAttribute("max");
+            inputMonto.style.outline = "";
+        }
+        actualizarTotalGastosEdit('edit-');
+    });
+
+    inputMonto.addEventListener("input", () => {
+        if (selectDescripcion.value !== "Combustible") {
+            const monto = parseFloat(inputMonto.value);
+            if (monto > 400) {
+                showAlert({
+                    title: 'Advertencia',
+                    message: `El monto no puede ser superior a 400 soles para este tipo de gasto.`,
+                    type: 'warning',
+                    event: 'warning'                    
+                });
+                inputMonto.value = "";
+                inputMonto.style.outline = "2px solid red";
+                inputMonto.focus();
+            } else {
+                inputMonto.style.outline = "";
+            }
+        } else {
+            inputMonto.style.outline = "";
+        }
+        actualizarTotalGastosEdit('edit-');
+    });
+
+    gastoDiv.querySelector(".edit-remove-gasto-btn").addEventListener("click", () => {
+        const validoInput = gastoDiv.querySelector(`input[name*='[valido]']`);
+        if (validoInput) {
+            validoInput.value = '0';
+            gastoDiv.style.display = 'none';
+        } else {
+            gastoDiv.remove();
+        }
+        actualizarTotalGastosEdit('edit-');
+    });
+});
+
+// Manejar doble clic en filas de la tabla de anticipos
+document.querySelectorAll('.table.table-hover tbody tr').forEach((e) => {
+    e.addEventListener("dblclick", async function() {
+        const anticipoId = e.querySelector('td[data-label="ID"]').textContent;
+        try {
+            const res = await fetch(`anticipos/getAnticipoDetails?id_anticipo=${encodeURIComponent(anticipoId)}`);
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+            console.log(data);
+            await showAnticipoDetails(data);
+        } catch (error) {
+            console.error('Error al cargar detalles del anticipo:', error);
+            alert('No se pudieron cargar los detalles del anticipo.');
+        }
+    });
+});
+
+// Función para obtener cargos desde el backend
+async function obtenerCargosDesdeBD() {
+    const res = await fetch('tarifario/cargos');
+    return await res.json();
+}
+
+// Función para calcular el monto de un concepto
+function calcularMontoEdit(index, tipo) {
+    const diasInput = document.querySelector(`[name='edit-dias-${tipo}-${index}']`);
+    const montoInput = document.querySelector(`[name='edit-monto-${tipo}-${index}']`);
+    const container = document.getElementById(`edit-persona-${index}`);
+    const validoInput = container.querySelector(`input[name*='[valido]']`);
+    if (!validoInput || validoInput.value === '0') return;
+
+    const tarifas = JSON.parse(container.dataset.tarifas || '{}');
+    const montoPorDia = tarifas[tipo] || 0;
+    const dias = parseInt(diasInput.value) || 0;
+    if (!isNaN(dias) && dias >= 0) {
+        montoInput.value = (dias * montoPorDia).toFixed(2);
+    } else {
+        montoInput.value = '';
+    }
+    actualizarTotalGastosEdit('edit-');
+}
+
+// Función para cargar opciones de SCC
+async function cargarScc(selectScc, sccSeleccionado) {
+    try {
+        const response = await fetch('anticipos/getAllScc');
+        const sccs = await response.json();
+        selectScc.innerHTML = '<option value="">Seleccione</option>';
+        sccs.forEach(scc => {
+            const option = document.createElement('option');
+            option.value = scc.codigo;
+            option.textContent = `${scc.codigo} - ${scc.nombre}`;
+            if (scc.codigo === sccSeleccionado) {
+                option.selected = true;
+            }
+            selectScc.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error al cargar SCC:', error);
+        selectScc.innerHTML = '<option value="">Error al cargar</option>';
+    }
+}
+
+
+// Función para mostrar los detalles del anticipo en el modal de edición
+
+async function showAnticipoDetails(data) {
+    editModalTitle.innerText = `Anticipo #${data.id}`;
+    editForm.querySelector("#edit-id-anticipo").value = data.id || '';
+    editForm.querySelector("#edit-solicitante").value = data.solicitante_nombres || '';
+    editForm.querySelector("#edit-dni-solicitante").value = data.dni_solicitante || '';
+    editForm.querySelector("#edit-departamento").value = data.departamento_nombre || '';
+    editForm.querySelector("#edit-cargo").value = data.cargo || '';
+    editForm.querySelector("#edit-nombre-proyecto").value = data.nombre_proyecto || '';
+    editForm.querySelector("#edit-motivo-anticipo").value = data.motivo_anticipo || '';
+    editForm.querySelector("#edit-fecha-solicitud").value = data.fecha_solicitud || '';
+    editForm.querySelector("#edit-estado-anticipo").value = data.estado || '';
+    editForm.querySelector("#edit-monto-total").value = (parseFloat(data.monto_total_solicitado) || 0).toFixed(2);
+
+    // Cargar opciones de SCC y preseleccionar
+    const editSccSelect = editForm.querySelector("#edit-codigo-scc");
+    await cargarScc(editSccSelect, data.scc_codigo);
+
+    // Cargar opciones de SSCC y preseleccionar
+    const editSsccSelect = editForm.querySelector("#edit-codigo-sscc");
+    editSsccSelect.innerHTML = `<option value="">Seleccione</option>`;
+    if (data.scc_codigo) {
+        try {
+            const response = await fetch(`anticipos/getSsccByScc?codigo_scc=${encodeURIComponent(data.scc_codigo)}`);
+            const ssccs = await response.json();
+            ssccs.forEach(sscc => {
+                const option = document.createElement('option');
+                option.value = sscc.codigo;
+                option.textContent = `${sscc.codigo} - ${sscc.nombre}`;
+                if (sscc.codigo === data.codigo_sscc) {
+                    option.selected = true;
+                }
+                editSsccSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar SSCC:', error);
+            editSsccSelect.innerHTML = `<option value="">Error al cargar</option>`;
+        }
+    }
+
+    // Limpiar paneles dinámicos
+    editComprasMenoresPanel.querySelectorAll('.gasto-menor').forEach(el => el.remove());
+    editViajesPanel.querySelectorAll('.tab-content').forEach(el => el.remove());
+    editViajesPanel.querySelectorAll('.tab-button:not(.add-tab)').forEach(el => el.remove());
+    editpersonaIndices = [];
+
+    // Reiniciar contador de gastos
+    gastoCounter = data.detalles_gastos ? data.detalles_gastos.length : 0;
+
+    // Llenar compras menores
+    if (data.detalles_gastos && data.detalles_gastos.length > 0) {
+        editForm.querySelector("#edit-compras-menores").checked = true;
+        editForm.querySelector("#edit-viajes").checked = false;
+        editCambioConcepto();
+        data.detalles_gastos.forEach((gasto, index) => {
+            const gastoDiv = document.createElement('div');
+            gastoDiv.className = 'gasto-menor compras-menores-container';
+            gastoDiv.innerHTML = `
+                <span class="edit-remove-gasto-btn"><i class="fa-regular fa-trash-can"></i></span>
+                <input type="hidden" name="edit-detalles_gastos[${index}][id]" value="${gasto.id || ''}">
+                <input type="hidden" name="edit-detalles_gastos[${index}][valido]" value="1">
+                <div class="modal-element">
+                    <span class="placeholder">Descripción</span>
+                    <select name="edit-detalles_gastos[${index}][descripcion]" class="descripcion-gasto form-control">
+                        <option value="">- seleccionar -</option>
+                        <option value="Combustible" ${gasto.descripcion === 'Combustible' ? 'selected' : ''}>Combustible</option>
+                        <option value="Peaje" ${gasto.descripcion === 'Peaje' ? 'selected' : ''}>Peaje</option>
+                        <option value="Parqueo" ${gasto.descripcion === 'Parqueo' ? 'selected' : ''}>Parqueo</option>
+                        <option value="Otros gastos menores" ${gasto.descripcion === 'Otros gastos menores' ? 'selected' : ''}>Otros gastos menores</option>
+                    </select>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Motivo</span>
+                    <input type="text" class="form-control" name="edit-detalles_gastos[${index}][motivo]" value="${gasto.motivo || ''}">
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Moneda</span>
+                    <select class="form-control" name="edit-detalles_gastos[${index}][moneda]">
+                        <option value="PEN" ${gasto.moneda === 'PEN' ? 'selected' : ''}>PEN</option>
+                    </select>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Importe</span>
+                    <input type="number" class="form-control" name="edit-detalles_gastos[${index}][importe]" value="${gasto.importe || 0}" min="0" step="0.01">
+                </div>
+            `;
+            editComprasMenoresPanel.insertBefore(gastoDiv, editAddGastoBtn);
+
+            const selectDescripcion = gastoDiv.querySelector(".descripcion-gasto");
+            const inputMonto = gastoDiv.querySelector("input[name*='[importe]']");
+            selectDescripcion.addEventListener("change", () => {
+                if (selectDescripcion.value !== "Combustible") {
+                    inputMonto.setAttribute("max", "400");
+                    const monto = parseFloat(inputMonto.value);
+                    if (monto > 400) {
+                        showAlert({
+                            title: 'Advertencia',
+                            message: `El monto no puede ser superior a 400 soles para este tipo de gasto.`,
+                            type: 'warning',
+                            event: 'warning'
+                        });
+                        inputMonto.value = "";
+                        inputMonto.style.outline = "2px solid red";
+                        inputMonto.focus();
+                    } else {
+                        inputMonto.style.outline = "";
+                    }
+                } else {
+                    inputMonto.removeAttribute("max");
+                    inputMonto.style.outline = "";
+                }
+                actualizarTotalGastosEdit('edit-');
+            });
+
+            inputMonto.addEventListener("input", () => {
+                if (selectDescripcion.value !== "Combustible") {
+                    const monto = parseFloat(inputMonto.value);
+                    if (monto > 400) {
+                        showAlert({
+                            title: 'Advertencia',
+                            message: `El monto no puede ser superior a 400 soles para este tipo de gasto.`,
+                            type: 'warning',
+                            event: 'warning'
+                        });
+                        inputMonto.value = "";
+                        inputMonto.style.outline = "2px solid red";
+                        inputMonto.focus();
+                    } else {
+                        inputMonto.style.outline = "";
+                    }
+                } else {
+                    inputMonto.style.outline = "";
+                }
+                actualizarTotalGastosEdit('edit-');
+            });
+
+            gastoDiv.querySelector(".edit-remove-gasto-btn").addEventListener("click", () => {
+                const validoInput = gastoDiv.querySelector(`input[name*='[valido]']`);
+                if (validoInput) {
+                    validoInput.value = '0';
+                    gastoDiv.style.display = 'none';
+                } else {
+                    gastoDiv.remove();
+                }
+                actualizarTotalGastosEdit('edit-');
+            });
+        });
+    } else {
+        editForm.querySelector("#edit-viajes").checked = true;
+        editForm.querySelector("#edit-compras-menores").checked = false;
+        editCambioConcepto();
+    }
+
+    // Llenar viáticos y transporte
+    if (data.detalles_viajes && data.detalles_viajes.length > 0) {
+        editForm.querySelector("#edit-viajes").checked = true;
+        editForm.querySelector("#edit-compras-menores").checked = false;
+        editCambioConcepto();
+        editpersonaIndices = data.detalles_viajes.map((_, index) => index + 1);
+
+        // Se obteinen los cargos para completarlos dentro del panel de personas
+        const cargos = await obtenerCargosDesdeBD();
+        let cargoOptions = `<option value="">- Seleccionar cargo -</option>`;
+        cargos.forEach(c => {
+            cargoOptions += `<option value="${c.id}">${c.nombre}</option>`;
+        });
+
+        // Procesar cada persona de manera asíncrona
+        await Promise.all(data.detalles_viajes.map(async (viaje, index) => {
+            // Crear la pestaña
+            const tabId = `edit-persona-${index + 1}`;
+            const tabButton = document.createElement('div');
+            tabButton.className = 'tab-button';
+            tabButton.dataset.tab = tabId;
+            tabButton.textContent = `Persona ${index + 1}`;
+            tabButton.id = `edit-tab-persona-${index + 1}`;
+            editTabsHeader.insertBefore(tabButton, editAddTabBtn);
+
+            // Agregar manejador de clic para la pestaña
+            tabButton.addEventListener('click', function() {
+                editTabsHeader.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                editTabsBody.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab).style.display = 'block';
+            });
+
+            // Obtener tarifas
+            let tarifas = {};
+            if (viaje.id_cargo) {
+                try {
+                    const res = await fetch(`tarifario/montosCargo?cargo_id=${viaje.id_cargo}`);
+                    const tariffData = await res.json();
+                    tariffData.forEach(d => {
+                        tarifas[d.concepto.toLowerCase()] = parseFloat(d.monto);
+                    });
+                } catch (error) {
+                    console.error(`Error al cargar tarifas para cargo ${viaje.id_cargo}:`, error);
+                }
+            }
+
+            // Crear el contenido de la pestaña
+            const tabContent = document.createElement('div');
+            tabContent.className = 'tab-content';
+            tabContent.id = tabId;
+            tabContent.dataset.tarifas = JSON.stringify(tarifas);
+            tabContent.innerHTML = `
+                <input type="hidden" name="edit-detalles_viajes[${index}][valido]" value="${viaje.valido}">
+                <input type="hidden" name="edit-detalles_viajes[${index}][id]" value="${viaje.id || ''}">
+                <div class="modal-element element-doc-id">
+                    <span class="placeholder">Doc. Id ${index + 1}</span>
+                    <input type="text" class="form-control" name="edit-detalles_viajes[${index}][doc_identidad]" value="${viaje.doc_identidad || ''}">
+                    <span class="lupa" data-index="${index + 1}">
+                        <i class="fa-solid fa-xl fa-magnifying-glass"></i>
+                    </span>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Nombre</span>
+                    <input type="text" class="form-control" name="edit-detalles_viajes[${index}][nombre_persona]" value="${viaje.nombre_persona || ''}">
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Cargo</span>
+                    <select class="form-control select-cargo" name="edit-detalles_viajes[${index}][id_cargo]" data-index="${index + 1}">
+                        ${cargoOptions}
+                    </select>
+                </div>
+                <h4 class="viaje-sub-title">Transporte Provincial
+                    <div class="icon-container toggle-icon" data-target=".section-transporte-provincial-${index + 1}">
+                        <div class="line horizontal"></div>
+                        <div class="line vertical"></div>
+                    </div>
+                </h4>
+                <hr class="separador-viaje-subtitle">
+                <div class="viaje-element section-transporte-provincial-${index + 1}" style="display: none;">
+                    <div class="transporte-prov-list" id="edit-transp-prov-list-${index + 1}">
+                        ${viaje.transporte.map((transporte, tIndex) => `
+                            <div class="transp-prov-element">
+                                <input type="hidden" name="edit-detalles_viajes[${index}][transporte][${tIndex}][valido]" value="${transporte.valido}">
+                                <input type="hidden" name="edit-detalles_viajes[${index}][transporte][${tIndex}][id]" value="${transporte.id}">
+                                <div class="edit-remove-transporte-btn"><i class="fa-regular fa-trash-can"></i></div>
+                                <div class="med-transporte">
+                                    <div>
+                                        <input type="radio" name="edit-tipo-transporte-${index + 1}-${tIndex}" id="edit-terrestre-${index + 1}-${tIndex}" value="terrestre" ${transporte.tipo_transporte === 'terrestre' ? 'checked' : ''}>
+                                        <label for="edit-terrestre-${index + 1}-${tIndex}">Terrestre</label>
+                                    </div>
+                                    <div>
+                                        <input type="radio" name="edit-tipo-transporte-${index + 1}-${tIndex}" id="edit-aereo-${index + 1}-${tIndex}" value="aereo" ${transporte.tipo_transporte === 'aereo' ? 'checked' : ''}>
+                                        <label for="edit-aereo-${index + 1}-${tIndex}">Aéreo</label>
+                                    </div>
+                                </div>
+                                <div class="modal-element">
+                                    <span class="placeholder">Ciudad Origen</span>
+                                    <input type="text" class="form-control" name="edit-detalles_viajes[${index}][transporte][${tIndex}][ciudad_origen]" value="${transporte.ciudad_origen || ''}">
+                                </div>
+                                <div class="modal-element">
+                                    <span class="placeholder">Ciudad Destino</span>
+                                    <input type="text" class="form-control" name="edit-detalles_viajes[${index}][transporte][${tIndex}][ciudad_destino]" value="${transporte.ciudad_destino || ''}">
+                                </div>
+                                <div class="modal-element">
+                                    <span class="placeholder">Fecha</span>
+                                    <input type="date" class="form-control" name="edit-detalles_viajes[${index}][transporte][${tIndex}][fecha]" value="${transporte.fecha || ''}">
+                                </div>
+                                <div class="modal-element">
+                                    <span class="placeholder">Gasto</span>
+                                    <input type="number" class="form-control gasto-viaje" name="edit-detalles_viajes[${index}][transporte][${tIndex}][monto]" value="${transporte.monto || 0}">
+                                </div>
+                                <div class="modal-element">
+                                    <span class="placeholder">Moneda</span>
+                                    <select class="form-control" name="edit-detalles_viajes[${index}][transporte][${tIndex}][moneda]">
+                                        <option value="PEN" ${transporte.moneda === 'PEN' ? 'selected' : ''}>PEN</option>
+                                    </select>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="btn edit-adding-transp-provincial" data-persona="${index + 1}">Añadir</div>
+                </div>
+                <h4 class="viaje-sub-title">Hospedaje
+                    <div class="icon-container toggle-icon" data-target=".section-hospedaje-${index + 1}">
+                        <div class="line horizontal"></div>
+                        <div class="line vertical"></div>
+                    </div>
+                </h4>
+                <hr class="separador-viaje-subtitle">
+                <div class="viaje-element section-hospedaje-${index + 1}" style="display: none;">
+                    <input type="hidden" name="edit-detalles_viajes[${index}][viaticos][hospedaje][id]" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'hospedaje')?.id || ''}">
+                    <div class="modal-element">
+                        <span class="placeholder">Días</span>
+                        <input type="number" class="form-control" name="edit-dias-hospedaje-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'hospedaje')?.dias || 0}">
+                    </div>
+                    <div class="modal-element">
+                        <span class="placeholder">Monto</span>
+                        <input type="number" class="form-control monto-hospedaje" name="edit-monto-hospedaje-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'hospedaje')?.monto || 0}">
+                    </div>
+                </div>
+                <h4 class="viaje-sub-title">Movilidad
+                    <div class="icon-container toggle-icon" data-target=".section-movilidad-${index + 1}">
+                        <div class="line horizontal"></div>
+                        <div class="line vertical"></div>
+                    </div>
+                </h4>
+                <hr class="separador-viaje-subtitle">
+                <div class="viaje-element section-movilidad-${index + 1}" style="display: none;">
+                    <input type="hidden" name="edit-detalles_viajes[${index}][viaticos][movilidad][id]" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'movilidad')?.id || ''}">
+                    <div class="modal-element">
+                        <span class="placeholder">Días</span>
+                        <input type="number" class="form-control" name="edit-dias-movilidad-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'movilidad')?.dias || 0}">
+                    </div>
+                    <div class="modal-element">
+                        <span class="placeholder">Monto</span>
+                        <input type="number" class="form-control monto-movilidad" name="edit-monto-movilidad-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'movilidad')?.monto || 0}">
+                    </div>
+                </div>
+                <h4 class="viaje-sub-title">Alimentación
+                    <div class="icon-container toggle-icon" data-target=".section-alimentacion-${index + 1}">
+                        <div class="line horizontal"></div>
+                        <div class="line vertical"></div>
+                    </div>
+                </h4>
+                <hr class="separador-viaje-subtitle">
+                <div class="viaje-element section-alimentacion-${index + 1}" style="display: none;">
+                    <input type="hidden" name="edit-detalles_viajes[${index}][viaticos][alimentacion][id]" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'alimentacion')?.id || ''}">
+                    <div class="modal-element">
+                        <span class="placeholder">Días</span>
+                        <input type="number" class="form-control" name="edit-dias-alimentacion-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'alimentacion')?.dias || 0}">
+                    </div>
+                    <div class="modal-element">
+                        <span class="placeholder">Monto</span>
+                        <input type="number" class="form-control monto-alimentacion" name="edit-monto-alimentacion-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'alimentacion')?.monto || 0}">
+                    </div>
+                </div>
+                <div class='container-remove-persona'>
+                    <div class="btn remove-persona-btn" data-index="${index + 1}">Eliminar</div>
+                </div>
+            `;
+            editTabsBody.appendChild(tabContent);
+
+            const cargoSelect = tabContent.querySelector(`select[name='edit-detalles_viajes[${index}][id_cargo]']`);
+            if (viaje.id_cargo) {
+                cargoSelect.value = viaje.id_cargo;
+            }
+
+            // Forzar cálculo de montos para viáticos
+            ['alimentacion', 'hospedaje', 'movilidad'].forEach(tipo => {
+                calcularMontoEdit(index + 1, tipo);
+            });
+
+            cargoSelect.addEventListener("change", async function() {
+                const cargoId = this.value;
+                const idx = this.dataset.index;
+                const container = document.getElementById(`edit-persona-${idx}`);
+                if (!cargoId) {
+                    ['alimentacion', 'hospedaje', 'movilidad'].forEach(tipo => {
+                        const diasInput = document.querySelector(`[name='edit-dias-${tipo}-${idx}']`);
+                        const montoInput = document.querySelector(`[name='edit-monto-${tipo}-${idx}']`);
+                        diasInput.setAttribute('readonly', '');
+                        diasInput.value = '';
+                        montoInput.value = '';
+                    });
+                    container.dataset.tarifas = '{}';
+                    actualizarTotalGastosEdit('edit-');
+                    return;
+                }
+
+                const res = await fetch(`tarifario/montosCargo?cargo_id=${cargoId}`);
+                const tariffData = await res.json();
+                const tarifas = {};
+                tariffData.forEach(d => {
+                    tarifas[d.concepto.toLowerCase()] = parseFloat(d.monto);
+                });
+                container.dataset.tarifas = JSON.stringify(tarifas);
+
+                ['alimentacion', 'hospedaje', 'movilidad'].forEach(tipo => {
+                    const diasInput = document.querySelector(`[name='edit-dias-${tipo}-${idx}']`);
+                    diasInput.removeAttribute('readonly');
+                    calcularMontoEdit(idx, tipo);
+                });
+            });
+
+            ['alimentacion', 'hospedaje', 'movilidad'].forEach(tipo => {
+                const diasInput = tabContent.querySelector(`[name='edit-dias-${tipo}-${index + 1}']`);
+                diasInput.addEventListener("input", () => {
+                    calcularMontoEdit(index + 1, tipo);
+                });
+            });
+
+            tabContent.querySelector(".lupa").addEventListener("click", async function() {
+                const idx = this.dataset.index;
+                const docId = document.querySelector(`[name='edit-detalles_viajes[${idx - 1}][doc_identidad]']`).value;
+                const inputNombres = document.querySelector(`[name='edit-detalles_viajes[${idx - 1}][nombre_persona]']`);
+                const res = await fetch(`usuarios/anticipoBuscarDni?doc-identidad=${docId}`);
+                const resData = await res.json();
+                if (resData.success) {
+                    inputNombres.value = `${resData.data.nombres} ${resData.data.apellidos}`;
+                } else {
+                    showAlert({
+                        title: 'Error',
+                        message: 'No se encontraron datos del trabajador.',
+                        type: 'error',
+                        event: 'error'
+                    });
+                }
+            });
+
+            tabContent.querySelectorAll(".edit-remove-transporte-btn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const transporteElement = btn.closest(".transp-prov-element");
+                    const validoInput = transporteElement.querySelector(`input[name*='[valido]']`);
+                    if (validoInput) {
+                        validoInput.value = '0';
+                        transporteElement.style.display = 'none';
+                    } else {
+                        transporteElement.remove();
+                    }
+                    actualizarTotalGastosEdit('edit-');
+                });
+            });
+
+            if (index === 0) {
+                tabButton.classList.add('active');
+                tabContent.style.display = 'block';
+            }
+        }));
+        // Actualizar el total después de cargar todos los datos
+        actualizarTotalGastosEdit('edit-');
+    }
+
+    colorModeSwitch.checked = false;
+    editSubmitButton.disabled = true;
+    editAddGastoBtn.style.display = 'none';
+    editAddTabBtn.style.display = 'none';
+    toggleEditMode(false);
+
+    editAnticipoModal.style.display = "block";
+
+    //actualizarTotalGastosEdit('edit-');
+    setTimeout(() => actualizarTotalGastosEdit('edit-'), 0);
+}
+
+// Agregar nueva persona en modo edición
+editAddTabBtn.addEventListener('click', async function() {
+    let newIndex = 1;
+    while (editpersonaIndices.includes(newIndex)) {
+        newIndex++;
+    }
+    editpersonaIndices.push(newIndex);
+    editpersonaIndices.sort((a, b) => a - b);
+
+    const newTabBtn = document.createElement("div");
+    newTabBtn.className = "tab-button";
+    newTabBtn.dataset.tab = `edit-persona-${newIndex}`;
+    newTabBtn.textContent = `Persona ${newIndex}`;
+    newTabBtn.id = `edit-tab-persona-${newIndex}`;
+    editTabsHeader.insertBefore(newTabBtn, editAddTabBtn);
+
+    // Agregar manejador de clic para la nueva pestaña
+    newTabBtn.addEventListener('click', function() {
+        editTabsHeader.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        editTabsBody.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+        this.classList.add('active');
+        document.getElementById(this.dataset.tab).style.display = 'block';
+    });
+
+    const cargos = await obtenerCargosDesdeBD();
+    let cargoOptions = `<option value="">- Seleccionar cargo -</option>`;
+    cargos.forEach(c => {
+        cargoOptions += `<option value="${c.id}">${c.nombre}</option>`;
+    });
+
+    const newTabContent = document.createElement("div");
+    newTabContent.className = "tab-content";
+    newTabContent.id = `edit-persona-${newIndex}`;
+    newTabContent.dataset.tarifas = '{}';
+    newTabContent.innerHTML = `
+        <input type="hidden" name="edit-detalles_viajes[${newIndex - 1}][valido]" value="1">
+        <div class="modal-element element-doc-id">
+            <span class="placeholder">Doc. Id ${newIndex}</span>
+            <input type="text" class="form-control" name="edit-detalles_viajes[${newIndex - 1}][doc_identidad]" data-index="${newIndex}">
+            <span class="lupa" data-index="${newIndex}">
+                <i class="fa-solid fa-xl fa-magnifying-glass"></i>
+            </span>
+        </div>
+        <div class="modal-element">
+            <span class="placeholder">Nombre</span>
+            <input type="text" class="form-control" name="edit-detalles_viajes[${newIndex - 1}][nombre_persona]" data-index="${newIndex}">
+        </div>
+        <div class="modal-element">
+            <span class="placeholder">Cargo</span>
+            <select class="form-control select-cargo" name="edit-detalles_viajes[${newIndex - 1}][id_cargo]" data-index="${newIndex}">
+                ${cargoOptions}
+            </select>
+        </div>
+        <h4 class="viaje-sub-title">Transporte Provincial
+            <div class="icon-container toggle-icon" data-target=".section-transporte-provincial-${newIndex}">
+                <div class="line horizontal"></div>
+                <div class="line vertical"></div>
+            </div>
+        </h4>
+        <hr class="separador-viaje-subtitle">
+        <div class="viaje-element section-transporte-provincial-${newIndex}" style="display: none;">
+            <div class="transporte-prov-list" id="edit-transp-prov-list-${newIndex}"></div>
+            <div class="btn edit-adding-transp-provincial" data-persona="${newIndex}">Añadir</div>
+        </div>
+        <h4 class="viaje-sub-title">Hospedaje
+            <div class="icon-container toggle-icon" data-target=".section-hospedaje-${newIndex}">
+                <div class="line horizontal"></div>
+                <div class="line vertical"></div>
+            </div>
+        </h4>
+        <hr class="separador-viaje-subtitle">
+        <div class="viaje-element section-hospedaje-${newIndex}" style="display: none;">
+            <div class="modal-element">
+                <span class="placeholder">Días</span>
+                <input type="number" class="form-control" name="edit-dias-hospedaje-${newIndex}" readonly>
+            </div>
+            <div class="modal-element">
+                <span class="placeholder">Monto</span>
+                <input type="number" class="form-control monto-hospedaje" name="edit-monto-hospedaje-${newIndex}" readonly>
+            </div>
+        </div>
+        <h4 class="viaje-sub-title">Movilidad
+            <div class="icon-container toggle-icon" data-target=".section-movilidad-${newIndex}">
+                <div class="line horizontal"></div>
+                <div class="line vertical"></div>
+            </div>
+        </h4>
+        <hr class="separador-viaje-subtitle">
+        <div class="viaje-element section-movilidad-${newIndex}" style="display: none;">
+            <div class="modal-element">
+                <span class="placeholder">Días</span>
+                <input type="number" class="form-control" name="edit-dias-movilidad-${newIndex}" readonly>
+            </div>
+            <div class="modal-element">
+                <span class="placeholder">Monto</span>
+                <input type="number" class="form-control monto-movilidad" name="edit-monto-movilidad-${newIndex}" readonly>
+            </div>
+        </div>
+        <h4 class="viaje-sub-title">Alimentación
+            <div class="icon-container toggle-icon" data-target=".section-alimentacion-${newIndex}">
+                <div class="line horizontal"></div>
+                <div class="line vertical"></div>
+            </div>
+        </h4>
+        <hr class="separador-viaje-subtitle">
+        <div class="viaje-element section-alimentacion-${newIndex}" style="display: none;">
+            <div class="modal-element">
+                <span class="placeholder">Días</span>
+                <input type="number" class="form-control" name="edit-dias-alimentacion-${newIndex}" readonly>
+            </div>
+            <div class="modal-element">
+                <span class="placeholder">Monto</span>
+                <input type="number" class="form-control monto-alimentacion" name="edit-monto-alimentacion-${newIndex}" readonly>
+            </div>
+        </div>
+        <div class='container-remove-persona'>
+            <div class="btn remove-persona-btn" data-index="${newIndex}">Eliminar</div>
+        </div>
+    `;
+    editTabsBody.appendChild(newTabContent);
+
+    newTabContent.querySelector(".select-cargo").addEventListener("change", async function() {
+        const cargoId = this.value;
+        const idx = this.dataset.index;
+        const container = document.getElementById(`edit-persona-${idx}`);
+        if (!cargoId) {
+            ['alimentacion', 'hospedaje', 'movilidad'].forEach(tipo => {
+                const diasInput = document.querySelector(`[name='edit-dias-${tipo}-${idx}']`);
+                const montoInput = document.querySelector(`[name='edit-monto-${tipo}-${idx}']`);
+                diasInput.setAttribute('readonly', '');
+                diasInput.value = '';
+                montoInput.value = '';
+            });
+            container.dataset.tarifas = '{}';
+            actualizarTotalGastosEdit('edit-');
+            return;
+        }
+
+        const res = await fetch(`tarifario/montosCargo?cargo_id=${cargoId}`);
+        const tariffData = await res.json();
+        const tarifas = {};
+        tariffData.forEach(d => {
+            tarifas[d.concepto.toLowerCase()] = parseFloat(d.monto);
+        });
+        container.dataset.tarifas = JSON.stringify(tarifas);
+
+        ['alimentacion', 'hospedaje', 'movilidad'].forEach(tipo => {
+            const diasInput = document.querySelector(`[name='edit-dias-${tipo}-${idx}']`);
+            diasInput.removeAttribute('readonly');
+            calcularMontoEdit(idx, tipo);
+        });
+    });
+
+    ['alimentacion', 'hospedaje', 'movilidad'].forEach(tipo => {
+        const diasInput = newTabContent.querySelector(`[name='edit-dias-${tipo}-${newIndex}']`);
+        diasInput.addEventListener("input", () => {
+            calcularMontoEdit(newIndex, tipo);
+        });
+    });
+
+    newTabContent.querySelector(".lupa").addEventListener("click", async function() {
+        const idx = this.dataset.index;
+        const docId = document.querySelector(`[name='edit-detalles_viajes[${idx - 1}][doc_identidad]']`).value;
+        const inputNombres = document.querySelector(`[name='edit-detalles_viajes[${idx - 1}][nombre_persona]']`);
+        const res = await fetch(`usuarios/anticipoBuscarDni?doc-identidad=${docId}`);
+        const resData = await res.json();
+        if (resData.success) {
+            inputNombres.value = `${resData.data.nombres} ${resData.data.apellidos}`;
+        } else {
+            showAlert({
+                title: 'Error',
+                message: 'No se encontraron datos del trabajador.',
+                type: 'error',
+                event: 'error'
+            });
+        }
+    });
+
+    newTabContent.querySelectorAll(".edit-remove-transporte-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const transporteElement = btn.closest(".transp-prov-element");
+            const validoInput = transporteElement.querySelector(`input[name*='[valido]']`);
+            if (validoInput) {
+                validoInput.value = '0';
+                transporteElement.style.display = 'none';
+            } else {
+                transporteElement.remove();
+            }
+            actualizarTotalGastosEdit('edit-');
+        });
+    });
+
+    editTabsHeader.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+    editTabsBody.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+    newTabBtn.classList.add('active');
+    newTabContent.style.display = 'block';
+
+    actualizarBotonesEliminarEdit();
+});
+
+// Manejando la eliminación de personas - Edit Panel
+editTabsBody.addEventListener("click", function(e) {
+    if (e.target.classList.contains("remove-persona-btn")) {
+        const index = parseInt(e.target.dataset.index, 10);
+        const tab = document.getElementById(`edit-tab-persona-${index}`);
+        const content = document.getElementById(`edit-persona-${index}`);
+        const validoInput = content.querySelector(`input[name*='[valido]']`);
+
+        if (validoInput) {
+            validoInput.value = '0';
+            // Marcar transportes como inactivos
+            content.querySelectorAll('input[name*="transporte"][name*="valido"]').forEach(input => {
+                input.value = '0';
+            });
+            // Resetear días y montos de viáticos
+            ['hospedaje', 'movilidad', 'alimentacion'].forEach(tipo => {
+                const diasInput = content.querySelector(`input[name="edit-dias-${tipo}-${index}"]`);
+                const montoInput = content.querySelector(`input[name="edit-monto-${tipo}-${index}"]`);
+                if (diasInput) diasInput.value = '0';
+                if (montoInput) montoInput.value = '0';
+            });
+            content.style.display = 'none';
+            tab.style.display = 'none';
+        } else {
+            content.remove();
+            tab.remove();
+        }
+        editpersonaIndices = editpersonaIndices.filter(i => i !== index);
+        const firstTab = editTabsHeader.querySelector(".tab-button[data-tab]:not([style*='display: none'])");
+        if (firstTab) {
+            firstTab.classList.add('active');
+            document.getElementById(firstTab.dataset.tab).style.display = 'block';
+        }
+        actualizarBotonesEliminarEdit();
+        actualizarTotalGastosEdit('edit-');
+    }
+});
+
+// Manejar adición de transporte provincial
+editTabsBody.addEventListener("click", function(e) {
+    if (e.target.classList.contains("edit-adding-transp-provincial")) {
+        const persona = e.target.dataset.persona;
+        const container = document.getElementById(`edit-transp-prov-list-${persona}`);
+        const index = container.children.length;
+
+        const grupo = document.createElement("div");
+        grupo.classList.add("transp-prov-element");
+        grupo.innerHTML = `
+            <input type="hidden" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][valido]" value="1">
+            <div class="edit-remove-transporte-btn"><i class="fa-regular fa-trash-can"></i></div>
+            <div class="med-transporte">
+                <div>
+                    <input type="radio" name="edit-tipo-transporte-${persona}-${index}" id="edit-terrestre-${persona}-${index}" value="terrestre" checked>
+                    <label for="edit-terrestre-${persona}-${index}">Terrestre</label>
+                </div>
+                <div>
+                    <input type="radio" name="edit-tipo-transporte-${persona}-${index}" id="edit-aereo-${persona}-${index}" value="aereo">
+                    <label for="edit-aereo-${persona}-${index}">Aéreo</label>
+                </div>
+            </div>
+            <div class="modal-element">
+                <span class="placeholder">Ciudad Origen</span>
+                <input type="text" class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][ciudad_origen]">
+            </div>
+            <div class="modal-element">
+                <span class="placeholder">Ciudad Destino</span>
+                <input type="text" class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][ciudad_destino]">
+            </div>
+            <div class="modal-element">
+                <span class="placeholder">Fecha</span>
+                <input type="date" class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][fecha]" required>
+            </div>
+            <div class="modal-element">
+                <span class="placeholder">Gasto</span>
+                <input type="number" class="form-control gasto-viaje" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][monto]" required>
+            </div>
+            <div class="modal-element">
+                <span class="placeholder">Moneda</span>
+                <select class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][moneda]">
+                    <option value="PEN" selected>PEN</option>
+                </select>
+            </div>
+        `;
+        container.appendChild(grupo);
+
+        grupo.querySelector(".gasto-viaje").addEventListener("input", () => actualizarTotalGastosEdit('edit-'));
+        grupo.querySelector(".edit-remove-transporte-btn").addEventListener("click", () => {
+            const validoInput = grupo.querySelector(`input[name*='[valido]']`);
+            if (validoInput) {
+                validoInput.value = '0';
+                grupo.style.display = 'none';
+            } else {
+                grupo.remove();
+            }
+            actualizarTotalGastosEdit('edit-');
+        });
+    }
+});
+
+// Corregir toggle de secciones
+editTabsBody.addEventListener("click", function(e) {
+    const icon = e.target.closest(".toggle-icon");
+    if (!icon) return;
+
+    const targetSelector = icon.dataset.target;
+    const container = icon.closest(".tab-content");
+    if (!container) return;
+
+    const targetSection = container.querySelector(targetSelector);
+    const isVisible = targetSection && targetSection.style.display === "block";
+
+    // Ocultar todas las secciones dentro de la pestaña actual
+    container.querySelectorAll(".viaje-element").forEach(section => {
+        section.style.display = "none";
+    });
+
+    // Quitar clase "minus" de todos los íconos en la pestaña actual
+    container.querySelectorAll(".toggle-icon").forEach(ic => ic.classList.remove("minus"));
+
+    // Mostrar la sección seleccionada si no estaba visible
+    if (isVisible && targetSection) {
+        targetSection.style.display = "block";
+        icon.classList.add("minus");
+    }
+});
+
+// Función para alternar entre modo Ver y Editar
+function toggleEditMode(isEditMode) {
+    const isEditable = ['Nuevo'].includes(editForm.querySelector("#edit-estado-anticipo").value);
+    const inputs = editForm.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), select');
+
+    inputs.forEach(input => {
+        if (['edit-solicitante', 'edit-dni-solicitante', 'edit-departamento', 'edit-cargo', 'edit-fecha-solicitud'].includes(input.id)) {
+            input.readOnly = true;
+            input.disabled = true;
+        } else if (input.name.includes('edit-detalles_gastos') || input.name.includes('edit-detalles_viajes')) {
+            // Habilitar todos los campos de detalles_gastos y detalles_viajes en modo edición
+            input.readOnly = !isEditMode;
+            input.disabled = !isEditMode;
+        } else {
+            input.readOnly = !isEditMode;
+            input.disabled = !isEditMode;
+        }
+    });
+
+    editSubmitButton.disabled = !isEditMode || !isEditable;
+    editAddGastoBtn.style.display = isEditMode && isEditable ? 'block' : 'none';
+    editAddTabBtn.style.display = isEditMode && isEditable ? 'block' : 'none';
+}
+
+// Manejar el interruptor de modo
+colorModeSwitch.addEventListener('change', function() {
+    toggleEditMode(this.checked);
+});
+
+// Selección y cambio de vista en sección de Concepto
+const editOpcionesConcepto = document.querySelectorAll("input[name='edit-concepto']");
+function editCambioConcepto() {
+    if (document.getElementById("edit-compras-menores").checked) {
+        editComprasMenoresPanel.style.display = "block";
+        editViajesPanel.style.display = "none";
+    } else if (document.getElementById("edit-viajes").checked) {
+        editComprasMenoresPanel.style.display = "none";
+        editViajesPanel.style.display = "block";
+    }
+}
+
+editOpcionesConcepto.forEach(radioBtn => {
+    radioBtn.addEventListener("change", editCambioConcepto);
+});
+
+// Cerrar modal
+editAnticipoModal.querySelector('.btn-close-modal').addEventListener('click', function() {
+    editAnticipoModal.style.display = 'none';
+    editForm.reset();
+    editComprasMenoresPanel.querySelectorAll('.gasto-menor').forEach(el => el.remove());
+    editTabsBody.innerHTML = '';
+    editTabsHeader.querySelectorAll('.tab-button:not(.add-tab)').forEach(el => el.remove());
+    editForm.querySelector("#edit-compras-menores").checked = true;
+    editForm.querySelector("#edit-viajes").checked = false;
+    editCambioConcepto();
+    gastoCounter = 0;
+    editpersonaIndices = [];
+});
+
+// Manejar envío del formulario
+editForm.addEventListener('submit', async function(event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+    try {
+        const response = await fetch('/proy_anticipos_rendiciones/anticipos/update', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+        if (result.success) {
+            showAlert({
+                title: 'Completado',
+                message: `El anticipo fue actualizado correctamente.`,
+                type: 'success',
+                event: 'envio'
+            });
+            editAnticipoModal.style.display = 'none';
+        } else {
+            showAlert({
+                title: 'Error',
+                message: `El anticipo no pudo ser actualizado. "${result.error}".`,
+                type: 'error',
+                event: 'envio'
+            });
+        }
+    } catch (error) {
+        showAlert({
+            title: 'Error',
+            message: `No se pudo enviar la información del anticipo.`,
+            type: 'error',
+            event: 'envio'
+        });
+    }
 });
 
 
-// Esta función tiene como únicaa finalidad cargar los datos principales del anticipo (por ahora)
-function showAnticipoDetails(data){
-    console.log(data);
-    const editForm = document.getElementById("editAnticipoModal");
-    // Elementos principales del anticipo
-    const editAnticipoTitle = document.getElementById("edit-modal-title");
-    const editIdAnticipo = document.getElementById("edit-id-anticipo");
-    const editSolicitante = document.getElementById("edit-solicitante");
-    const editDniSolicitante = document.getElementById("edit-dni-solicitante");
-    const editDepartement = document.getElementById("edit-departamento");
-    const editCargo = document.getElementById("edit-cargo");
-    const editScc = document.getElementById("edit-codigo-scc");
-    const editSscc = document.getElementById("edit-codigo-sscc");
-    const editNombreProyecto = document.getElementById("edit-nombre-proyecto");
-    const editMotivoAnticipo = document.getElementById("edit-motivo-anticipo");
-    const editFechaSolicitud = document.getElementById("edit-fecha-solicitud");
-    const editMontoTotal = document.getElementById("edit-monto-total");
 
-    editForm.style.display = "block";
-    editAnticipoTitle.innerText = `Anticipo #${data.id}`;
-    editIdAnticipo.value = data.id;
-    editSolicitante.value = data.solicitante_nombres;
-    editDniSolicitante.value = data.dni_solicitante;
-    editDepartement.value = data.departamento_nombre;
-    editCargo.value = data.cargo;
-    editScc.value = data.scc_codigo;
-    editNombreProyecto.value = data.nombre_proyecto;
-    editMotivoAnticipo.value = data.motivo_anticipo;
-    editFechaSolicitud.value = data.fecha_solicitud;
-    editMontoTotal.value = data.monto_total_solicitado;
+
+
+// Actualizar visibilidad de botones de eliminación de personas
+function actualizarBotonesEliminarEdit() {
+    editTabsBody.querySelectorAll(".remove-persona-btn").forEach(btn => btn.style.display = "none");
+    const max = Math.max(...editpersonaIndices);
+    const btn = document.querySelector(`#edit-persona-${max} .remove-persona-btn`);
+    if (btn) btn.style.display = "inline-block";
 }
-
-// Selección y cambio de vista en sección de Concepto - compras menores o viajes
-    const opcionesConcepto = document.querySelectorAll("input[name='concepto']");
-    const panelComprasMenores = document.getElementById("panel-compras-menores");
-    const panelViajes = document.getElementById("panel-viajes");
-
-    // Funcionalidad encargada de mostrar y ocultar el panel de Compras o Viajes
-    function cambioConcepto(){
-        if (document.getElementById("compras-menores").checked) {
-            panelComprasMenores.style.display = "block";
-            panelViajes.style.display = "none";
-        } else if (document.getElementById("viajes").checked) {
-            panelComprasMenores.style.display = "none";
-            panelViajes.style.display = "block";
-        }
-    }

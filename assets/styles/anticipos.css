@@ -35,7 +35,8 @@
 }
 
 .btn-add-anticipo {
-    background-color: #153f65;
+    /* background-color: #153f65; */
+    background-color: #1f58a8;
     color: #ffffff;
     margin-bottom: 15px;
 }
@@ -46,6 +47,8 @@
     max-height: 600px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    border-radius: .8rem;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 50px;
 }
 
 /* Estilos base de la tabla */
@@ -66,11 +69,22 @@
 
 /* Encabezado de la tabla */
 .table-head {
-    background-color: #f2f2f2;
+    /* background-color: #f2f2f2; */
+    /* background: #7FAFE6;
+    background: linear-gradient(100deg, rgba(228, 238, 247, 1) 58%, rgba(217, 237, 255, 1) 78%, rgba(220, 233, 245, 1) 100%); */
+    background: #7FAFE6;
+    background: linear-gradient(100deg, rgb(193, 221, 255) 0%, rgba(227, 244, 255, 1) 46%, rgba(228, 238, 247, 1) 58%, rgba(217, 237, 255, 1) 78%, rgba(220, 233, 245, 1) 100%);
     position: sticky;
     text-align: left;
     top: 0;
     z-index: 2;
+}
+
+.table-head tr th{
+    /* color: #1a4faa; */
+    color: #153f65;
+    font-weight: bold;
+    /* font-size: 1.2rem; */
 }
 
 /* Efecto hover en las filas */
@@ -616,6 +630,23 @@ label {
   background: #fff;
 }
 
+.gasto-menor{
+    position: relative;
+}
+
+.edit-remove-gasto-btn{
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: #d9534f;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 11;
+    width: fit-content;
+    transition: color 0.2s;
+}
 
 
 /* Media query para tablets (≤800px) */
@@ -698,9 +729,10 @@ label {
         max-height: 500px;
     }
 
-    .anticipos-content {
+    /* .anticipos-content {
         padding: 10px;
-    }
+        height: 100vh;
+    } */
 
     .section-table h2 {
         font-size: 18px;

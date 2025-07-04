@@ -136,7 +136,7 @@ class AnticipoModel {
             $stmt = $this->db->prepare($query);
             $stmt->execute(['id_solicitante' => $id_solicitante]);
             $estado = $stmt->fetchColumn();
-            return $estado != false && $estado != 'Finalizado';
+            return $estado != false && $estado != 'Rendido';
         } catch (PDOException $e) {
             return false;
         }
@@ -179,8 +179,9 @@ class AnticipoModel {
                 return false;
             }
 
+            // Inicia Movimiento de Presupuesto 30062025 - Se comenta porque tras la creación de un anticipo no se realizará el movimiento al instante
             // Insertar movimiento en tb_movimientos_presupuesto
-            $query = "INSERT INTO tb_movimientos_presupuesto (id_presupuesto, tipo_movimiento, monto, id_anticipo, id_usuario, fecha, comentario)
+            /*$query = "INSERT INTO tb_movimientos_presupuesto (id_presupuesto, tipo_movimiento, monto, id_anticipo, id_usuario, fecha, comentario)
                       VALUES (:id_presupuesto, :tipo_movimiento, :monto, :id_anticipo, :id_usuario, NOW(), :comentario)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
@@ -190,10 +191,11 @@ class AnticipoModel {
                 'id_anticipo' => $id_anticipo,
                 'id_usuario' => $id_usuario,
                 'comentario' => 'Movimiento por anticipo'
-            ]);
+            ]);*/
 
+            // Continua Movimiento de Presupuesto 30062025 - Se comenta porque tras la creación de un anticipo no se realizará el movimiento al instante
             // Actualizar saldo_disponible en tb_presupuestos_sscc
-            $query = "UPDATE tb_presupuestos_sscc 
+            /*$query = "UPDATE tb_presupuestos_sscc 
                       SET saldo_disponible = saldo_disponible - :monto, 
                           ultima_actualizacion = NOW() 
                       WHERE id = :id_presupuesto AND activo = 1";
@@ -201,14 +203,16 @@ class AnticipoModel {
             $stmt->execute([
                 'monto' => $monto_total_solicitado,
                 'id_presupuesto' => $id_presupuesto
-            ]);
+            ]);*/
 
+            // Finaliza Movimiento de Presupuesto 30062025 - Se comenta porque tras la creación de un anticipo no se realizará el movimiento al instante
             // Verificar que se haya actualizado al menos una fila
-            if ($stmt->rowCount() === 0) {
+            /*if ($stmt->rowCount() === 0) {
                 error_log('No se actualizó el saldo para id_presupuesto: ' . $id_presupuesto);
                 $this->db->rollBack();
                 return false;
-            }
+            }*/
+            // Esta implementación de realizar movimiento y descuento de presupuesto se debería dar recién cuando el anticipo llegue al estado correspondiente(abonado, aprobado, etc)
 
             // Insertar detalles de compras menores
             if (!empty($detalles_gastos)) {
@@ -242,16 +246,16 @@ class AnticipoModel {
             // Insertar detalles de viajes
             if (!empty($detalles_viajes)) {
                 error_log("Insertando " . count($detalles_viajes) . " personas de viaje: " . json_encode($detalles_viajes));
-                $query_persona = "INSERT INTO tb_viajes_personas (id_anticipo, doc_identidad, nombre_persona, id_cargo)
-                                  VALUES (:id_anticipo, :doc_identidad, :nombre_persona, :id_cargo)";
+                $query_persona = "INSERT INTO tb_viajes_personas (id_anticipo, doc_identidad, nombre_persona, id_cargo, valido)
+                                  VALUES (:id_anticipo, :doc_identidad, :nombre_persona, :id_cargo, :valido)";
                 $stmt_persona = $this->db->prepare($query_persona);
 
                 $query_detalle = "INSERT INTO tb_detalles_viajes (id_viaje_persona, id_concepto, dias, monto, moneda)
                                   VALUES (:id_viaje_persona, :id_concepto, :dias, :monto, :moneda)";
                 $stmt_detalle = $this->db->prepare($query_detalle);
 
-                $query_transporte = "INSERT INTO tb_transporte_provincial (id_viaje_persona, tipo_transporte, ciudad_origen, ciudad_destino, fecha, monto, moneda)
-                                     VALUES (:id_viaje_persona, :tipo_transporte, :ciudad_origen, :ciudad_destino, :fecha, :monto, :moneda)";
+                $query_transporte = "INSERT INTO tb_transporte_provincial (id_viaje_persona, tipo_transporte, ciudad_origen, ciudad_destino, fecha, monto, moneda, valido)
+                                     VALUES (:id_viaje_persona, :tipo_transporte, :ciudad_origen, :ciudad_destino, :fecha, :monto, :moneda, :valido)";
                 $stmt_transporte = $this->db->prepare($query_transporte);
 
                 foreach ($detalles_viajes as $index => $persona) {
@@ -262,6 +266,7 @@ class AnticipoModel {
                             'doc_identidad' => $persona['doc_identidad'],
                             'nombre_persona' => $persona['nombre_persona'],
                             'id_cargo' => $persona['id_cargo'],
+                            'valido' => '1'
                         ]);
                         if (!$result) {
                             error_log("Fallo al insertar persona de viaje #$index: No se insertó ninguna fila");
@@ -316,7 +321,8 @@ class AnticipoModel {
                                 'ciudad_destino' => $transp['ciudad_destino'],
                                 'fecha' => $transp['fecha'],
                                 'monto' => $transp['monto'],
-                                'moneda' => 'pen'
+                                'moneda' => 'pen',
+                                'valido' => '1'
                             ]);
                             if ($result) {
                                 error_log("Transporte #$subindex para persona #$index insertado: " . json_encode($transp));
@@ -412,7 +418,8 @@ class AnticipoModel {
             $stmt = $this->db->prepare($query);
             $stmt->execute(['codigo_sscc' => $codigo_sscc]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            error_log('Consultando saldo para codigo_sscc ' . $codigo_sscc . ': ' . ($result ? $result['saldo_disponible'] : 'No encontrado'));
+            // log para mostrar el saldo disponible
+            //error_log('Consultando saldo para codigo_sscc ' . $codigo_sscc . ': ' . ($result ? $result['saldo_disponible'] : 'No encontrado'));
             return $result ? (float)$result['saldo_disponible'] : null;
         } catch (PDOException $e) {
             error_log('Error al obtener saldo disponible: ' . $e->getMessage());
@@ -443,12 +450,30 @@ class AnticipoModel {
     public function getAnticipoById($id_anticipo) {
         try {
             // Obtener datos principales del anticipo
-            $query = "SELECT a.id, a.id_usuario, a.solicitante_nombres, a.dni_solicitante, a.departamento,
-                        a.departamento_nombre, a.codigo_sscc, a.cargo, a.nombre_proyecto, a.fecha_solicitud, a.motivo_anticipo,
-                        a.monto_total_solicitado, s.scc_codigo
-                      FROM tb_anticipos a
-                      LEFT JOIN tb_sscc s ON a.codigo_sscc = s.codigo
-                      WHERE a.id = :id_anticipo";
+            $query = "SELECT 
+                a.id,
+                a.id_usuario,
+                a.solicitante_nombres,
+                a.dni_solicitante,
+                a.departamento,
+                a.departamento_nombre,
+                a.codigo_sscc,
+                a.cargo,
+                a.nombre_proyecto,
+                a.fecha_solicitud,
+                a.motivo_anticipo,
+                a.monto_total_solicitado,
+                s.scc_codigo,
+                (
+                    SELECT h.estado
+                    FROM tb_historial_anticipos h
+                    WHERE h.id_anticipo = a.id
+                    ORDER BY h.fecha DESC
+                    LIMIT 1
+                ) AS estado
+                FROM tb_anticipos a
+                LEFT JOIN tb_sscc s ON a.codigo_sscc = s.codigo
+                WHERE a.id = :id_anticipo;";
             $stmt = $this->db->prepare($query);
             $stmt->execute(['id_anticipo' => $id_anticipo]);
             $anticipo = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -458,9 +483,9 @@ class AnticipoModel {
             }
 
             // Obtener detalles de compras menores
-            $query_compras = "SELECT descripcion, motivo, moneda, importe 
+            $query_compras = "SELECT id, descripcion, motivo, moneda, importe 
                               FROM tb_detalles_compras_menores 
-                              WHERE id_anticipo = :id_anticipo";
+                              WHERE id_anticipo = :id_anticipo AND valido=1";
             $stmt_compras = $this->db->prepare($query_compras);
             $stmt_compras->execute(['id_anticipo' => $id_anticipo]);
             $anticipo['detalles_gastos'] = $stmt_compras->fetchAll(PDO::FETCH_ASSOC);
@@ -469,10 +494,10 @@ class AnticipoModel {
 
             //here iniicia
             // Obtener detalles de personas (viáticos y transporte)
-            $query_personas = "SELECT vp.id, vp.doc_identidad, vp.nombre_persona, vp.id_cargo, c.nombre AS cargo_nombre
+            $query_personas = "SELECT vp.id, vp.doc_identidad, vp.nombre_persona, vp.id_cargo, vp.valido, c.nombre AS cargo_nombre
                                FROM tb_viajes_personas vp
                                LEFT JOIN tb_cargos_tarifario c ON vp.id_cargo = c.id
-                               WHERE vp.id_anticipo = :id_anticipo";
+                               WHERE vp.id_anticipo = :id_anticipo and vp.valido = 1";
             $stmt_personas = $this->db->prepare($query_personas);
             $stmt_personas->execute(['id_anticipo' => $id_anticipo]);
             $personas = $stmt_personas->fetchAll(PDO::FETCH_ASSOC);
@@ -481,16 +506,18 @@ class AnticipoModel {
             foreach ($personas as $persona) {
                 $id_viaje_persona = $persona['id'];
                 $persona_data = [
+                    'id' => $persona['id'],
                     'doc_identidad' => $persona['doc_identidad'],
                     'nombre_persona' => $persona['nombre_persona'],
                     'id_cargo' => $persona['id_cargo'],
                     'cargo_nombre' => $persona['cargo_nombre'],
+                    'valido' => $persona['valido'],
                     'viaticos' => [],
                     'transporte' => []
                 ];
 
                 // Obtener viáticos
-                $query_viaticos = "SELECT dv.id_concepto, c.nombre AS concepto_nombre, dv.dias, dv.monto, dv.moneda
+                $query_viaticos = "SELECT dv.id, dv.id_concepto, c.nombre AS concepto_nombre, dv.dias, dv.monto, dv.moneda
                                    FROM tb_detalles_viajes dv
                                    LEFT JOIN tb_categorias_tarifario c ON dv.id_concepto = c.id
                                    WHERE dv.id_viaje_persona = :id_viaje_persona";
@@ -499,7 +526,7 @@ class AnticipoModel {
                 $persona_data['viaticos'] = $stmt_viaticos->fetchAll(PDO::FETCH_ASSOC);
 
                 // Obtener transporte
-                $query_transporte = "SELECT tipo_transporte, ciudad_origen, ciudad_destino, fecha, monto, moneda
+                $query_transporte = "SELECT id, tipo_transporte, ciudad_origen, ciudad_destino, fecha, monto, moneda, valido
                                      FROM tb_transporte_provincial
                                      WHERE id_viaje_persona = :id_viaje_persona";
                 $stmt_transporte = $this->db->prepare($query_transporte);
@@ -515,5 +542,457 @@ class AnticipoModel {
             return null;
         }
     }
+
+    // Actualizar un anticipo existente
+    public function updateAnticipo($data) {
+    try {
+        $this->db->beginTransaction();
+
+        // Validar estado del anticipo
+        $query = "SELECT h.estado FROM tb_historial_anticipos h 
+                  LEFT JOIN tb_anticipos a ON h.id_anticipo = a.id 
+                  WHERE h.id_anticipo = :id_anticipo LIMIT 1";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute(['id_anticipo' => $data['id_anticipo']]);
+        $anticipo = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$anticipo || !in_array($anticipo['estado'], ['Nuevo'])) {
+            throw new Exception("El anticipo no puede ser editado en su estado actual.");
+        }
+
+        // Recalcular monto total solicitado para validar
+        $calculatedTotal = 0;
+        if (!empty($data['detalles_gastos'])) {
+            foreach ($data['detalles_gastos'] as $gasto) {
+                if ($gasto['valido'] === '1') {
+                    $calculatedTotal += floatval($gasto['importe']);
+                }
+            }
+        }
+        if (!empty($data['detalles_viajes'])) {
+            foreach ($data['detalles_viajes'] as $viaje) {
+                if ($viaje['valido'] === '1') {
+                    if (!empty($viaje['transporte'])) {
+                        foreach ($viaje['transporte'] as $transporte) {
+                            if ($transporte['valido'] === '1') {
+                                $calculatedTotal += floatval($transporte['monto']);
+                            }
+                        }
+                    }
+                    if (!empty($viaje['viaticos'])) {
+                        foreach ($viaje['viaticos'] as $viatico) {
+                            if ($viatico['dias'] > 0) {
+                                $calculatedTotal += floatval($viatico['monto']);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Validar monto total solicitado
+        $montoTotalSolicitado = floatval($data['monto_total_solicitado']);
+        if (abs($calculatedTotal - $montoTotalSolicitado) > 0.01) {
+            throw new Exception("El monto total solicitado ($montoTotalSolicitado) no coincide con la suma de los detalles ($calculatedTotal).");
+        }
+
+        // Actualizar datos principales del anticipo
+        $query = "UPDATE tb_anticipos SET 
+                    codigo_sscc = :codigo_sscc,
+                    nombre_proyecto = :nombre_proyecto,
+                    motivo_anticipo = :motivo_anticipo,
+                    monto_total_solicitado = :monto_total_solicitado
+                  WHERE id = :id_anticipo";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute([
+            'id_anticipo' => $data['id_anticipo'],
+            'codigo_sscc' => $data['codigo_sscc'],
+            'nombre_proyecto' => $data['nombre_proyecto'],
+            'motivo_anticipo' => $data['motivo_anticipo'],
+            'monto_total_solicitado' => $data['monto_total_solicitado']
+        ]);
+
+        // Obtener IDs existentes de detalles de compras menores
+        $queryExistingGastos = "SELECT id FROM tb_detalles_compras_menores WHERE id_anticipo = :id_anticipo";
+        $stmtExistingGastos = $this->db->prepare($queryExistingGastos);
+        $stmtExistingGastos->execute(['id_anticipo' => $data['id_anticipo']]);
+        $existingGastoIds = $stmtExistingGastos->fetchAll(PDO::FETCH_COLUMN);
+
+        // Procesar detalles_gastos
+        $processedGastoIds = [];
+        if (!empty($data['detalles_gastos'])) {
+            foreach ($data['detalles_gastos'] as $index => $gasto) {
+                if ($gasto['valido'] === '1') {
+                    if (isset($gasto['id']) && !empty($gasto['id'])) {
+                        // Actualizar gasto existente
+                        $query = "UPDATE tb_detalles_compras_menores 
+                                  SET descripcion = :descripcion, 
+                                      motivo = :motivo, 
+                                      moneda = :moneda, 
+                                      importe = :importe, 
+                                      valido = :valido
+                                  WHERE id = :id";
+                        $stmt = $this->db->prepare($query);
+                        $stmt->execute([
+                            'id' => $gasto['id'],
+                            'descripcion' => $gasto['descripcion'],
+                            'motivo' => $gasto['motivo'],
+                            'moneda' => $gasto['moneda'],
+                            'importe' => $gasto['importe'],
+                            'valido' => $gasto['valido']
+                        ]);
+                        $processedGastoIds[] = $gasto['id'];
+                    } else {
+                        // Insertar nuevo gasto
+                        $query = "INSERT INTO tb_detalles_compras_menores 
+                                  (id_anticipo, descripcion, motivo, moneda, importe, valido) 
+                                  VALUES (:id_anticipo, :descripcion, :motivo, :moneda, :importe, :valido)";
+                        $stmt = $this->db->prepare($query);
+                        $stmt->execute([
+                            'id_anticipo' => $data['id_anticipo'],
+                            'descripcion' => $gasto['descripcion'],
+                            'motivo' => $gasto['motivo'],
+                            'moneda' => $gasto['moneda'],
+                            'importe' => $gasto['importe'],
+                            'valido' => $gasto['valido']
+                        ]);
+                        $processedGastoIds[] = $this->db->lastInsertId();
+                    }
+                } elseif (isset($gasto['id']) && !empty($gasto['id'])) {
+                    // Marcar como no válido si existe en la base de datos
+                    $query = "UPDATE tb_detalles_compras_menores 
+                              SET valido = :valido
+                              WHERE id = :id";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->execute([
+                        'id' => $gasto['id'],
+                        'valido' => $gasto['valido']
+                    ]);
+                    $processedGastoIds[] = $gasto['id'];
+                }
+            }
+        }
+
+        // Marcar como no válidos los gastos no enviados
+        foreach ($existingGastoIds as $existingId) {
+            if (!in_array($existingId, $processedGastoIds)) {
+                $query = "UPDATE tb_detalles_compras_menores 
+                          SET valido = 0
+                          WHERE id = :id";
+                $stmt = $this->db->prepare($query);
+                $stmt->execute(['id' => $existingId]);
+            }
+        }
+
+        // Obtener IDs existentes de viajes
+        $queryExistingViajes = "SELECT id FROM tb_viajes_personas WHERE id_anticipo = :id_anticipo";
+        $stmtExistingViajes = $this->db->prepare($queryExistingViajes);
+        $stmtExistingViajes->execute(['id_anticipo' => $data['id_anticipo']]);
+        $existingViajeIds = $stmtExistingViajes->fetchAll(PDO::FETCH_COLUMN);
+
+        // Procesar detalles_viajes
+        $processedViajeIds = [];
+        if (!empty($data['detalles_viajes'])) {
+            foreach ($data['detalles_viajes'] as $index => $viaje) {
+                $viajeId = $viaje['id'] ?? null;
+
+                if (isset($viaje['valido']) && $viaje['valido'] === '0' && !empty($viajeId)) {
+                    // Marcar todos los datos de la persona como inactivos
+                    $query = "UPDATE tb_detalles_viajes 
+                              SET dias = 0, monto = 0
+                              WHERE id_viaje_persona = :id_viaje_persona";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->execute(['id_viaje_persona' => $viajeId]);
+
+                    $query = "UPDATE tb_transporte_provincial 
+                              SET valido = 0
+                              WHERE id_viaje_persona = :id_viaje_persona";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->execute(['id_viaje_persona' => $viajeId]);
+
+                    $query = "UPDATE tb_viajes_personas 
+                              SET valido = :valido
+                              WHERE id = :id";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->execute([
+                        'id' => $viajeId,
+                        'valido' => $viaje['valido']
+                    ]);
+                    $processedViajeIds[] = $viajeId;
+                    continue; // Saltar el resto del procesamiento para esta persona
+                }
+
+                if ($viaje['valido'] === '1') {
+                    if (isset($viaje['id']) && !empty($viaje['id'])) {
+                        // Actualizar viaje existente
+                        $query = "UPDATE tb_viajes_personas 
+                                  SET doc_identidad = :doc_identidad, 
+                                      nombre_persona = :nombre_persona, 
+                                      id_cargo = :id_cargo, 
+                                      valido = :valido
+                                  WHERE id = :id";
+                        $stmt = $this->db->prepare($query);
+                        $stmt->execute([
+                            'id' => $viaje['id'],
+                            'doc_identidad' => $viaje['doc_identidad'],
+                            'nombre_persona' => $viaje['nombre_persona'],
+                            'id_cargo' => $viaje['id_cargo'],
+                            'valido' => $viaje['valido']
+                        ]);
+                        $viajeId = $viaje['id'];
+                        $processedViajeIds[] = $viajeId;
+                    } else {
+                        // Insertar nuevo viaje
+                        $query = "INSERT INTO tb_viajes_personas 
+                                  (id_anticipo, doc_identidad, nombre_persona, id_cargo, valido) 
+                                  VALUES (:id_anticipo, :doc_identidad, :nombre_persona, :id_cargo, :valido)";
+                        $stmt = $this->db->prepare($query);
+                        $stmt->execute([
+                            'id_anticipo' => $data['id_anticipo'],
+                            'doc_identidad' => $viaje['doc_identidad'],
+                            'nombre_persona' => $viaje['nombre_persona'],
+                            'id_cargo' => $viaje['id_cargo'],
+                            'valido' => $viaje['valido']
+                        ]);
+                        $viajeId = $this->db->lastInsertId();
+                        $processedViajeIds[] = $viajeId;
+                    }
+
+                    // Procesar transporte
+                    $queryExistingTransporte = "SELECT id FROM tb_transporte_provincial WHERE id_viaje_persona = :id_viaje_persona";
+                    $stmtExistingTransporte = $this->db->prepare($queryExistingTransporte);
+                    $stmtExistingTransporte->execute(['id_viaje_persona' => $viajeId]);
+                    $existingTransporteIds = $stmtExistingTransporte->fetchAll(PDO::FETCH_COLUMN);
+
+                    $processedTransporteIds = [];
+                    if (!empty($viaje['transporte'])) {
+                        foreach ($viaje['transporte'] as $tIndex => $transporte) {
+                            if ($transporte['valido'] === '1') {
+                                if (isset($transporte['id']) && !empty($transporte['id'])) {
+                                    // Actualizar transporte existente
+                                    $query = "UPDATE tb_transporte_provincial 
+                                              SET tipo_transporte = :tipo_transporte, 
+                                                  ciudad_origen = :ciudad_origen, 
+                                                  ciudad_destino = :ciudad_destino, 
+                                                  fecha = :fecha, 
+                                                  monto = :monto, 
+                                                  moneda = :moneda, 
+                                                  valido = :valido
+                                              WHERE id = :id";
+                                    $stmt = $this->db->prepare($query);
+                                    $stmt->execute([
+                                        'id' => $transporte['id'],
+                                        'tipo_transporte' => $transporte['tipo_transporte'],
+                                        'ciudad_origen' => $transporte['ciudad_origen'],
+                                        'ciudad_destino' => $transporte['ciudad_destino'],
+                                        'fecha' => $transporte['fecha'],
+                                        'monto' => $transporte['monto'],
+                                        'moneda' => $transporte['moneda'],
+                                        'valido' => $transporte['valido']
+                                    ]);
+                                    $processedTransporteIds[] = $transporte['id'];
+                                } else {
+                                    // Insertar nuevo transporte
+                                    $query = "INSERT INTO tb_transporte_provincial 
+                                              (id_viaje_persona, tipo_transporte, ciudad_origen, ciudad_destino, fecha, monto, moneda, valido) 
+                                              VALUES (:id_viaje_persona, :tipo_transporte, :ciudad_origen, :ciudad_destino, :fecha, :monto, :moneda, :valido)";
+                                    $stmt = $this->db->prepare($query);
+                                    $stmt->execute([
+                                        'id_viaje_persona' => $viajeId,
+                                        'tipo_transporte' => $transporte['tipo_transporte'],
+                                        'ciudad_origen' => $transporte['ciudad_origen'],
+                                        'ciudad_destino' => $transporte['ciudad_destino'],
+                                        'fecha' => $transporte['fecha'],
+                                        'monto' => $transporte['monto'],
+                                        'moneda' => $transporte['moneda'],
+                                        'valido' => $transporte['valido']
+                                    ]);
+                                    $processedTransporteIds[] = $this->db->lastInsertId();
+                                }
+                            } elseif (isset($transporte['id']) && !empty($transporte['id'])) {
+                                // Marcar como no válido si existe
+                                $query = "UPDATE tb_transporte_provincial 
+                                          SET valido = :valido
+                                          WHERE id = :id";
+                                $stmt = $this->db->prepare($query);
+                                $stmt->execute([
+                                    'id' => $transporte['id'],
+                                    'valido' => $transporte['valido']
+                                ]);
+                                $processedTransporteIds[] = $transporte['id'];
+                            }
+                        }
+                    }
+
+                    // Marcar como no válidos los transportes no enviados
+                    foreach ($existingTransporteIds as $existingId) {
+                        if (!in_array($existingId, $processedTransporteIds)) {
+                            $query = "UPDATE tb_transporte_provincial 
+                                      SET valido = 0
+                                      WHERE id = :id";
+                            $stmt = $this->db->prepare($query);
+                            $stmt->execute(['id' => $existingId]);
+                        }
+                    }
+
+                    // Procesar viáticos
+                    $queryExistingViaticos = "SELECT id FROM tb_detalles_viajes WHERE id_viaje_persona = :id_viaje_persona";
+                    $stmtExistingViaticos = $this->db->prepare($queryExistingViaticos);
+                    $stmtExistingViaticos->execute(['id_viaje_persona' => $viajeId]);
+                    $existingViaticoIds = $stmtExistingViaticos->fetchAll(PDO::FETCH_COLUMN);
+
+                    $processedViaticoIds = [];
+                    
+                    if (!empty($viaje['viaticos'])) {//here now
+                        // Obtener cargo_id de la persona
+                        $queryCargo = "SELECT id_cargo FROM tb_viajes_personas WHERE id = :id LIMIT 1";
+                        $stmtCargo = $this->db->prepare($queryCargo);
+                        $stmtCargo->execute(['id' => $viajeId]);
+                        $cargoId = $stmtCargo->fetchColumn() ?: 1; // Default a 1 si no se encuentra
+
+                        foreach ($viaje['viaticos'] as $concepto => $viatico) {
+                            //error_log("Procesando viático: concepto=$concepto, id={$viatico['id'] ?? 'nuevo'}, dias={$viatico['dias']}, monto={$viatico['monto']}");
+                            $conceptoId = $this->getConceptoIdByNombre($concepto);
+                            if (!$conceptoId) {
+                                throw new Exception("Concepto '$concepto' no encontrado en la base de datos.");
+                            }
+
+                            if (isset($viatico['id']) && !empty($viatico['id'])) {
+                                if ($viatico['dias'] > 0) {
+                                    // Recalcular monto basado en tb_tarifario
+                                    $queryTarifa = "SELECT monto FROM tb_tarifario WHERE cargo_id = :cargo_id AND concepto_id = :concepto_id LIMIT 1";
+                                    $stmtTarifa = $this->db->prepare($queryTarifa);
+                                    $stmtTarifa->execute(['cargo_id' => $cargoId, 'concepto_id' => $conceptoId]);
+                                    $tarifa = $stmtTarifa->fetchColumn() ?: 0;
+                                    $monto = $viatico['dias'] * $tarifa;
+
+                                    $query = "UPDATE tb_detalles_viajes 
+                                            SET dias = :dias, 
+                                                monto = :monto,
+                                                moneda = :moneda
+                                            WHERE id = :id";
+                                    $stmt = $this->db->prepare($query);
+                                    if (!$stmt->execute([
+                                        'id' => $viatico['id'],
+                                        'dias' => $viatico['dias'],
+                                        'monto' => $monto,
+                                        'moneda' => $viatico['moneda'] ?? 'PEN'
+                                    ])) {
+                                        throw new Exception("Error al actualizar tb_detalles_viajes para id {$viatico['id']}.");
+                                    }
+                                } else {
+                                    $query = "UPDATE tb_detalles_viajes 
+                                            SET dias = 0,
+                                                monto = 0
+                                            WHERE id = :id";
+                                    $stmt = $this->db->prepare($query);
+                                    if (!$stmt->execute(['id' => $viatico['id']])) {
+                                        throw new Exception("Error al marcar tb_detalles_viajes como no válido para id {$viatico['id']}.");
+                                    }
+                                }
+                                $processedViaticoIds[] = $viatico['id'];
+                            } else {
+                                // Recalcular monto para nueva inserción
+                                $queryTarifa = "SELECT monto FROM tb_tarifario WHERE cargo_id = :cargo_id AND concepto_id = :concepto_id LIMIT 1";
+                                $stmtTarifa = $this->db->prepare($queryTarifa);
+                                $stmtTarifa->execute(['cargo_id' => $cargoId, 'concepto_id' => $conceptoId]);
+                                $tarifa = $stmtTarifa->fetchColumn() ?: 0;
+                                $monto = $viatico['dias'] * $tarifa;
+
+                                $query = "INSERT INTO tb_detalles_viajes 
+                                        (id_viaje_persona, id_concepto, dias, monto, moneda) 
+                                        VALUES (:id_viaje_persona, :id_concepto, :dias, :monto, :moneda)";
+                                $stmt = $this->db->prepare($query);
+                                if (!$stmt->execute([
+                                    'id_viaje_persona' => $viajeId,
+                                    'id_concepto' => $conceptoId,
+                                    'dias' => $viatico['dias'],
+                                    'monto' => $monto,
+                                    'moneda' => $viatico['moneda'] ?? 'PEN'
+                                ])) {
+                                    throw new Exception("Error al insertar en tb_detalles_viajes.");
+                                }
+                                $processedViaticoIds[] = $this->db->lastInsertId();
+                            }
+                        }
+                    }
+
+
+                } elseif (isset($viaje['id']) && !empty($viaje['id'])) {
+                    // Marcar como no válido si existe
+                    $query = "UPDATE tb_viajes_personas 
+                              SET valido = :valido
+                              WHERE id = :id";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->execute([
+                        'id' => $viaje['id'],
+                        'valido' => $viaje['valido']
+                    ]);
+                    $processedViajeIds[] = $viaje['id'];
+                }
+            }
+        }
+
+        // Marcar como no válidos los viajes no enviados
+        foreach ($existingViajeIds as $existingId) {
+            if (!in_array($existingId, $processedViajeIds)) {
+                $query = "UPDATE tb_viajes_personas 
+                          SET valido = 0
+                          WHERE id = :id";
+                $stmt = $this->db->prepare($query);
+                $stmt->execute(['id' => $existingId]);
+            }
+        }
+
+        $this->db->commit();
+        error_log("Se registró la actualización del anticipo");
+        return ['success' => true];
+    } catch (Exception $e) {
+        $this->db->rollBack();
+        error_log("Error en updateAnticipo: " . $e->getMessage());
+        return ['error' => $e->getMessage()];
+    }
+}
+
+
+    private function getConceptoIdByNombre($nombre) {
+        $normalizedNombre = strtolower(trim($nombre));
+        $query = "SELECT id FROM tb_categorias_tarifario WHERE LOWER(nombre) = :nombre AND activo = 1 LIMIT 1";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute(['nombre' => $normalizedNombre]);
+        $conceptoId = $stmt->fetchColumn();
+        if ($conceptoId === false) {
+            error_log("Concepto '$normalizedNombre' no encontrado en tb_categorias_tarifario.");
+        }
+        return $conceptoId ?: null;
+    }
+
+    // Métodos para el dashboard
+    public function getCountAllAnticiposById($id){
+        $query = "SELECT COUNT(*) AS cantidad_solicitudes FROM tb_anticipos WHERE id_usuario = :id_usuario";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute(['id_usuario' => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    // Métodos para el dashboard
+    public function getCountAnticiposByState($id, $estado) {
+        $query = "
+            SELECT COUNT(*) AS cantidad
+            FROM tb_anticipos a
+            WHERE a.id_usuario = :id_usuario
+            AND a.id IN (
+                SELECT id_anticipo
+                FROM tb_historial_anticipos h
+                WHERE h.id = (
+                    SELECT MAX(id)
+                    FROM tb_historial_anticipos
+                    WHERE id_anticipo = h.id_anticipo
+                )
+                AND h.estado = :estado
+            )";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute(['id_usuario' => $id, 'estado' => $estado]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    
 }
 ?>

@@ -103,7 +103,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                 <h2>Creando anticipo</h2>
                 <div class="btn-close-modal" data-modal="addAnticipoModal"><i class="fa-solid fa-lg fa-xmark"></i></div>
             </div>
-            <form action="/proy_anticipos_rendiciones/anticipos/add" method="POST">
+            <form id="addAnticipoForm" >
                 <div class="modal-body">
                     <input type="hidden" name="id_usuario" value="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
                     <input type="hidden" name="id_cat_documento" value="1">
@@ -240,19 +240,19 @@ unset($_SESSION['success'], $_SESSION['error']);
                 <h2 class="edit-modal-title" id="edit-modal-title"></h2>
                 <div class="btn-close-modal" data-modal="editAnticipoModal"><i class="fa-solid fa-lg fa-xmark"></i></div>
             </div>
-            <form action="/proy_anticipos_rendiciones/" method="POST">
+            <form>
                 <div class="btn-container">
-                    <!-- <span><i class="fa-solid fa-eye"></i></span> -->
-                        <label class="switch btn-color-mode-switch">
-                            <input value="1" id="color_mode" name="color_mode" type="checkbox">
-                            <label class="btn-color-mode-switch-inner" data-off="Ver" data-on="Editar" for="color_mode"></label>
-                        </label>
-                    <!-- <span><i class="fa-solid fa-pen-to-square"></i></span> -->
+                    <label class="switch btn-color-mode-switch">
+                        <input value="1" id="color_mode" name="color_mode" type="checkbox">
+                        <label class="btn-color-mode-switch-inner" data-off="Ver" data-on="Editar" for="color_mode"></label>
+                    </label>
+
                 </div>
                 <div class="modal-body">
                     <div class="form-step active" id="edit-step-1">
                         <h3>1. Datos del solicitante</h3>
                         <input class="form-control" type="hidden" id="edit-id-anticipo" name="edit-id-anticipo" readonly> <!--Id del anticipo-->
+                        <input class="form-control" type="hidden" id="edit-estado-anticipo" name="edit-estado-anticipo" readonly disabled> <!--Estado del anticipo-->
                         <div class="datos-solicitantes-container">
                             <div class="modal-element">
                                 <span class="input-icon-left">
@@ -332,11 +332,11 @@ unset($_SESSION['success'], $_SESSION['error']);
                             <h3>2. Concepto</h3>
                             <div class="concepto-categoria">
                                 <div>
-                                    <input type="radio" name="concepto" id="edit-compras-menores" value="edit-compras-menores" checked>
+                                    <input type="radio" name="edit-concepto" id="edit-compras-menores" value="edit-compras-menores" checked>
                                     <label for="edit-compras-menores">Compras</label>
                                 </div>
                                 <div>
-                                    <input type="radio" name="concepto" id="edit-viajes" value="edit-viajes">
+                                    <input type="radio" name="edit-concepto" id="edit-viajes" value="edit-viajes">
                                     <label for="edit-viajes">Viajes</label>
                                 </div>
                             </div>
@@ -344,13 +344,13 @@ unset($_SESSION['success'], $_SESSION['error']);
                         
                         <div class="panel-compras-menores" id="edit-panel-compras-menores">
                             <p class="indicacion-compras"><span>*</span>Las compras no deberán superar los S/. 400, a excepción de combustibles.</p>
-                            <div  id="add-gasto-btn" class="btn">Añadir</div>
+                            <div id="edit-add-gasto-btn" class="btn">Añadir</div>
                         </div>
                         
                         <div class="panel-viajes" id="edit-panel-viajes">
                             <div id="edit-viajes-tabs">
                                 <div class="tabs-header" id="edit-tabs-header">
-                                    <div class="tab-button add-tab" id="edit-add-tab">+</div>
+                                    <div class="tab-button add-tab" id="add-tab">+</div>
                                 </div>
                                 <div class="tabs-body" id="edit-tabs-body">
                                     <!--here -->
@@ -367,7 +367,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <hr>
                         <div class="modal-footer">
                             <!-- <div class="btn btn-default" onclick="prevStep()">Atrás</div> -->
-                            <button type="submit" class="btn btn-default" disabled>Terminar</button>
+                            <button type="submit" class="btn btn-default">Terminar</button>
                         </div>
                     </div>
                 </div>
