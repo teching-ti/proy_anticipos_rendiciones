@@ -22,7 +22,7 @@ class LoginController {
     // vista a dirigirse tras completar el formulario de login
     public function index() {
         if (isset($_SESSION['dni'])) {
-            header('Location: /proy_anticipos_rendiciones/dashboard');
+            header('Location: dashboard');
             exit;
         }
         $error = isset($_SESSION['login_error']) ? $_SESSION['login_error'] : '';
@@ -38,7 +38,7 @@ class LoginController {
 
             if (empty($nombre_usuario) || empty($contrasena)) {
                 $_SESSION['login_error'] = 'Por favor, completa todos los campos.';
-                header('Location: /proy_anticipos_rendiciones/iniciar_sesion');
+                header('Location: iniciar_sesion');
                 exit;
             }
 
@@ -60,31 +60,31 @@ class LoginController {
                     /*Revisar error_log*/
                     error_log("Datos de trabajador cargados de forma exitosa: " . json_encode($trabajador));
                     
-                    header('Location: /proy_anticipos_rendiciones/dashboard');
+                    header('Location: dashboard');
                     exit;
                 } else {
                     $_SESSION['login_error'] = 'Error. No se pudo ingresar al sistema.';
                     error_log("Login fallido para $nombre_usuario: DNI {$user['dni']} no es trabajador activo");
-                    header('Location: /proy_anticipos_rendiciones/iniciar_sesion');
+                    header('Location: iniciar_sesion');
                     exit;
                 }
 
-                header('Location: /proy_anticipos_rendiciones/dashboard');
+                header('Location: dashboard');
                 exit;
             } else {
                 $_SESSION['login_error'] = 'Nombre de usuario o contraseña incorrectos.';
-                header('Location: /proy_anticipos_rendiciones/iniciar_sesion');
+                header('Location: iniciar_sesion');
                 exit;
             }
         }
-        header('Location: /proy_anticipos_rendiciones/iniciar_sesion');
+        header('Location: iniciar_sesion');
         exit;
     }
 
     // Cerrar sesión
     public function logout() {
         session_destroy();
-        header('Location: /proy_anticipos_rendiciones/iniciar_sesion');
+        header('Location: iniciar_sesion');
         exit;
     }
 }

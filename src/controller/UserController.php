@@ -21,7 +21,7 @@ class UserController {
     public function index(){
         $roles = $this->userModel->getAllRoles();
         if ($_SESSION['rol'] != 1 && $_SESSION['rol'] != 4) {
-            header('Location: /proy_anticipos_rendiciones/iniciar_sesion');
+            header('Location: iniciar_sesion');
             exit;
         }
         $users_data = $this->userModel->getUsersData();
@@ -44,7 +44,7 @@ class UserController {
     public function add() {
         // Solo permitir acceso a administradores (por ejemplo)
         if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 1 && $_SESSION['rol'] != 4) { // 1 = Administrador
-            header('Location: /proy_anticipos_rendiciones/iniciar_sesion');
+            header('Location: iniciar_sesion');
             exit;
         }
 
@@ -62,28 +62,32 @@ class UserController {
 
             // Validaciones
             if (empty($nombre_usuario) || empty($contrasena) || empty($dni)) {
-                $error = 'Todos los campos son obligatorios.';
-                error_log($error);
+                // $error = 'Todos los campos son obligatorios.';
+                // error_log($error);
+                $_SESSION['error'] = 'Todos los campos son obligatorios.';
             } elseif (!preg_match('/^\d+$/', $dni)) {
-                $error = 'El documento debe ser únicamente un número.';
-                error_log($error);
+                // $error = 'El documento debe ser únicamente un número.';
+                // error_log($error);
+                $_SESSION['error'] = 'El documento debe ser únicamente un número';
             } elseif ($this->userModel->dniExists($dni)) {
-                $error = 'Un usuario con este número de DNI ya existe.';
-                error_log($error);
+                // $error = 'Un usuario con este número de DNI ya existe.';
+                // error_log($error);
+                $_SESSION['error'] = 'Ya existe un usuario registrado con este número de documento.';
             } else {
                 // Agregar usuario
                 if ($this->userModel->addUser($nombre_usuario, $contrasena, $dni, $rol)) {
-                    $success = 'Usuario registrado correctamente.';
-                    error_log($success);
+                    // $success = 'Usuario registrado correctamente.';
+                    // error_log($success);
+                    $_SESSION['success'] = "(Esta información no se mostrará en su etapa final). Usuario registrado correctamente:   $nombre_usuario, $contrasena";
                 } else {
-                    $error = 'Error al registrar el usuario.';
-                    error_log($error);
+                    // $error = 'Error al registrar el usuario.';
+                    // error_log($error);
+                    $_SESSION['error'] = 'El usuario no pudo ser registrado.';
                 }
                 
             }
         }
-
-        header('Location: /proy_anticipos_rendiciones');
+        header('Location: usuarios');
         exit;
     }
 
@@ -153,5 +157,4 @@ class UserController {
         }
         exit;
     }
-
 }

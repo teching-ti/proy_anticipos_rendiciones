@@ -14,7 +14,7 @@ class AnticipoController {
 
     public function index() {
         if (!isset($_SESSION['id'])) {
-            header('Location: /proy_anticipos_rendiciones/iniciar_sesion');
+            header('Location: iniciar_sesion');
             exit;
         }
         $anticipos_data = $this->anticipoModel->getAnticiposByRole($_SESSION['id'], $_SESSION['rol']);
@@ -388,46 +388,113 @@ class AnticipoController {
         }
     }
 
-    public function approve() {
-        session_start();
+    public function autorizar() {
         if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 2) {
             $_SESSION['error'] = 'No tienes permiso para aprobar anticipos.';
-            header('Location: /proy_anticipos_rendiciones/anticipos');
+            error_log( 'No tiene permisos para realizar este tipo de aprobación');
+            header("Location: /".$_SESSION['ruta_base']."/anticipos");
             exit;
         }
-        
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id'])) {
             $id = (int)$_POST['id'];
             $comentario = trim($_POST['comentario'] ?? 'Anticipo aprobado');
-            if ($this->anticipoModel->updateAnticipoEstado($id, 'Aprobado', $_SESSION['id'], $comentario)) {
-                $_SESSION['success'] = 'Anticipo aprobado correctamente.';
+            if ($this->anticipoModel->updateAnticipoEstado($id, 'Autorizado', $_SESSION['id'], $comentario)) {
+                // $_SESSION['success'] = 'Anticipo aprobado correctamente.';
+                header('Content-Type: application/json');
+                echo json_encode(['success' => 'Anticipo autorizado correctamente.']);
+                exit;
             } else {
-                $_SESSION['error'] = 'Error al aprobar el anticipo.';
+                // $_SESSION['error'] = 'Error al aprobar el anticipo.';
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'No se pudo autorizar el anticipo']);
+                exit;
             }
         }
-        header('Location: /proy_anticipos_rendiciones/anticipos');
+        header("Location: /".$_SESSION['ruta_base']."/anticipos");
         exit;
     }
 
-    //  Funcionalidad para rechazar un anticipo
-    public function reject() {
-        session_start();
-        if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 2) {
-            $_SESSION['error'] = 'No tienes permiso para rechazar anticipos.';
-            header('Location: /proy_anticipos_rendiciones/anticipos');
+    //Autorizar totalmente un anticipo - funcionalidad de personal contador
+    public function autorizarTotalmente() {
+        if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 4) {
+            error_log( 'No tiene permisos para realizar este tipo de aprobación');
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'No tiene permisos para realizar este tipo de aprobación']);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id'])) {
+            $id = (int)$_POST['id'];
+            $comentario = trim($_POST['comentario'] ?? 'Anticipo autorizado totalmente');
+            if ($this->anticipoModel->updateAnticipoEstado($id, 'Autorizado Totalmente', $_SESSION['id'], $comentario)) {
+                // $_SESSION['success'] = 'Anticipo aprobado correctamente.';
+                header('Content-Type: application/json');
+                echo json_encode(['success' => 'Anticipo autorizado totalmente.']);
+                exit;
+            } else {
+                // $_SESSION['error'] = 'Error al aprobar el anticipo.';
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'No se pudo autorizar el anticipo']);
+                exit;
+            }
+        }
+        header("Location: /".$_SESSION['ruta_base']."/anticipos");
+        exit;
+    }
+
+    //  Funcionalidad para marcar como observado un anticipo
+    public function observarAnticipo() {
+        if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 4) {
+            error_log( 'No tiene permisos para realizar este tipo de actividad');
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'No tiene permisos para realizar este tipo de actividad']);
             exit;
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
             $id = (int)$_POST['id'];
-            $comentario = trim($_POST['comentario'] ?? 'Anticipo rechazado');
-            if ($this->anticipoModel->updateAnticipoEstado($id, 'Rechazado', $_SESSION['id'], $comentario)) {
-                $_SESSION['success'] = 'Anticipo rechazado correctamente.';
+            $comentario = trim($_POST['comentario'] ?? 'Anticipo Observado');
+            if ($this->anticipoModel->updateAnticipoEstado($id, 'Observado', $_SESSION['id'], $comentario)) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => 'Anticipo marcado como observado.']);
+                exit;
             } else {
-                $_SESSION['error'] = 'Error al rechazar el anticipo.';
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'El anticipo no pudo ser marcado como observado.']);
+                exit;
             }
         }
-        header('Location: /proy_anticipos_rendiciones/anticipos');
+        header("Location: /".$_SESSION['ruta_base']."/anticipos");
+        exit;
+    }
+
+   public function abonarAnticipo() {
+        if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 4) {
+            error_log('No tiene permisos para realizar este tipo de actividad');
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'No tiene permisos para realizar este tipo de actividad']);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
+            $id = (int)$_POST['id'];
+            $comentario = trim($_POST['comentario'] ?? 'Anticipo Observado');
+            error_log($id);
+
+            if ($this->anticipoModel->abonarAnticipo($id, $_SESSION['id'], $comentario)) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => 'Anticipo abonado exitosamente.']);
+                exit;
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'El anticipo no pudo ser abonado.']);
+                exit;
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Solicitud inválida.']);
         exit;
     }
 

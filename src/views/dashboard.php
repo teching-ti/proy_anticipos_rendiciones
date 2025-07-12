@@ -31,7 +31,7 @@ include "base.php";
         <section class="principal-info">
             <h1 class="main-title">Accesos Rápidos</h1>
             <div class="dashboard-cards">
-                <a class="fast-access-card" id="nuevo-anticipo">
+                <a class="fast-access-card" id="nuevo-anticipo" href="javascript:void(0);" onclick="redirectToAnticipo()">
                     <span class="card-icon">
                         <i class="fa-solid fa-hand-holding-dollar"></i>
                     </span>
@@ -45,7 +45,7 @@ include "base.php";
                 </a>
                 <?php
                     if($_SESSION['rol']==1){
-                        echo "<a class='fast-access-card' id='nuevo-usuario' href='/proy_anticipos_rendiciones/agregar_usuario'>
+                        echo "<a class='fast-access-card' id='nuevo-usuario' href='javascript:void(0);' onclick='redirectToNewUser()'>
                             <span class='card-icon'>
                             <i class='fa-solid fa-user-plus'></i>
                             </span>

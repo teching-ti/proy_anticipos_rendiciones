@@ -18,8 +18,8 @@
         <h1 class="title">Sistema de Anticipos y Rendiciones</h1>    
         <p>Iniciar Sesión</p>
             <div class="form-container">
-                <label for="form-usuario">Correo electrónico o nombre de usuario</label>
-                <input type="text" name="form-usuario" id="form-usuario" class="form-container-input" placeholder="example@tech....">
+                <label for="form-usuario">Nombre de usuario</label>
+                <input type="text" name="form-usuario" id="form-usuario" class="form-container-input" placeholder="...">
             </div>
             <div class="form-container">
                 <label for="form-contrasena">Contraseña</label>

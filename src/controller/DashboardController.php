@@ -32,7 +32,7 @@ class DashboardController {
 
     public function index() {
         if (!isset($_SESSION['dni'])) {
-            header('Location: /proy_anticipos_rendiciones/iniciar_sesion');
+            header('Location: iniciar_sesion');
             exit;
         }
 

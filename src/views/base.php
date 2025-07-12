@@ -120,7 +120,7 @@
             <button class="btn-menu-responsive" id="open-responsive-menu">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <div id="user-first-info" class="user-first-info">
+            <div id="user-first-info" class="user-first-info" data-info = "<?php echo htmlspecialchars($_SESSION['rol'], ENT_QUOTES, 'UTF-8'); ?>">
                 <?php echo htmlspecialchars($_SESSION['nombre_usuario'], ENT_QUOTES, 'UTF-8'); ?>
                 <i class="fa-solid fa-caret-down"></i>
             </div>

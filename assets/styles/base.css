@@ -17,7 +17,8 @@
 }
 
 body {
-    background-color: #ecf0f3;
+    background-color: #f9fdff;
+    /* background: white; */
     min-height: 100vh;
 }
 
@@ -28,12 +29,12 @@ body {
 }
 
 .sidebar {
-    background: rgba(215, 229, 247, 1);
-    /* background: #EDF4FE;
-    background: linear-gradient(151deg, rgb(132, 170, 223) 1%, rgb(97, 130, 160) 51%, rgb(58, 86, 122) 100%); */
+    /* background: #d7e5f7; */
+    background: #D7E5F7;
+    background: linear-gradient(100deg,rgba(215, 229, 247, 1) 57%, rgba(225, 236, 247, 1) 88%, rgba(237, 247, 255, 1) 100%);
     width: 240px;
     padding: 0.8rem;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
     transition: transform 0.3s ease-in-out;
 }
 
@@ -122,7 +123,8 @@ body {
 
 .user-first-info {
     padding: .4rem .8rem;
-    background: rgb(215, 229, 247);
+    /* background: rgb(215, 229, 247); */
+    background-color: #e0edff;
     border-radius: .4rem 0 0 .4rem;
     cursor: pointer;
     display: flex;
@@ -130,7 +132,8 @@ body {
     gap: .8rem;
     transition: all ease-in-out .4s;
     font-size: 1rem;
-    color: #153f65;
+    color: #144497;
+    /* color: #153f65; */
     font-weight: 600;
     animation-name: user-info-resalt;
     animation-duration: 2.4s;
@@ -146,7 +149,7 @@ body {
 
 .user-first-info .fa-caret-down {
     font-size: 0.9rem;
-    color: #153f65;
+    color: #144497;
 }
 
 .btn-menu-responsive{
@@ -196,7 +199,7 @@ body {
 }
 
 .user-dropdown p strong {
-    color: #153f65;
+    color: #144497;
     font-weight: 600;
 }
 

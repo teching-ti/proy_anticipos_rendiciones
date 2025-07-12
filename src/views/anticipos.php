@@ -47,10 +47,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <th>SSCC</th>
                         <th>Monto</th>
                         <th>Estado</th>
-                        <th>Ult. Actualizacion</th>
-                        <?php if (isset($_SESSION['rol']) && $_SESSION['rol'] == 2): ?>
-                            <th>Acciones</th>
-                        <?php endif; ?>
+                        <th title="Cambio de estado más reciente">Ult. Actualizacion</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -66,28 +63,9 @@ unset($_SESSION['success'], $_SESSION['error']);
                                 <td data-label="SSCC"><?php echo htmlspecialchars($anticipo['codigo_sscc'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td data-label="Monto"><?php echo number_format($anticipo['monto_total_solicitado'], 2); ?></td>
                                 <td data-label="Estado" class="td-estado">
-                                    <span class="span-td-estado <?=strtolower($anticipo['estado']);?>"><?php echo htmlspecialchars($anticipo['estado'], ENT_QUOTES, 'UTF-8'); ?>
+                                    <span class="span-td-estado <?=strtolower($anticipo['estado']);?>" title="<?=strtolower($anticipo['comentario']);?>"><?php echo htmlspecialchars($anticipo['estado'], ENT_QUOTES, 'UTF-8'); ?>
                                 </span></td>
-
                                 <td data-label="Ult. Actualizacion"><?php echo htmlspecialchars($anticipo['historial_fecha'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
-                                <?php if (isset($_SESSION['rol']) && $_SESSION['rol'] == 2): ?>
-                                    <td data-label="Acciones">
-                                        <?php if ($anticipo['estado'] == 'Nuevo' || $anticipo['estado'] == 'Pendiente'): ?>
-                                            <form action="/proy_anticipos_rendiciones/anticipos/approve" method="POST" style="display: inline;">
-                                                <input type="hidden" name="id" value="<?php echo $anticipo['id']; ?>">
-                                                <input type="text" name="comentario" placeholder="Comentario (opcional)" class="form-control d-inline-block" style="width: 150px; margin-right: 5px;">
-                                                <button type="submit" class="btn btn-success btn-sm">Aprobar</button>
-                                            </form>
-                                            <form action="/proy_anticipos_rendiciones/anticipos/reject" method="POST" style="display: inline;">
-                                                <input type="hidden" name="id" value="<?php echo $anticipo['id']; ?>">
-                                                <input type="text" name="comentario" placeholder="Comentario (opcional)" class="form-control d-inline-block" style="width: 150px; margin-right: 5px;">
-                                                <button type="submit" class="btn btn-danger btn-sm">Rechazar</button>
-                                            </form>
-                                        <?php else: ?>
-                                            <span><?php echo htmlspecialchars($anticipo['estado'], ENT_QUOTES, 'UTF-8'); ?></span>
-                                        <?php endif; ?>
-                                    </td>
-                                <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -100,7 +78,7 @@ unset($_SESSION['success'], $_SESSION['error']);
     <div id="addAnticipoModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Creando anticipo</h2>
+                <h3>Creando anticipo</h3>
                 <div class="btn-close-modal" data-modal="addAnticipoModal"><i class="fa-solid fa-lg fa-xmark"></i></div>
             </div>
             <form id="addAnticipoForm" >
@@ -237,7 +215,7 @@ unset($_SESSION['success'], $_SESSION['error']);
     <div id="editAnticipoModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="edit-modal-title" id="edit-modal-title"></h2>
+                <h3 class="edit-modal-title" id="edit-modal-title"></h3>
                 <div class="btn-close-modal" data-modal="editAnticipoModal"><i class="fa-solid fa-lg fa-xmark"></i></div>
             </div>
             <form>
@@ -246,7 +224,31 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <input value="1" id="color_mode" name="color_mode" type="checkbox">
                         <label class="btn-color-mode-switch-inner" data-off="Ver" data-on="Editar" for="color_mode"></label>
                     </label>
-
+                    <?php if($_SESSION['rol']==2): ?>
+                        <div class="btn-cambio-estado-container">
+                            <div class="btn-aprobar-anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                Autorizado
+                            </div>
+                        </div>
+                    <?php endif;?>
+                    <?php if($_SESSION['rol']==4): ?>
+                        <div class="btn-cambio-estado-container">
+                            <div>
+                                <div class="btn-aprobar-totalmente" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                    Autorizado
+                                </div>
+                                <div class="btn-observar-anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                    Observado
+                                </div>
+                            </div>
+                            <div class="btn-abonar-anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                Abonado
+                            </div>
+                            <div class="modal-element">
+                                <input type="text" placeholder="Comentario..." class="form-control comentario-contador" id="comentario-aprobador">
+                            </div>
+                        </div>
+                    <?php endif;?>
                 </div>
                 <div class="modal-body">
                     <div class="form-step active" id="edit-step-1">

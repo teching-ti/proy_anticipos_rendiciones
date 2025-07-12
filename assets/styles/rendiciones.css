@@ -1,0 +1,386 @@
+.rendiciones-content {
+    padding: 20px;
+    /* background-color: #edf4fe; */
+}
+
+.section-table h2 {
+    margin-bottom: 15px;
+    font-size: 24px;
+    color: #153f65;
+}
+
+/* Botón de agregar */
+.btn{
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    width: fit-content;
+}
+
+/* Contenedor responsive para la tabla */
+.table-responsive {
+    overflow-x: auto;
+    max-height: 600px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: .8rem;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 50px;
+}
+
+/* Estilos base de la tabla */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para celdas */
+.table th,
+.table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    color: #03131f;
+}
+
+/* Encabezado de la tabla */
+.table-head {
+    /* background-color: #f2f2f2; */
+    /* background: #7FAFE6;
+    background: linear-gradient(100deg, rgba(228, 238, 247, 1) 58%, rgba(217, 237, 255, 1) 78%, rgba(220, 233, 245, 1) 100%); */
+    background: #7FAFE6;
+    background: linear-gradient(100deg, rgb(193, 221, 255) 0%, rgba(227, 244, 255, 1) 46%, rgba(228, 238, 247, 1) 58%, rgba(217, 237, 255, 1) 78%, rgba(220, 233, 245, 1) 100%);
+    position: sticky;
+    text-align: left;
+    top: 0;
+    z-index: 2;
+}
+
+.table-head tr th{
+    /* color: #1a4faa; */
+    color: #153f65;
+    font-weight: bold;
+    /* font-size: 1.2rem; */
+}
+
+/* Efecto hover en las filas */
+.table-hover tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+.btn-close-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #1a4fac;
+    cursor: pointer;
+}
+
+.btn-close-modal:hover{
+    transition: linear .4s;
+    font-weight: bold;
+    rotate: 90deg;
+}
+
+/*Estilos para el modal inicia*/
+.modal{
+    display: none;
+    position: fixed;
+    z-index: 99;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+
+/* Modal Content */
+.modal-content {
+  position: relative;
+  background-color: #fefefe;
+  border-radius: 1.2rem;
+  margin:12px auto;
+  border: 1px solid #888;
+  width: 70%;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  -webkit-animation-name: animatetop;
+  -webkit-animation-duration: 0.4s;
+  animation-name: animatetop;
+  animation-duration: 0.4s;
+  overflow: auto;
+}
+
+.btn-default{
+    outline: solid 2px rgb(113, 128, 147, 0);
+    background: #718093;
+    transition: all ease-in-out .6s;
+    color: white;
+    font-size: .98rem;
+}
+
+.btn-default:hover{
+    background: #353b48;
+    outline: solid 2px rgb(47, 54, 64,1);
+}
+
+#detalles-compras-container{
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    margin: 1.2rem 0;
+}
+
+.container-detalle{
+    border: solid 1px rgb(223, 223, 223);
+    padding: 1.2rem .4rem 0 .4rem;
+    border-radius: .8rem;
+}
+
+.container-detalle:hover, .container-detalle:hover .placeholder{
+    background-color: rgb(248, 248, 248);
+}
+
+.compras-elementos-uno{
+    display: grid;
+    grid-template-columns: 36% 36% 14% 14%;
+}
+
+.compras-elementos-dos{
+    display: grid;
+    grid-template-columns: 20% 12% 12%;
+}
+
+.btn-adjuntar{
+    background-color: #d1e3fd;
+    color: #1c5ece;
+    box-shadow: rgba(167, 167, 167, 0.1) 0px 1px 4px;
+    outline: solid 2px rgba(0,0,0,0);
+}
+
+.btn-adjuntar:hover{
+    background-color: #aacbfa;
+    color: #1c5ece;
+    box-shadow: rgba(114, 114, 114, 0.1) 0px 1px 4px;
+    outline: solid 2px rgb(190, 215, 252);
+}
+
+.rendicion-element{
+    width: 80%;
+    padding: .4rem;
+    border-bottom: 2px solid #ccc;
+    background: none;
+    /* border-radius: 5px; */
+    font-size: 15px;
+    outline: solid 2px rgba(0,0,0,0);
+    transition: all ease-in-out .3s;
+    border-radius: .4rem;
+    border: solid 1px rgb(211, 206, 206);
+}
+
+/* Add Animation */
+@-webkit-keyframes animatetop {
+  from {top:-300px; opacity:0} 
+  to {top:0; opacity:1}
+}
+
+@keyframes animatetop {
+  from {top:-300px; opacity:0}
+  to {top:0; opacity:1}
+}
+
+.modal-header {
+   padding: 8px 16px;
+    color: #1a4fac;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(100deg, rgb(236, 241, 247) 0%, rgb(195, 216, 243) 46%);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-body {
+    margin-top: .9rem;
+    padding: 2px 16px;
+}
+
+.modal-footer {
+    display: flex;
+    gap: .6rem;
+    padding: 8px 16px;
+    color: white;
+}
+
+/* .modal-element input, .modal-element select{
+    width: 80%;
+    padding: .4rem;
+    border-bottom: 2px solid #ccc;
+    background: none;
+    font-size: 15px;
+    outline: solid 2px rgba(0,0,0,0);
+    transition: all ease-in-out .3s;
+    border-radius: .4rem;
+    border: solid 1px rgb(211, 206, 206);
+} */
+
+.form-control-icon{
+    width: 80%;
+    border-bottom: 2px solid #ccc;
+    background: none;
+    font-size: 15px;
+    outline: solid 2px rgba(0,0,0,0);
+    transition: all ease-in-out .3s;
+    border-radius: .4rem;
+    border: solid 1px rgb(211, 206, 206);
+    padding: .4rem .4rem .4rem 2rem;
+}
+
+.w-cod{
+    width: 60%;
+}
+
+/*1. Section Datos Solicitante*/
+.datos-responsable-container{
+    padding: .8rem 0 0 0;
+    flex-wrap: wrap;
+}
+
+.modal-codigos{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 1.2rem;
+}
+
+.modal-nombre-motivo{
+    display: grid;
+    gap: .8rem;
+    grid-template-columns: 50% 50%;
+}
+
+.datos-usuario-container{
+    padding: .8rem 0 0 0;
+    display: grid;
+    grid-template-columns: 50% 50%;
+}
+
+.modal-nombre-motivo input{
+    width: 80%;
+}
+
+.modal-element{
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.placeholder{
+    position: absolute;
+    left: 8px;
+    background: white;
+    top: 50%;
+    transform: translateY(-28px);
+    padding: 0 .2rem;
+    color: #777;
+    pointer-events: none;
+    font-size: 12px;
+    /* transition: 0.3s; */
+}
+
+.input-icon-left {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    color: #777;
+    z-index: 10;
+    pointer-events: none;
+    font-size: 14px;
+}
+
+/*Seccion 2. Concepto*/
+.form-step {
+    display: none;
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.form-step.active {
+    display: block;
+}
+
+.enlace-factura{
+    display: flex;
+    align-items: center;
+}
+
+.enlace-factura a{
+    color: #1c5ece;
+    text-decoration: none;
+}
+
+/* Media query para tablets (≤800px) */
+@media (max-width: 800px) {
+    .table{
+        background: none;
+    }
+
+    .modal-content {
+        width: 98%;
+    }
+
+    .table th,
+    .table td {
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+
+    .section-table h2 {
+        font-size: 20px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .modal-body {
+        padding: 2px 10px;
+    }
+
+    .compras-elementos-uno{
+        display: grid;
+        grid-template-columns: 100%;
+    }
+
+    .compras-elementos-dos{
+        grid-template-columns: 50% 50%;
+    }
+
+    .compras-elementos-anticipo input{
+        width: 96%;
+    }
+
+    .container-detalle{
+        padding: 1.2rem .4rem 1.2rem .4rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .modal-codigos{
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: .8rem;
+    }
+
+    .modal-nombre-motivo{
+        grid-template-columns: 100%;
+    }
+
+    .datos-usuario-container{
+        grid-template-columns: 100%;
+    }
+}

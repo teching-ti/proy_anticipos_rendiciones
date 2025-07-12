@@ -1,5 +1,17 @@
 document.addEventListener("DOMContentLoaded", function(){
-    console.log("Vista de Usuarios")
+
+    // Funcionalidad que se ejecuta tras cargar la página de anticipos, verifica si se encuentra algún parámetro en la url
+    // si eexiste un parámetros dentro llamado openModal, entonces usará la funcionalidad openAddNewModal
+    window.addEventListener('load', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('openModal') === 'true') {
+            openModal('addUserModal');
+            // Limpia el parámetro de la url para no mostrarlo, es opcional
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    });
+
+    //console.log("Vista de Usuarios")
     // Funciones para abrir y cerrar modales
     function openModal(modalId) {
         document.getElementById(modalId).style.display="block";
@@ -21,9 +33,10 @@ document.addEventListener("DOMContentLoaded", function(){
         });
     });
 
-    document.querySelector(".lupa").addEventListener("click", function(){
-        alert("Buscando trabajador... (En proceso de implementación)");
-    });
+    // Función para mostrar el cargado de la búsqueda
+    // document.querySelector(".lupa").addEventListener("click", function(){
+    //     alert("Buscando trabajador... (En proceso de implementación)");
+    // });
     
     document.querySelector(".btn-guardar-usuario").addEventListener("click", function(e){
         //e.preventDefault();
@@ -80,16 +93,25 @@ document.addEventListener("DOMContentLoaded", function(){
                     let indiceArroba = data.data.correo.indexOf('@');
                     userNombreInput.value = data.data.correo.substring(0, indiceArroba);
                 } else {
-                    alert(data.message || 'Error al buscar el trabajador.');
+                    //alert(data.message || 'Error al buscar el trabajador.');
+                    showAlert(
+                        {
+                            title: 'Error',
+                            message: data.message,
+                            type: 'error'
+                        }
+                    );
                     limpiarCasillas();
-                    // nombresInput.value = '';
-                    // cargoInput.value = '';
-                    // departamentoInput.value = '';
                 }
             })
             .catch(error => {
                 console.error('Error en AJAX:', error);
-                alert('Error al conectar con el servidor.');
+                showAlert({
+                    title: 'Error',
+                    message: 'No se pudo completar la búsqueda',
+                    type: 'error'
+                });
+                //alert('Error al conectar con el servidor.');
             });
         });
     }

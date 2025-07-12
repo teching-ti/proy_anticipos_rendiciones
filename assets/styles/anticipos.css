@@ -29,8 +29,6 @@
 
 .btn-default:hover{
     background: #353b48;
-    /* color: rgb(47, 54, 64); */
-    /* outline: solid 2px rgb(113, 128, 147, 1); */
     outline: solid 2px rgb(47, 54, 64,1);
 }
 
@@ -96,7 +94,7 @@
     background: none;
     border: none;
     font-size: 1.5rem;
-    color: white;
+    color: #1a4fac;
     cursor: pointer;
 }
 
@@ -143,13 +141,17 @@
 
 .modal-header {
     padding: 8px 16px;
-    color: white;
+    color: #1a4fac;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    /* background: linear-gradient(135deg, #1A4E8A 0%, #336FA9 100%); */
-    background: linear-gradient(156deg, #1A4E8A 18%,#336FA9 82%);
+    background: linear-gradient(100deg, rgb(236, 241, 247) 0%, rgb(195, 216, 243) 46%);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header h3{
+    font-size: large;
+    font-weight: bolder;
 }
 
 .modal-body {
@@ -165,11 +167,9 @@
 }
 
 .btn-close-modal:hover{
-    transform: scale(104%);
     transition: linear .4s;
     font-weight: bold;
     rotate: 90deg;
-    /* color: #0b2942; */
 }
 
 /*1. Section Datos Solicitante*/
@@ -463,6 +463,10 @@
 }
 
 .span-td-estado{
+    display: inline-flex;
+    width: 4.4rem;
+    justify-content: center;
+    align-items: center;
     border-radius: .2rem;
     padding: .1rem .3rem;
     font-size: .8rem;
@@ -521,17 +525,16 @@
 
 /* From Uiverse.io by JaydipPrajapati1910 */ 
 .btn-container {
+    display: flex;
+    /* align-items: center; */
+    /* justify-content: space-between; */
+    flex-direction: column;
+    gap: .8rem;
     margin-top: .9rem;
-    padding-left: .9rem;
+    padding: 0 1.2rem;
   /* display: table-cell; */
   /* vertical-align: middle; */
   /* text-align: center; */
-}
-
-.btn-container i {
-  display: inline-block;
-  position: relative;
-  top: -9px;
 }
 
 label {
@@ -622,6 +625,82 @@ label {
   display: block;
 }
 
+.btn-aprobar-anticipo{
+    width: fit-content;
+    background-color: #1f58a8;
+    color: #fff;
+    padding: .5rem 1rem;
+    transition: all ease-in-out .4s;
+    border-radius: .4rem;
+    font-size: .9rem;
+    cursor: pointer;
+}
+
+.btn-aprobar-anticipo:hover{
+    background-color: #1b4a8b;
+    box-shadow: rgba(29, 116, 216, 0.4) 0px 0px 0px 2px, rgba(29, 116, 216, 0.4) 0px 4px 6px -1px, rgba(29, 116, 216, 0.4) 0px 1px 0px inset;
+}
+
+.btn-cambio-estado-container{
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    width: 100%;
+}
+
+.btn-cambio-estado-container div{
+    display: flex;
+    gap: .4rem;
+}
+
+.btn-aprobar-totalmente{
+    width: fit-content;
+    padding: .5rem 1rem;
+    background-color: #1f58a8;
+    color: #fff;
+    transition: all ease-in-out .4s;
+    border-radius: .4rem;
+    font-size: .9rem;
+    cursor: pointer;
+}
+
+.btn-aprobar-totalmente:hover{
+    background-color: #1b4a8b;
+    box-shadow: rgba(29, 116, 216, 0.4) 0px 0px 0px 2px, rgba(29, 116, 216, 0.4) 0px 4px 6px -1px, rgba(29, 116, 216, 0.4) 0px 1px 0px inset;
+}
+
+.btn-observar-anticipo{
+    width: fit-content;
+    padding: .5rem 1rem;
+    background-color: #e72d1f;
+    color: #fff;
+    transition: all ease-in-out .4s;
+    border-radius: .4rem;
+    font-size: .9rem;
+    cursor: pointer;
+}
+
+.btn-observar-anticipo:hover{
+    background-color: #d42c1f;
+    box-shadow: rgba(199, 70, 70, 0.4) 0px 0px 0px 2px, rgba(199, 70, 70, 0.4) 0px 4px 6px -1px, rgba(199, 70, 70, 0.4) 0px 1px 0px inset;
+}
+
+.btn-abonar-anticipo{
+    width: fit-content;
+    padding: .5rem 1rem;
+    background-color: #1f58a8;
+    color: #fff;
+    transition: all ease-in-out .4s;
+    border-radius: .4rem;
+    font-size: .9rem;
+    cursor: pointer;
+}
+
+.btn-abonar-anticipo:hover{
+    background-color: #1b4a8b;
+    box-shadow: rgba(29, 116, 216, 0.4) 0px 0px 0px 2px, rgba(29, 116, 216, 0.4) 0px 4px 6px -1px, rgba(29, 116, 216, 0.4) 0px 1px 0px inset;
+}
+
 .dark-preview {
   background: #0d0d0d;
 }
@@ -645,6 +724,32 @@ label {
     cursor: pointer;
     z-index: 11;
     width: fit-content;
+    transition: color 0.2s;
+}
+
+#edit-add-gasto-btn{
+    width: fit-content; 
+    background-color: #336FA9;
+    color: white;
+    margin-left: 1.4rem;
+}
+
+.edit-adding-transp-provincial{
+    width: fit-content; 
+    background-color: #336FA9;
+    color: white;
+    margin-left: 1.4rem;
+}
+
+.edit-remove-transporte-btn{
+    top: 5px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: #d9534f;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 10;
     transition: color 0.2s;
 }
 
@@ -697,10 +802,15 @@ label {
     .table thead {
         display: none;
     }
+
+    .table tbody{
+        display: flex;
+        flex-direction: column;
+        gap: .6rem;
+    }
     
     .table tbody tr {
         display: block;
-        margin-bottom: 15px;
         border: 1px solid #ddd;
         border-radius: 4px;
         background-color: #fff;
@@ -741,5 +851,12 @@ label {
     .btn-add-anticipo {
         /* width: 100%; */
         font-size: 0.85rem;
+    }
+
+    .btn-container{
+        display: flex;
+        flex-direction: column;
+        align-items: normal;
+        gap: .8rem;
     }
 }

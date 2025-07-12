@@ -1,3 +1,7 @@
+11072025 - jvalladares
+A la fecha se ha culminado con los cambios de estado de un anticipo, se ha finalizado el aspecto visual de las rendiciones para cada anticipo. Se deberá trabajar el apartado lógico para que se guarden los registros de poco en poco según lo mostrado.
+Se deberá de trabajar con el apartado para envíos por correo y finalización de rendición tras aprobaciones.
+
 04072025 - jvalladares
 A la fecha se pueden agregar y editar los anticipos según lo mencionado en el punto anterior. Ya se puede iniciar con el apartado de cambios de estado de un anticipo, por el momento únicamente figura como nuevo. Se debería de poder contar con cambios d estado y notificaciones, posterior a ello tambie´n se debe dar incio al trabajo con las rendiciones. (Diseñar las tablas necesarias para poder trabajar con este servicio).
 Por ahora tenemos en funcionamiento el módulo de usuarios, anticipos, presupuestos y centros de costos.

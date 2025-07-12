@@ -43,8 +43,7 @@ function showAlert({ title = 'Alerta', message, type = 'info', event = ''} = {})
         modal.innerHTML = `
             <div class="custom-alert-content">
                 <div class="modal-alert-header">
-                    <i class="fa-solid fa-bell fa-2xl" style="color: #218838"></i>
-                    <h3 id="custom-alert-title"></h3>
+                    ${type=="success" ? "<p><i class='fa-solid fa-bell fa-2xl' style='color: #218838'></i></p><p><h3 id='custom-alert-title'></h3></p>": "<p><i class='fa-solid fa-triangle-exclamation fa-2xl' style='color: #e7c23a;'></i></p><p><h3 id='custom-alert-title'></h3></p>"}
                 </div>
                 <div class="modal-alert-body">
                     <p id="custom-alert-message"></p>
@@ -52,12 +51,12 @@ function showAlert({ title = 'Alerta', message, type = 'info', event = ''} = {})
                 </div>
             </div>
         `;
-    } else if (type === 'error' || type === 'warning') {
+    } else if (event === 'error' || event === 'warning') {
         modal.innerHTML = `
             <div class="custom-alert-content">
                 <div class="modal-alert-header">
-                    <i class="fa-solid fa-triangle-exclamation fa-2xl" style="color: rgb(231, 194, 58);"></i>
-                    <p id="custom-alert-title"></p>
+                    <p><i class="fa-solid fa-triangle-exclamation fa-2xl" style="color: #e7c23a;"></i></p>
+                    <p><h3 id="custom-alert-title"></h3></p>
                 </div>
                 <div class="modal-alert-body">
                     <p id="custom-alert-message"></p>
@@ -69,8 +68,8 @@ function showAlert({ title = 'Alerta', message, type = 'info', event = ''} = {})
         modal.innerHTML = `
             <div class="custom-alert-content">
                 <div class="modal-alert-header">
-                    <i class="fa-solid fa-bell fa-2xl" style="color: #218838"></i>
-                    <h3 id="custom-alert-title"></h3>
+                    <p><i class="fa-solid fa-bell fa-2xl" style="color: #218838"></i></p>
+                    <p><h3 id="custom-alert-title"></h3></p>
                 </div>
                 <div class="modal-alert-body">
                     <p id="custom-alert-message"></p>
@@ -142,11 +141,11 @@ function showAlert({ title = 'Alerta', message, type = 'info', event = ''} = {})
     //     }
     // };
 
-    // Cerrar con la tecla Escape
-    // document.addEventListener('keydown', function handler(event) {
-    //     if (event.key === 'Escape') {
-    //         modal.style.display = 'none';
-    //         document.removeEventListener('keydown', handler);
-    //     }
-    // });
+    //Cerrar con la tecla Escape
+    document.addEventListener('keydown', function handler(event) {
+        if (event.key === 'Escape') {
+            modal.style.display = 'none';
+            document.removeEventListener('keydown', handler);
+        }
+    });
 }

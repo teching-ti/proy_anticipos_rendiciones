@@ -169,7 +169,7 @@ include "base.php";
                 <h5>Agregar Centro de Costo</h5>
                 <button type='button' class='modal-close btn-close-modal' data-modal='addCcModal'><i class='fa-solid fa-xmark fa-lg'></i></button>
             </div>
-            <form action='/proy_anticipos_rendiciones/cost_center/add_cc' method='POST'>
+            <form action='cost_center/add_cc' method='POST'>
                 <div class='modal-body'>
                     <div class='container-input'>
                         <label for='cc_codigo'>Código</label>
@@ -210,7 +210,7 @@ include "base.php";
                 <h5>Editar Centro de Costo</h5>
                 <button type='button' class='modal-close btn-close-modal' data-modal='editCcModal'><i class='fa-solid fa-xmark fa-lg'></i></button>
             </div>
-            <form action='/proy_anticipos_rendiciones/cost_center/edit_cc' method='POST'>
+            <form action='cost_center/edit_cc' method='POST'>
                 <div class='modal-body'>
                     <div class='container-input'>
                         <label for='edit_cc_codigo'>Código</label>
@@ -247,16 +247,8 @@ include "base.php";
                     <i class='fa-solid fa-xmark fa-lg'></i>
                 </button>
             </div>
-            <form action='/proy_anticipos_rendiciones/cost_center/edit_scc' method='POST'>
+            <form action='cost_center/edit_scc' method='POST'>
                 <div class='modal-body'>
-                    <div class='container-input'>
-                        <label for='edit_scc_codigo'>Código SCC</label>
-                        <input type='text' id='edit_scc_codigo' name='codigo' readonly>
-                    </div>
-                    <div class='container-input'>
-                        <label for='edit_scc_nombre'>Nombre</label>
-                        <input type='text' id='edit_scc_nombre' name='nombre' required>
-                    </div>
                     <div class='container-input'>
                         <label for='edit_scc_cc_codigo'>Centro de Costo</label>
                         <select id='edit_scc_cc_codigo' name='cc_codigo' required>
@@ -267,6 +259,14 @@ include "base.php";
                                 </option>
                             <?php endforeach; ?>
                         </select>
+                    </div>
+                    <div class='container-input'>
+                        <label for='edit_scc_codigo'>Código SCC</label>
+                        <input type='text' id='edit_scc_codigo' name='codigo' readonly>
+                    </div>
+                    <div class='container-input'>
+                        <label for='edit_scc_nombre'>Nombre</label>
+                        <input type='text' id='edit_scc_nombre' name='nombre' required>
                     </div>
                     <div class='container-input form-check'>
                         <input type='checkbox' id='edit_scc_activo' name='activo' value='1'>
@@ -291,8 +291,19 @@ include "base.php";
                 <h5>Agregar Subcentro de Costo</h5>
                 <button type="button" class="modal-close btn-close-modal" data-modal=addSccModal><i class="fa-solid fa-xmark fa-lg"></i></button>
             </div>
-            <form action="/proy_anticipos_rendiciones/cost_center/add_scc" method="POST">
+            <form action="cost_center/add_scc" method="POST">
                 <div class="modal-body">
+                    <div class="container-input">
+                        <label for="scc_cc_codigo">Centro de Costo</label>
+                        <select id="scc_cc_codigo" name="cc_codigo" required>
+                            <option value="">Seleccione un centro de costo</option>
+                            <?php foreach ($cc_list as $cc): ?>
+                                <option value="<?php echo htmlspecialchars($cc['codigo'], ENT_QUOTES, 'UTF-8'); ?>">
+                                    <?php echo htmlspecialchars($cc['nombre'], ENT_QUOTES, 'UTF-8'); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                     <div class="container-input">
                         <label for="scc_codigo">Código SCC</label>
                         <input type="text" id="scc_codigo" name="codigo" required>
@@ -304,17 +315,6 @@ include "base.php";
                     <div class="container-input">
                         <label for="scc_nombre_corto">Nombre Corto</label>
                         <input type="text" id="scc_nombre_corto" name="nombre_corto" required>
-                    </div>
-                    <div class="container-input">
-                        <label for="scc_cc_codigo">Centro de Costo</label>
-                        <select id="scc_cc_codigo" name="cc_codigo" required>
-                            <option value="">Seleccione un centro de costo</option>
-                            <?php foreach ($cc_list as $cc): ?>
-                                <option value="<?php echo htmlspecialchars($cc['codigo'], ENT_QUOTES, 'UTF-8'); ?>">
-                                    <?php echo htmlspecialchars($cc['nombre'], ENT_QUOTES, 'UTF-8'); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
                     </div>
                     <div class="container-input form-check">
                         <input type="checkbox" id="scc_activo" name="activo" value="1" checked>
@@ -337,7 +337,7 @@ include "base.php";
                 <h5>Editar Sub-subcentro de Costo</h5>
                 <button type="button" class="modal-close btn-close-modal" data-modal="editSsccModal"><i class="fa-solid fa-xmark fa-lg"></i></button>
             </div>
-            <form action="/proy_anticipos_rendiciones/cost_center/edit_sscc" method="POST">
+            <form action="cost_center/edit_sscc" method="POST">
                 <div class="modal-body">
                     <div class="container-input">
                         <label for="edit_sscc_codigo">Código SSCC</label>
@@ -379,7 +379,7 @@ include "base.php";
                 <h5>Agregar Sub-subcentro de Costo</h5>
                 <button type="button" class="modal-close btn-close-modal" data-modal="addSsccModal"><i class="fa-solid fa-xmark fa-lg"></i></button>
             </div>
-            <form action="/proy_anticipos_rendiciones/cost_center/add_sscc" method="POST">
+            <form action="cost_center/add_sscc" method="POST">
                 <div class="modal-body">
                     <div class="container-input">
                         <label for="sscc_codigo">Código SSCC</label>

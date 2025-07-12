@@ -16,7 +16,7 @@ class PresupuestoSSccController {
 
     public function index(){
         if (!isset($_SESSION['id'])) {
-            header('Location: /proy_anticipos_rendiciones/iniciar_sesion');
+            header('Location: iniciar_sesion');
             exit;
         }
 

@@ -353,10 +353,15 @@
         display: none; /* Oculta los <th> en móviles */
     }
 
+    .table tbody{
+        display: flex;
+        flex-direction: column;
+        gap: .4rem;
+    }
+
     /* Convertir cada fila en un bloque */
     .table tbody tr {
         display: block; /* Cada fila es un bloque (tarjeta) */
-        margin-bottom: 15px; /* Espacio entre filas */
         border: 1px solid #ddd; /* Borde para definir cada tarjeta */
         border-radius: 4px; /* Bordes redondeados para estética */
         background-color: #fff; /* Fondo blanco para cada tarjeta */

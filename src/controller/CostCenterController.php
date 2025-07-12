@@ -14,7 +14,7 @@ class CostCenterController {
 
     public function index() {
         if (!isset($_SESSION['dni'])) {
-            header('Location: /proy_anticipos_rendiciones/iniciar_sesion');
+            header('Location: iniciar_sesion');
             exit;
         }
         
@@ -57,7 +57,7 @@ class CostCenterController {
                     $_SESSION['error'] = 'Error al agregar el centro de costo.';
                 }
             }
-            header('Location: /proy_anticipos_rendiciones/centro_costos');
+            header("Location: /".$_SESSION['ruta_base']."/centro_costos");
             exit;
         }
     }
@@ -91,7 +91,7 @@ class CostCenterController {
                     $_SESSION['error'] = 'Error al agregar el subcentro de costo.';
                 }
             }
-            header('Location: /proy_anticipos_rendiciones/centro_costos');
+            header("Location: /".$_SESSION['ruta_base']."/centro_costos");
             exit;
         }
     }
@@ -126,7 +126,7 @@ class CostCenterController {
                     $_SESSION['error'] = 'Error al agregar el sub-subcentro de costo.';
                 }
             }
-            header('Location: /proy_anticipos_rendiciones/centro_costos');
+            header("Location: /".$_SESSION['ruta_base']."/centro_costos");
             exit;
         }
     }
@@ -153,7 +153,7 @@ class CostCenterController {
                     $_SESSION['error'] = 'Error al actualizar el centro de costo.';
                 }
             }
-            header('Location: /proy_anticipos_rendiciones/centro_costos');
+            header("Location: /".$_SESSION['ruta_base']."/centro_costos");
             exit;
         }
     }
@@ -181,7 +181,7 @@ class CostCenterController {
                     $_SESSION['error'] = 'Error al actualizar el subcentro de costo.';
                 }
             }
-            header('Location: /proy_anticipos_rendiciones/centro_costos');
+            header("Location: /".$_SESSION['ruta_base']."/centro_costos");
             exit;
         }
     }
@@ -209,7 +209,7 @@ class CostCenterController {
                     $_SESSION['error'] = 'Error al actualizar el sub-subcentro de costo.';
                 }
             }
-            header('Location: /proy_anticipos_rendiciones/centro_costos');
+            header("Location: /".$_SESSION['ruta_base']."/centro_costos");
             exit;
         }
     }

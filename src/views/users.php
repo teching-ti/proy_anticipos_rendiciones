@@ -4,10 +4,32 @@ $titulo = "Usuarios";
 $fun = "users.js?v=".time();
 include "base.php";
 ?>
-
+<script src="assets/scripts/modalAlert.js"></script>
 <section class="users-content">
-    <!-- Incluir alert.js -->
-    <script src="assets/scripts/modalAlert.js"></script>
+    <!-- Habilitación de alerta modal-->
+    <?php if (isset($_SESSION['success'])): ?>
+        <script>
+            alert("Exito");
+            showAlert({
+                title: 'Usuario registrado correctamente.',
+                message: '<?php echo htmlspecialchars($_SESSION['success'], ENT_QUOTES, 'UTF-8'); ?>',
+                type: 'success'
+            });
+        </script>
+        <!-- Limpieza de la variable para success -->
+        <?php unset($_SESSION['success']); ?>
+    <?php endif; ?>
+    <?php if (isset($_SESSION['error'])): ?>
+        <script>
+            showAlert({
+                title: 'Error',
+                message: '<?php echo htmlspecialchars($_SESSION['error'], ENT_QUOTES, 'UTF-8'); ?>',
+                type: 'error'
+            });
+        </script>
+        <!-- Limpieza de la variable para error -->
+        <?php unset($_SESSION['error']); ?>
+    <?php endif; ?>
 
     <!-- Tabla de usuarios -->
     <section class="section-table">

@@ -1,12 +1,15 @@
 <?php
 require_once 'src/config/Database.php';
+require_once 'src/models/RendicionesModel.php';
 
 class AnticipoModel {
     private $db;
+    private $rendicionesModel;
 
     public function __construct() {
         $database = new Database();
         $this->db = $database->connect();
+        $this->rendicionesModel = new RendicionesModel();
     }
 
     // Obtener anticipos según el rol del usuario
@@ -14,12 +17,12 @@ class AnticipoModel {
         try {
             $query = "SELECT a.id, a.departamento, a.solicitante_nombres, a.departamento_nombre, a.codigo_sscc, a.solicitante, s.nombre AS sscc_nombre, a.fecha_solicitud, 
                              a.monto_total_solicitado, 
-                             h.id_usuario AS historial_usuario_id, h.estado as estado, u.nombre_usuario AS historial_usuario_nombre,
+                             h.id_usuario AS historial_usuario_id, h.estado as estado, h.comentario as comentario, u.nombre_usuario AS historial_usuario_nombre,
                              h.fecha AS historial_fecha
                       FROM tb_anticipos a
                       LEFT JOIN tb_sscc s ON a.codigo_sscc = s.codigo
                       LEFT JOIN (
-                          SELECT id_anticipo, id_usuario, fecha, estado
+                          SELECT id_anticipo, id_usuario, fecha, estado, comentario
                           FROM tb_historial_anticipos
                           WHERE (id_anticipo, fecha) IN (
                               SELECT id_anticipo, MAX(fecha)
@@ -31,9 +34,8 @@ class AnticipoModel {
                       WHERE 1=1";
             $params = [];
             if ($rol == 2) { // Jefatura
-                $query .= " AND (a.id_usuario = :user_id OR a.jefe_aprobador = :jefe_id)";
-                $params['user_id'] = $user_id;
-                $params['jefe_id'] = $user_id;
+                $query .= " AND a.departamento = :dep_id";
+                $params['dep_id'] = $_SESSION['trabajador']['departamento'];
             } elseif ($rol == 3) { // Usuario normal
                 $query .= " AND a.id_usuario = :user_id";
                 $params['user_id'] = $user_id;
@@ -45,18 +47,6 @@ class AnticipoModel {
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log('Error al obtener anticipos: ' . $e->getMessage());
-            return [];
-        }
-    }
-
-    // Obtener usuarios con rol Jefatura (rol = 2)
-    public function getJefes() {
-        try {
-            $query = "SELECT id, nombre_usuario FROM tb_usuarios WHERE rol = 2 ORDER BY nombre_usuario";
-            $stmt = $this->db->prepare($query);
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
             return [];
         }
     }
@@ -178,41 +168,6 @@ class AnticipoModel {
                 $this->db->rollBack();
                 return false;
             }
-
-            // Inicia Movimiento de Presupuesto 30062025 - Se comenta porque tras la creación de un anticipo no se realizará el movimiento al instante
-            // Insertar movimiento en tb_movimientos_presupuesto
-            /*$query = "INSERT INTO tb_movimientos_presupuesto (id_presupuesto, tipo_movimiento, monto, id_anticipo, id_usuario, fecha, comentario)
-                      VALUES (:id_presupuesto, :tipo_movimiento, :monto, :id_anticipo, :id_usuario, NOW(), :comentario)";
-            $stmt = $this->db->prepare($query);
-            $stmt->execute([
-                'id_presupuesto' => $id_presupuesto,
-                'tipo_movimiento' => 1, // Anticipo
-                'monto' => $monto_total_solicitado,
-                'id_anticipo' => $id_anticipo,
-                'id_usuario' => $id_usuario,
-                'comentario' => 'Movimiento por anticipo'
-            ]);*/
-
-            // Continua Movimiento de Presupuesto 30062025 - Se comenta porque tras la creación de un anticipo no se realizará el movimiento al instante
-            // Actualizar saldo_disponible en tb_presupuestos_sscc
-            /*$query = "UPDATE tb_presupuestos_sscc 
-                      SET saldo_disponible = saldo_disponible - :monto, 
-                          ultima_actualizacion = NOW() 
-                      WHERE id = :id_presupuesto AND activo = 1";
-            $stmt = $this->db->prepare($query);
-            $stmt->execute([
-                'monto' => $monto_total_solicitado,
-                'id_presupuesto' => $id_presupuesto
-            ]);*/
-
-            // Finaliza Movimiento de Presupuesto 30062025 - Se comenta porque tras la creación de un anticipo no se realizará el movimiento al instante
-            // Verificar que se haya actualizado al menos una fila
-            /*if ($stmt->rowCount() === 0) {
-                error_log('No se actualizó el saldo para id_presupuesto: ' . $id_presupuesto);
-                $this->db->rollBack();
-                return false;
-            }*/
-            // Esta implementación de realizar movimiento y descuento de presupuesto se debería dar recién cuando el anticipo llegue al estado correspondiente(abonado, aprobado, etc)
 
             // Insertar detalles de compras menores
             if (!empty($detalles_gastos)) {
@@ -375,21 +330,8 @@ class AnticipoModel {
     }
     
     // Actualizar estado de un anticipo y registrar en historial
-    public function updateAnticipoEstado($id, $estado, $id_usuario, $comentario = null) {
+   public function updateAnticipoEstado($id, $estado, $id_usuario, $comentario = null) {
         try {
-            $this->db->beginTransaction();
-
-            // Actualizar estado en tb_anticipos
-            $query = "UPDATE tb_anticipos
-                      SET jefe_aprobador = :jefe_aprobador
-                      WHERE id = :id";
-            $stmt = $this->db->prepare($query);
-            $stmt->execute([
-                'jefe_aprobador' => $id_usuario,
-                'id' => $id
-            ]);
-
-            // Insertar en historial
             $query = "INSERT INTO tb_historial_anticipos (id_anticipo, estado, id_usuario, fecha, comentario)
                       VALUES (:id_anticipo, :estado, :id_usuario, NOW(), :comentario)";
             $stmt = $this->db->prepare($query);
@@ -399,12 +341,9 @@ class AnticipoModel {
                 'id_usuario' => $id_usuario,
                 'comentario' => $comentario ?? "Cambio a $estado"
             ]);
-
-            $this->db->commit();
             return true;
         } catch (PDOException $e) {
-            $this->db->rollBack();
-            error_log('Error al actualizar estado de anticipo: ' . $e->getMessage());
+            error_log('Error al registrar historial de anticipo: ' . $e->getMessage());
             return false;
         }
     }
@@ -992,6 +931,95 @@ class AnticipoModel {
         $stmt = $this->db->prepare($query);
         $stmt->execute(['id_usuario' => $id, 'estado' => $estado]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function abonarAnticipo($id_anticipo, $id_usuario, $comentario) {
+        try {
+            $this->db->beginTransaction();
+            error_log("Transacción iniciada para abonar anticipo ID: $id_anticipo");
+
+            // Obtener datos del anticipo
+            $query = "SELECT id_usuario, monto_total_solicitado, codigo_sscc FROM tb_anticipos WHERE id = :id";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id' => $id_anticipo]);
+            $anticipo = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$anticipo) {
+                throw new Exception('Anticipo no encontrado');
+            }
+
+            $monto = $anticipo['monto_total_solicitado'];
+            $codigo_sscc = $anticipo['codigo_sscc'];
+            $anticipo_usuario = $anticipo['id_usuario'];
+
+            // Obtener el ID del presupuesto asociado
+            $query = "SELECT id, saldo_disponible FROM tb_presupuestos_sscc WHERE codigo_sscc = :codigo_sscc AND activo = 1 FOR UPDATE";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':codigo_sscc' => $codigo_sscc]);
+            $presupuesto = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$presupuesto) {
+                throw new Exception('Presupuesto asociado no encontrado');
+            }
+
+            $id_presupuesto = $presupuesto['id'];
+            $nuevo_saldo_disponible = $presupuesto['saldo_disponible'] - $monto;
+
+            // Validar que el saldo no sea negativo
+            if ($nuevo_saldo_disponible < 0) {
+                throw new Exception('No hay saldo suficiente en el presupuesto.');
+            }
+
+            // Actualizar el presupuesto
+            $query = "UPDATE tb_presupuestos_sscc 
+                      SET saldo_disponible = :saldo_disponible, ultima_actualizacion = NOW() 
+                      WHERE id = :id";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                ':saldo_disponible' => $nuevo_saldo_disponible,
+                ':id' => $id_presupuesto
+            ]);
+
+            // Registrar movimiento en tb_movimientos_presupuesto
+            $query = "INSERT INTO tb_movimientos_presupuesto (id_presupuesto, tipo_movimiento, monto, id_anticipo, id_usuario, fecha, comentario)
+                      VALUES (:id_presupuesto, :tipo_movimiento, :monto, :id_anticipo, :id_usuario, NOW(), :comentario)";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                ':id_presupuesto' => $id_presupuesto,
+                ':tipo_movimiento' => 2,
+                ':monto' => $monto,
+                ':id_anticipo' => $id_anticipo,
+                ':id_usuario' => $id_usuario,
+                ':comentario' => 'Anticipo'
+            ]);
+
+
+            // Crear rendición asociada al anticipo
+            $fecha_inicio = date('Y-m-d H:i:s');
+            $fecha_rendicion = date('Y-m-d H:i:s', strtotime('+3 days'));
+            $id_cat_documento = 2;
+            $id_rendicion = $this->rendicionesModel->createRendicion($id_anticipo, $anticipo_usuario, $fecha_inicio, $fecha_rendicion, $id_cat_documento, $monto, $comentario);
+
+            if ($id_rendicion) {
+                // Registrar estado 'Nuevo' en historial de rendiciones
+                if ($this->rendicionesModel->updateEstado($id_rendicion, 'Nuevo', $id_usuario, 'Rendición registrada tras registro de abono de anticipo')) {
+                    // Actualizar estado del anticipo y registrar en historial
+                    if ($this->updateAnticipoEstado($id_anticipo, 'Abonado', $id_usuario, $comentario)) {
+                        $this->db->commit();
+                        error_log("Transacción completada para anticipo ID: $id_anticipo");
+                        return true;
+                    }
+                }
+                throw new Exception('Error al registrar el historial de la rendición.');
+            }
+
+            throw new Exception('Error al crear la rendición asociada.');
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            error_log('Error al abonar anticipo: ' . $e->getMessage());
+            return false;
+        }
     }
     
 }

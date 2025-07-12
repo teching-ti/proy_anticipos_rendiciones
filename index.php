@@ -20,6 +20,7 @@ function loadController($controllerName) {
 
 $request_uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 $base_path = 'proy_anticipos_rendiciones';
+$_SESSION['ruta_base'] = 'proy_anticipos_rendiciones';
 if (strpos($request_uri, $base_path) === 0) {
     $request_uri = trim(substr($request_uri, strlen($base_path)), '/');
 }
@@ -50,8 +51,10 @@ $routes = [
     'anticipos/getSsccByScc' => ['controller' => 'anticipo', 'action' => 'getSsccByScc'],
     'anticipos/getSaldoDisponibleTiempoReal' => ['controller' => 'anticipo', 'action' => 'getSaldoDisponibleTiempoReal'],
     'anticipos/getAnticipoDetails' => ['controller' => 'anticipo', 'action' => 'getAnticipoDetails'],
-    'anticipos/approve' => ['controller' => 'anticipo', 'action' => 'approve'],
-    'anticipos/reject' => ['controller' => 'anticipo', 'action' => 'reject'],
+    'anticipos/autorizar' => ['controller' => 'anticipo', 'action' => 'autorizar'],
+    'anticipos/autorizarTotalmente' => ['controller' => 'anticipo', 'action' => 'autorizarTotalmente'],
+    'anticipos/observarAnticipo' => ['controller' => 'anticipo', 'action' => 'observarAnticipo'],
+    'anticipos/abonarAnticipo' => ['controller' => 'anticipo', 'action' => 'abonarAnticipo'],
     'tarifario/cargos' => ['controller' => 'tarifario', 'action' => 'obtenerCargos'], //ruta para obtener los cargos del tarifario
     'tarifario/montosCargo' => ['controller' => 'tarifario', 'action' => 'obtenerMontosPorCargo'],
     'presupuestos' => ['controller' => 'presupuestosscc', 'action' => 'index'],
@@ -60,7 +63,9 @@ $routes = [
     'presupuestos/get_ssccs' => ['controller' => 'presupuestosscc', 'action' => 'get_ssccs'],
     'presupuestos/add' => ['controller' => 'presupuestosscc', 'action' => 'add'],
     'presupuesto_sscc/add_funds' => ['controller' => 'presupuestosscc', 'action' => 'add_funds'],
-    'rendiciones' => ['controller' => 'rendiciones', 'action' => 'index']
+    'rendiciones' => ['controller' => 'rendiciones', 'action' => 'index'],
+    'rendiciones/getRendicionDetails' => ['controller' => 'rendiciones', 'action' => 'getRendicionDetails'],
+    'rendiciones/getDetallesComprasMenores' => ['controller' => 'rendiciones', 'action' => 'getDetallesComprasMenores']
 ];
 
 // Buscar la ruta en el arreglo de rutas

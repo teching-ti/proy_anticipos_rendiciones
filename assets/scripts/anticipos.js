@@ -1,4 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
+
+    // Funcionalidad que se utiliza para mostrar el formulario que permite crear un anticipo
+    function openAddAnticipoModal() {
+        const modal = document.getElementById('addAnticipoModal');
+        if (modal) {
+            modal.style.display = 'block';
+        }
+    }
+
+    // Funcionalidad que se ejecuta tras cargar la página de anticipos, verifica si se encuentra algún parámetro en la url
+    // si eexiste un parámetros dentro llamado openModal, entonces usará la funcionalidad openAddAnticipoModal
+    window.addEventListener('load', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('openModal') === 'true') {
+            openAddAnticipoModal();
+            // Limpia el parámetro de la url para no mostrarlo, es opcional
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    });
+
     const fechaHoy = new Date();
     const fechaFormateada = fechaHoy.toISOString().split('T')[0];
     let inputFecha = document.getElementById("fecha_solicitud");
@@ -20,74 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return regex.test(input);
     }
     
-    // Validar formulario de agregar anticipo here here, esta validación era muy usada
-    // function validateAddForm(form) {
-    //     const fields = ['solicitante', 'area', 'cargo', 'nombre_proyecto', 'motivo_anticipo'];
-    //     for (const field of fields) {
-    //         const value = form.querySelector(`[name="${field}"]`).value.trim();
-    //         if (!validateInput(value)) {
-    //             showAlert({
-    //                 title: 'Error',
-    //                 message: `El campo ${field.replace('_', ' ')} solo puede contener letras, números y espacios.`,
-    //                 type: 'error'
-    //             });
-    //             return false;
-    //         }
-    //     }
-    //     const dni = form.querySelector('[name="dni_solicitante"]').value.trim();
-    //     if (!/^[0-9]{8}$/.test(dni)) {
-    //         showAlert({
-    //             title: 'Error',
-    //             message: 'El DNI del solicitante debe tener 8 dígitos.',
-    //             type: 'error'
-    //         });
-    //         return false;
-    //     }
-    //     const monto = form.querySelector('[name="monto_total_solicitado"]').value;
-    //     if (monto <= 0) {
-    //         showAlert({
-    //             title: 'Error',
-    //             message: 'El monto debe ser mayor a 0.',
-    //             type: 'error'
-    //         });
-    //         return false;
-    //     }
-    //     const fecha = form.querySelector('[name="fecha_solicitud"]').value;
-    //     if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
-    //         showAlert({
-    //             title: 'Error',
-    //             message: 'La fecha de solicitud debe tener el formato YYYY-MM-DD.',
-    //             type: 'error'
-    //         });
-    //         return false;
-    //     }
-    //     return true;
-    // }
-
-    // Validar formularios de aprobar/rechazar
-    // function validateActionForm(form) {
-    //     const comentario = form.querySelector('[name="comentario"]').value.trim();
-    //     if (comentario && !validateInput(comentario)) {
-    //         showAlert({
-    //             title: 'Error',
-    //             message: 'El comentario solo puede contener letras, números y espacios.',
-    //             type: 'error'
-    //         });
-    //         return false;
-    //     }
-    //     return true;
-    // }
-
-    // Validar formulario de agregar anticipo
-    // const addForm = document.querySelector('#addAnticipoModal form');
-    // if (addForm) {
-    //     addForm.addEventListener('submit', (e) => {
-    //         if (!validateAddForm(addForm)) {
-    //             e.preventDefault();
-    //         }
-    //     });
-    // }
-
     // Validar formularios de aprobar/rechazar
     const actionForms = document.querySelectorAll('form[action*="/anticipos/approve"], form[action*="/anticipos/reject"]');
     actionForms.forEach(form => {
@@ -156,11 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Evento para agregar nueva pestaña
     document.getElementById("add-tab").addEventListener("click", agregarNuevaPersona);
-
-
-
-
-    
 });
 
 /*Inicia funcionalidad para cambiar de pestañas dentro del formulario de creación de anticipos*/
@@ -756,7 +703,7 @@ document.getElementById('addAnticipoForm').addEventListener('submit', function(e
         if (modal.style.display !== 'none') {
             const formData = new FormData(this);
 
-            fetch('/proy_anticipos_rendiciones/anticipos/add', {
+            fetch('anticipos/add', {
                 method: 'POST',
                 body: formData
             })
@@ -1107,6 +1054,7 @@ async function cargarScc(selectScc, sccSeleccionado) {
 // Función para mostrar los detalles del anticipo en el modal de edición
 
 async function showAnticipoDetails(data) {
+
     editModalTitle.innerText = `Anticipo #${data.id}`;
     editForm.querySelector("#edit-id-anticipo").value = data.id || '';
     editForm.querySelector("#edit-solicitante").value = data.solicitante_nombres || '';
@@ -1534,13 +1482,37 @@ async function showAnticipoDetails(data) {
     colorModeSwitch.checked = false;
     editSubmitButton.disabled = true;
     editAddGastoBtn.style.display = 'none';
-    editAddTabBtn.style.display = 'none';
+    editAddTabBtn.style.display = 'none';    
     toggleEditMode(false);
 
     editAnticipoModal.style.display = "block";
 
     //actualizarTotalGastosEdit('edit-');
     setTimeout(() => actualizarTotalGastosEdit('edit-'), 0);
+    
+
+    // Validaciones para mostrar elementos de cambio de estado en base a estado de un anticipo y del rol del usuario
+    const rolUsuario = document.getElementById("user-first-info").getAttribute("data-info");
+    const estadoAnticipo = document.getElementById("edit-estado-anticipo").value;
+    if(rolUsuario=='4' && estadoAnticipo=='Autorizado'){
+        console.log("here1");
+        document.querySelector(".btn-cambio-estado-container").style.display = 'flex';
+        document.querySelector(".btn-abonar-anticipo").style.display = "none";
+    }else if(rolUsuario=='2' && (estadoAnticipo=='Nuevo' || estadoAnticipo=='Observado')){
+        console.log("here2");
+        document.querySelector(".btn-cambio-estado-container").style.display = 'flex';
+    }else if(rolUsuario=='4' && estadoAnticipo=='Autorizado Totalmente'){
+        console.log("here3");
+        document.querySelector(".btn-aprobar-totalmente").style.display = "none";
+        document.querySelector(".btn-observar-anticipo").style.display = "none";
+        document.querySelector(".btn-abonar-anticipo").style.display = "flex";
+        document.querySelector(".btn-cambio-estado-container").style.display = 'flex';
+    }else{
+        console.log("nada");
+        if(document.querySelector(".btn-cambio-estado-container")){
+            document.querySelector(".btn-cambio-estado-container").style.display = 'none';
+        }
+    }
 }
 
 // Agregar nueva persona en modo edición
@@ -1871,7 +1843,7 @@ editTabsBody.addEventListener("click", function(e) {
 
 // Función para alternar entre modo Ver y Editar
 function toggleEditMode(isEditMode) {
-    const isEditable = ['Nuevo'].includes(editForm.querySelector("#edit-estado-anticipo").value);
+    const isEditable = ['Nuevo', 'Observado'].includes(editForm.querySelector("#edit-estado-anticipo").value);
     const inputs = editForm.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), select');
 
     inputs.forEach(input => {
@@ -1888,9 +1860,26 @@ function toggleEditMode(isEditMode) {
         }
     });
 
-    editSubmitButton.disabled = !isEditMode || !isEditable;
+    // Selección de elementos que se encontrarán desactivados o deshabilitados mientras no se coloque el anticipo en el modo de editar
+    editSubmitButton.disabled = !isEditMode || !isEditable;//here here here
+    editSubmitButton.style.display = isEditMode && isEditable ? 'block' : 'none';
     editAddGastoBtn.style.display = isEditMode && isEditable ? 'block' : 'none';
     editAddTabBtn.style.display = isEditMode && isEditable ? 'block' : 'none';
+
+    document.querySelectorAll(".edit-remove-gasto-btn").forEach(e => {
+        e.style.display = isEditMode && isEditable ? 'block' : 'none';
+    })
+    document.querySelectorAll(".edit-remove-transporte-btn").forEach(e=>{
+        e.style.display = isEditMode && isEditable ? 'block' : 'none';
+    })
+    document.querySelectorAll(".container-remove-persona").forEach(e=>{
+        e.style.display = isEditMode && isEditable ? 'flex' : 'none';
+    })
+
+    document.querySelectorAll(".edit-adding-transp-provincial").forEach(e=>{
+        e.style.display = isEditMode && isEditable ? 'block' : 'none';
+    })
+    //document.querySelector(".edit-adding-transp-provincial").style.display = isEditMode && isEditable ? 'block' : 'none';
 }
 
 // Manejar el interruptor de modo
@@ -1933,7 +1922,7 @@ editForm.addEventListener('submit', async function(event) {
     event.preventDefault();
     const formData = new FormData(this);
     try {
-        const response = await fetch('/proy_anticipos_rendiciones/anticipos/update', {
+        const response = await fetch('anticipos/update', {
             method: 'POST',
             body: formData
         });
@@ -1974,4 +1963,262 @@ function actualizarBotonesEliminarEdit() {
     const max = Math.max(...editpersonaIndices);
     const btn = document.querySelector(`#edit-persona-${max} .remove-persona-btn`);
     if (btn) btn.style.display = "inline-block";
+}
+
+// Autorizacion 1 de un anticipo
+const btnAutorizarAprobador = document.querySelector(".btn-aprobar-anticipo");
+if(btnAutorizarAprobador){
+    btnAutorizarAprobador.addEventListener("click", async function(e){
+        let idAnticipo = document.getElementById("edit-id-anticipo").value;
+        //let userId = btnAutorizarAprobador.getAttribute("data-aprobador");
+        
+        e.preventDefault();
+        showAlert({
+            title: 'Confirmación',
+            message: '¿Estás seguro de que deseas autorizar este anticipo? Esta acción no se puede deshacer.',
+            type: 'confirm',
+            event: 'confirm'
+        });
+        
+        const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+        const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+        
+        const formData = new FormData();
+
+        formData.append("id", idAnticipo);
+        formData.append("comentario", "Autorizado");
+
+        acceptButton.onclick = async () => {
+
+            try {
+                const response = await fetch('anticipos/autorizar', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showAlert({
+                        title: 'Completado',
+                        message: `El anticipo fue actualizado correctamente.`,
+                        type: 'success',
+                        event: 'envio'
+                    });
+                    editAnticipoModal.style.display = 'none';
+                } else {
+                    showAlert({
+                        title: 'Error',
+                        message: `El anticipo no pudo ser actualizado. "${result.error}".`,
+                        type: 'error',
+                        event: 'envio'
+                    });
+                }
+            } catch (error) {
+                showAlert({
+                    title: 'Error',
+                    message: `No se pudo enviar la información del anticipo.`,
+                    type: 'error',
+                    event: 'envio'
+                });
+            }
+        };
+        cancelButton.onclick = () => {
+            const modal = document.getElementById('custom-alert-modal');
+            modal.style.display = 'none';
+        };
+    })
+}
+
+// Autorizacion 2 de un anticipo
+const btnAutorizarTotalmente = document.querySelector(".btn-aprobar-totalmente");
+if(btnAutorizarTotalmente){
+    btnAutorizarTotalmente.addEventListener("click", async function(e){
+        let idAnticipo = document.getElementById("edit-id-anticipo").value;
+        let comentarioAprobador = document.getElementById("comentario-aprobador").value;
+        //let userId = btnAutorizarAprobador.getAttribute("data-aprobador");
+        
+        e.preventDefault();
+        showAlert({
+            title: 'Confirmación',
+            message: '¿Estás seguro de que desea autorizar totalmente este anticipo? Esta acción no se puede deshacer.',
+            type: 'confirm',
+            event: 'confirm'
+        });
+        
+        const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+        const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+        
+        const formData = new FormData();
+
+        formData.append("id", idAnticipo);
+        formData.append("comentario", comentarioAprobador);
+
+        acceptButton.onclick = async () => {
+
+            try {
+                const response = await fetch('anticipos/autorizarTotalmente', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showAlert({
+                        title: 'Completado',
+                        message: `El anticipo fue autorizado correctamente.`,
+                        type: 'success',
+                        event: 'envio'
+                    });
+                    editAnticipoModal.style.display = 'none';
+                } else {
+                    showAlert({
+                        title: 'Error',
+                        message: `El anticipo no pudo ser autorizado. "${result.error}".`,
+                        type: 'error',
+                        event: 'envio'
+                    });
+                }
+            } catch (error) {
+                showAlert({
+                    title: 'Error',
+                    message: `No se pudo enviar la información del anticipo.`,
+                    type: 'error',
+                    event: 'envio'
+                });
+            }
+        };
+        cancelButton.onclick = () => {
+            const modal = document.getElementById('custom-alert-modal');
+            modal.style.display = 'none';
+        };
+    })
+}
+
+// Observar Anticipo
+const btnObservarAnticipo = document.querySelector(".btn-observar-anticipo");
+if(btnObservarAnticipo){
+    btnObservarAnticipo.addEventListener("click", async function(e){
+        let idAnticipo = document.getElementById("edit-id-anticipo").value;
+        let comentarioAprobador = document.getElementById("comentario-aprobador").value;
+        //let userId = btnAutorizarAprobador.getAttribute("data-aprobador");
+        
+        e.preventDefault();
+        showAlert({
+            title: 'Confirmación',
+            message: '¿Estás seguro de que desea marcar este anticipo como observado? Esta acción no se puede deshacer.',
+            type: 'confirm',
+            event: 'confirm'
+        });
+
+        const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+        const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+        
+        const formData = new FormData();
+
+        formData.append("id", idAnticipo);
+        formData.append("comentario", comentarioAprobador);
+
+        acceptButton.onclick = async () => {
+
+            try {
+                const response = await fetch('anticipos/observarAnticipo', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showAlert({
+                        title: 'Completado',
+                        message: `El anticipo fue marcado como observado.`,
+                        type: 'success',
+                        event: 'envio'
+                    });
+                    editAnticipoModal.style.display = 'none';
+                } else {
+                    showAlert({
+                        title: 'Error',
+                        message: `El anticipo no pudo ser marcado como observado. "${result.error}".`,
+                        type: 'error',
+                        event: 'envio'
+                    });
+                }
+            } catch (error) {
+                showAlert({
+                    title: 'Error',
+                    message: `No se pudo enviar la información del anticipo.`,
+                    type: 'error',
+                    event: 'envio'
+                });
+            }
+        };
+        cancelButton.onclick = () => {
+            const modal = document.getElementById('custom-alert-modal');
+            modal.style.display = 'none';
+        };
+    })
+}
+
+const btnAbonarAnticipo = document.querySelector(".btn-abonar-anticipo");
+if(btnAbonarAnticipo){
+    btnAbonarAnticipo.addEventListener("click", async function(e){
+        let idAnticipo = document.getElementById("edit-id-anticipo").value;
+        let comentarioAprobador = document.getElementById("comentario-aprobador").value;
+        //let userId = btnAutorizarAprobador.getAttribute("data-aprobador");
+        
+        e.preventDefault();
+        showAlert({
+            title: 'Confirmación',
+            message: '¿Estás seguro de que desea marcar este anticipo como observado? Esta acción no se puede deshacer.',
+            type: 'confirm',
+            event: 'confirm'
+        });
+
+        const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+        const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+        
+        const formData = new FormData();
+
+        formData.append("id", idAnticipo);
+        formData.append("comentario", comentarioAprobador);
+
+        acceptButton.onclick = async () => {
+
+            try {
+                const response = await fetch('anticipos/abonarAnticipo', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showAlert({
+                        title: 'Completado',
+                        message: `El anticipo fue abonado correctamente.`,
+                        type: 'success',
+                        event: 'envio'
+                    });
+                    editAnticipoModal.style.display = 'none';
+                } else {
+                    showAlert({
+                        title: 'Error',
+                        message: `El anticipo no pudo ser abonado. "${result.error}".`,
+                        type: 'error',
+                        event: 'envio'
+                    });
+                }
+            } catch (error) {
+                showAlert({
+                    title: 'Error',
+                    message: `No se pudo enviar la información del anticipo.`,
+                    type: 'error',
+                    event: 'envio'
+                });
+            }
+        };
+        cancelButton.onclick = () => {
+            const modal = document.getElementById('custom-alert-modal');
+            modal.style.display = 'none';
+        };
+    })
 }
