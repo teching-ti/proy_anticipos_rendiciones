@@ -150,7 +150,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                         </div>
                         <hr>
                         <div class="modal-footer">
-                            <div class="btn btn-default" onclick="nextStep()">Siguiente</div>
+                            <div class="btn btn-default" onclick="nextStep()">Siguiente <i class="fa-solid fa-caret-right"></i></div>
                         </div>
                     </div>
 
@@ -158,45 +158,13 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <h3>2. Detalles a rendir</h3>
                         <div class="datos-completar-rendicion">
                             <div id="detalles-compras-container">
-                                <div class="container-detalle">
-                                    <div class="compras-elementos-uno">
-                                        <div class="modal-element">
-                                            <span class="placeholder">Descripcion</span>
-                                            <input type="text" class="rendicion-element" required>
-                                        </div>
-                                        <div class="modal-element">
-                                            <span class="placeholder">Motivo</span>
-                                            <input type="text" class="rendicion-element" required>
-                                        </div>
-
-                                        <div class="modal-element">
-                                            <span class="placeholder">Monto Solicitado</span>
-                                            <input type="text" class="rendicion-element" required>
-                                        </div>
-                                        <div class="modal-element">
-                                            <span class="placeholder">Monto Rendido</span>
-                                            <input type="text" class="rendicion-element" required>
-                                        </div>
-                                    </div>
-                                    <div class="compras-elementos-dos">
-                                        <div class="modal-element">
-                                            <span class="placeholder">Fecha</span>
-                                            <input type="date" class="rendicion-element" required>
-                                        </div>
-                                        <div class="modal-element">
-                                            <div class="btn btn-adjuntar">Adjuntar</div>
-                                        </div>
-                                        <p class="enlace-factura">
-                                            <a href="#">Factura...</a>
-                                        </p>
-                                    </div>
-                                </div>
+                                
                             </div>
                         </div>
                         <hr>
                         <div class="modal-footer">
-                            <div class="btn btn-default" onclick="prevStep()">Atrás</div>
-                            <button type="submit" class="btn btn-default" id="btn-guardar-rendicion">Guardar</button>
+                            <div class="btn btn-default" onclick="prevStep()"><i class="fa-solid fa-caret-left"></i> Atrás</div>
+                            <!-- <button type="submit" class="btn btn-default" id="btn-guardar-rendicion">Guardar</button> -->
                         </div>
                     </div>
                 </div>

@@ -1,3 +1,6 @@
+15072025 (12:39) jvalladares
+A la fecha se ha culminado con el guardado de información y de archivos adjuntos para una rendición en lo relacionado al móudlo de compras menores. Se está trabajando en replicar esta funcionalidad para lo relacionado a viajes, ya que de igual manera debería de poder rendirse. Posterior a ello, se agregará un campo de validación para sumar los montos de rendición y determinar datos como el saldo restante a la fecha actual.
+
 11072025 - jvalladares
 A la fecha se ha culminado con los cambios de estado de un anticipo, se ha finalizado el aspecto visual de las rendiciones para cada anticipo. Se deberá trabajar el apartado lógico para que se guarden los registros de poco en poco según lo mostrado.
 Se deberá de trabajar con el apartado para envíos por correo y finalización de rendición tras aprobaciones.

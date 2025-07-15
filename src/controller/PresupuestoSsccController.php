@@ -2,7 +2,7 @@
 require_once 'src/config/Database.php';
 require_once 'src/models/PresupuestoSsccModel.php';
 
-date_default_timezone_set('America/Lima'); // Ajusta según tu región (-05:00)
+date_default_timezone_set('America/Lima');
 
 class PresupuestoSSccController {
     private $db;

@@ -65,7 +65,9 @@ $routes = [
     'presupuesto_sscc/add_funds' => ['controller' => 'presupuestosscc', 'action' => 'add_funds'],
     'rendiciones' => ['controller' => 'rendiciones', 'action' => 'index'],
     'rendiciones/getRendicionDetails' => ['controller' => 'rendiciones', 'action' => 'getRendicionDetails'],
-    'rendiciones/getDetallesComprasMenores' => ['controller' => 'rendiciones', 'action' => 'getDetallesComprasMenores']
+    'rendiciones/getDetallesComprasMenores' => ['controller' => 'rendiciones', 'action' => 'getDetallesComprasMenores'],
+    'rendiciones/getDetallesRendidosByRendicion' => ['controller' => 'rendiciones', 'action' => 'getDetallesRendidosByRendicion'],
+    'rendiciones/guardarItemRendido' => ['controller' => 'rendiciones', 'action' => 'guardarItemRendido']
 ];
 
 // Buscar la ruta en el arreglo de rutas

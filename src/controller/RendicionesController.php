@@ -49,4 +49,42 @@ class RendicionesController {
         }
         exit;
     }
+
+    public function getDetallesRendidosByRendicion() {
+        header('Content-Type: application/json');
+        if (isset($_GET['id_rendicion'])) {
+            $id_rendicion = $_GET['id_rendicion'];
+            $detalles = $this->rendicionesModel->getDetallesRendidosByRendicion($id_rendicion);
+            echo json_encode($detalles);
+        } else {
+            echo json_encode(['error' => 'No se proporcionó el id de la rendición']);
+        }
+        exit;
+    }
+
+    public function guardarItemRendido() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id_rendicion = $_POST['id_rendicion'] ?? null;
+            $id_detalle_compra = $_POST['id_detalle_compra'] ?? null;
+            if ($id_rendicion && $id_detalle_compra) {
+                $montoRendido = floatval($_POST['montoRendido']);
+                $fecha = $_POST['fecha'];
+                $archivoNombre = $_FILES['archivo']['name'] ?? null;
+
+                $success = $this->rendicionesModel->guardarItemRendido($id_rendicion, $id_detalle_compra, $montoRendido, $fecha, $archivoNombre);
+                if ($success) {
+                    echo json_encode(['success' => true]);
+                } else {
+                    echo json_encode(['error' => 'Error al guardar el ítem']);
+                }
+            } else {
+                echo json_encode(['error' => 'Datos incompletos']);
+            }
+        } else {
+            echo json_encode(['error' => 'Método no permitido']);
+        }
+        exit;
+    }
+
 }

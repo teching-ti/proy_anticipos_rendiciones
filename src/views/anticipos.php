@@ -158,7 +158,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                         </div>
                         <hr>
                         <div class="modal-footer">
-                            <div class="btn btn-default" onclick="nextStep()">Siguiente</div>
+                            <div class="btn btn-default" onclick="nextStep()">Siguiente <i class="fa-solid fa-caret-right"></i></div>
                         </div>
                     </div>
 
@@ -202,7 +202,7 @@ unset($_SESSION['success'], $_SESSION['error']);
 
                         <hr>
                         <div class="modal-footer">
-                            <div class="btn btn-default" onclick="prevStep()">Atrás</div>
+                            <div class="btn btn-default" onclick="prevStep()"><i class="fa-solid fa-caret-left"></i> Atrás</div>
                             <button type="submit" class="btn btn-default">Terminar</button>
                         </div>
                     </div>

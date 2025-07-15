@@ -150,4 +150,72 @@ class RendicionesModel {
             return [];
         }
     }
+
+    public function getDetallesRendidosByRendicion($id_rendicion) {
+        try {
+            $query = "SELECT id, id_detalle_compra, monto_rendido, fecha, archivo_adjunto 
+                      FROM tb_detalles_compras_rendidos 
+                      WHERE id_rendicion = :id_rendicion";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id_rendicion' => $id_rendicion]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log('Error al obtener detalles rendidos: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function guardarItemRendido($id_rendicion, $id_detalle_compra, $montoRendido, $fecha, $archivoNombre = null) {
+        try {
+            $this->db->beginTransaction();
+
+            // Consultar el registro existente para preservar archivo_adjunto si no se envía nuevo
+            $querySelect = "SELECT archivo_adjunto FROM tb_detalles_compras_rendidos 
+                        WHERE id_detalle_compra = :id_detalle_compra AND id_rendicion = :id_rendicion";
+            $stmtSelect = $this->db->prepare($querySelect);
+            $stmtSelect->execute([':id_detalle_compra' => $id_detalle_compra, ':id_rendicion' => $id_rendicion]);
+            $existingRecord = $stmtSelect->fetch(PDO::FETCH_ASSOC);
+            $archivoAdjuntoExistente = $existingRecord ? $existingRecord['archivo_adjunto'] : null;
+
+            // Determinar el archivo_adjunto a usar
+            $archivoAdjunto = $archivoNombre;
+            if (!$archivoNombre && isset($_POST['archivo_existente'])) {
+                $archivoAdjunto = $_POST['archivo_existente']; // Mantener el archivo existente si no se envía nuevo
+            } elseif (!$archivoNombre && $archivoAdjuntoExistente) {
+                $archivoAdjunto = $archivoAdjuntoExistente; // Usar el archivo existente de la base de datos
+            }
+
+            $query = "INSERT INTO tb_detalles_compras_rendidos (id_detalle_compra, id_rendicion, monto_rendido, fecha, archivo_adjunto, estado)
+                    VALUES (:id_detalle_compra, :id_rendicion, :monto_rendido, :fecha, :archivo_adjunto, 'rendido')
+                    ON DUPLICATE KEY UPDATE monto_rendido = :monto_rendido_update, fecha = :fecha_update, archivo_adjunto = :archivo_adjunto_update, estado = 'rendido'";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                ':id_detalle_compra' => $id_detalle_compra,
+                ':id_rendicion' => $id_rendicion,
+                ':monto_rendido' => $montoRendido,
+                ':fecha' => $fecha,
+                ':archivo_adjunto' => $archivoAdjunto,
+                ':monto_rendido_update' => $montoRendido,
+                ':fecha_update' => $fecha,
+                ':archivo_adjunto_update' => $archivoAdjunto
+            ]);
+
+            if ($archivoNombre && isset($_FILES['archivo']['tmp_name']) && is_uploaded_file($_FILES['archivo']['tmp_name'])) {
+                $uploadDir = 'uploads/';
+                if (!file_exists($uploadDir)) mkdir($uploadDir, 0777, true);
+                if ($archivoAdjuntoExistente && file_exists($uploadDir . $archivoAdjuntoExistente)) {
+                    unlink($uploadDir . $archivoAdjuntoExistente); // Eliminar archivo anterior
+                }
+                move_uploaded_file($_FILES['archivo']['tmp_name'], $uploadDir . $archivoNombre);
+            }
+
+            $this->db->commit();
+            return true;
+        } catch (PDOException $e) {
+            $this->db->rollBack();
+            error_log('Error al guardar ítem rendido: ' . $e->getMessage());
+            return false;
+        }
+    }
+
 }

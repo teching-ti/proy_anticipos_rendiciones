@@ -2,6 +2,8 @@
 require_once 'src/config/Database.php';
 require_once 'src/models/RendicionesModel.php';
 
+date_default_timezone_set('America/Lima');
+
 class AnticipoModel {
     private $db;
     private $rendicionesModel;
