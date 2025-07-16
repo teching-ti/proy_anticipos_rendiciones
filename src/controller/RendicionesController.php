@@ -87,4 +87,102 @@ class RendicionesController {
         exit;
     }
 
+    // Nuevas rutas para viáticos
+    public function getDetallesViajes() {
+        header('Content-Type: application/json');
+        if (isset($_GET['id_anticipo'])) {
+            $id_anticipo = $_GET['id_anticipo'];
+            $detalles = $this->rendicionesModel->getDetallesViajesByAnticipo($id_anticipo);
+            echo json_encode($detalles);
+        } else {
+            echo json_encode(['error' => 'No se proporcionó el id del anticipo']);
+        }
+        exit;
+    }
+
+    public function getDetallesViajesRendidosByRendicion() {
+        header('Content-Type: application/json');
+        if (isset($_GET['id_rendicion'])) {
+            $id_rendicion = $_GET['id_rendicion'];
+            $detalles = $this->rendicionesModel->getDetallesViajesRendidosByRendicion($id_rendicion);
+            echo json_encode($detalles);
+        } else {
+            echo json_encode(['error' => 'No se proporcionó el id de la rendición']);
+        }
+        exit;
+    }
+
+    public function guardarItemViaje() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id_rendicion = $_POST['id_rendicion'] ?? null;
+            $id_detalle_viaje = $_POST['id_detalle_viaje'] ?? null;
+            if ($id_rendicion && $id_detalle_viaje) {
+                $montoRendido = floatval($_POST['montoRendido']);
+                $fecha = $_POST['fecha'];
+                $archivoNombre = $_FILES['archivo']['name'] ?? null;
+                $success = $this->rendicionesModel->guardarItemViaje($id_rendicion, $id_detalle_viaje, $montoRendido, $fecha, $archivoNombre);
+                if ($success) {
+                    echo json_encode(['success' => true]);
+                } else {
+                    echo json_encode(['error' => 'Error al guardar el ítem de viático']);
+                }
+            } else {
+                echo json_encode(['error' => 'Datos incompletos']);
+            }
+        } else {
+            echo json_encode(['error' => 'Método no permitido']);
+        }
+        exit;
+    }
+
+    // Nuevas rutas para transportes
+    public function getDetallesTransportes() {
+        header('Content-Type: application/json');
+        if (isset($_GET['id_anticipo'])) {
+            $id_anticipo = $_GET['id_anticipo'];
+            $detalles = $this->rendicionesModel->getDetallesTransportesByAnticipo($id_anticipo);
+            echo json_encode($detalles);
+        } else {
+            echo json_encode(['error' => 'No se proporcionó el id del anticipo']);
+        }
+        exit;
+    }
+
+    public function getDetallesTransportesRendidosByRendicion() {
+        header('Content-Type: application/json');
+        if (isset($_GET['id_rendicion'])) {
+            $id_rendicion = $_GET['id_rendicion'];
+            $detalles = $this->rendicionesModel->getDetallesTransportesRendidosByRendicion($id_rendicion);
+            echo json_encode($detalles);
+        } else {
+            echo json_encode(['error' => 'No se proporcionó el id de la rendición']);
+        }
+        exit;
+    }
+
+    public function guardarItemTransporte() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id_rendicion = $_POST['id_rendicion'] ?? null;
+            $id_transporte_provincial = $_POST['id_transporte_provincial'] ?? null;
+            if ($id_rendicion && $id_transporte_provincial) {
+                $montoRendido = floatval($_POST['montoRendido']);
+                $fecha = $_POST['fecha'];
+                $archivoNombre = $_FILES['archivo']['name'] ?? null;
+                $success = $this->rendicionesModel->guardarItemTransporte($id_rendicion, $id_transporte_provincial, $montoRendido, $fecha, $archivoNombre);
+                if ($success) {
+                    echo json_encode(['success' => true]);
+                } else {
+                    echo json_encode(['error' => 'Error al guardar el ítem de transporte']);
+                }
+            } else {
+                echo json_encode(['error' => 'Datos incompletos']);
+            }
+        } else {
+            echo json_encode(['error' => 'Método no permitido']);
+        }
+        exit;
+    }
+
 }

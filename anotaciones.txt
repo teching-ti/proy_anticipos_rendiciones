@@ -1,3 +1,6 @@
+16072025 (11:34) jvalladares
+A la fecha ya se puede gurdar información de rendiciones relacionadas a las compras menores y viaticos. Se está iniciando con la creación de funcion para mostrar los montos, los cálculos y cambiar de estado una rendición por parte del aprobador.
+
 15072025 (12:39) jvalladares
 A la fecha se ha culminado con el guardado de información y de archivos adjuntos para una rendición en lo relacionado al móudlo de compras menores. Se está trabajando en replicar esta funcionalidad para lo relacionado a viajes, ya que de igual manera debería de poder rendirse. Posterior a ello, se agregará un campo de validación para sumar los montos de rendición y determinar datos como el saldo restante a la fecha actual.
 

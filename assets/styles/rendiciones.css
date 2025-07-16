@@ -135,18 +135,22 @@
 }
 
 .container-detalle{
-    border: solid 1px rgb(223, 223, 223);
+    /* border: solid 1px rgb(223, 223, 223); */
+    border: solid 1.4px rgb(203, 219, 248);
+    /* border: solid 1.4px rgb(203, 219, 248); */
     padding: 1.2rem .4rem .8rem .4rem;
     border-radius: .8rem;
 }
 
 .container-detalle:hover, .container-detalle:hover .placeholder{
-    background-color: rgb(248, 248, 248);
+    /* background-color: rgb(248, 248, 248); */
+    /* background-color: rgb(246, 249, 253); */
+    background-color: rgb(245, 249, 252);
 }
 
 .compras-elementos-uno{
     display: grid;
-    grid-template-columns: 36% 36% 14% 14%;
+    grid-template-columns: 30% 30% 30% 10%;
 }
 
 .compras-elementos-dos{
@@ -156,6 +160,7 @@
 }
 
 .btn-adjuntar{
+    font-size: .9rem;
     background-color: #d1e3fd;
     color: #1c5ece;
     box-shadow: rgba(167, 167, 167, 0.1) 0px 1px 4px;
@@ -167,6 +172,10 @@
     color: #1c5ece;
     box-shadow: rgba(114, 114, 114, 0.1) 0px 1px 4px;
     outline: solid 2px rgb(190, 215, 252);
+}
+
+.btn-guardar-item{
+    font-size: .9rem;
 }
 
 .rendicion-element{

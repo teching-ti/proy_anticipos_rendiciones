@@ -218,4 +218,173 @@ class RendicionesModel {
         }
     }
 
+    /// ELEMENTOS PARA VIAJES Y TRANSPORTE
+    // Nuevos métodos para viáticos
+    public function getDetallesViajesByAnticipo($id_anticipo) {
+        try {
+            error_log("Buscando viáticos para id_anticipo: $id_anticipo");
+            $query = "SELECT dv.id, vc.nombre AS descripcion, a.motivo_anticipo AS motivo, dv.moneda, dv.monto AS importe, dv.dias, vp.nombre_persona
+                  FROM tb_detalles_viajes dv
+                  JOIN tb_viajes_personas vp ON dv.id_viaje_persona = vp.id
+                  JOIN tb_viaticos_concepto vc ON dv.id_concepto = vc.id
+                  JOIN tb_anticipos a ON vp.id_anticipo = a.id
+                  WHERE vp.id_anticipo = :id_anticipo AND vp.valido = 1 AND dv.monto > 0
+                  AND UPPER(dv.moneda) = 'PEN'";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id_anticipo' => $id_anticipo]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log('Error al obtener detalles de viáticos: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDetallesViajesRendidosByRendicion($id_rendicion) {
+        try {
+            $query = "SELECT id, id_detalle_viaje, monto_rendido, fecha, archivo_adjunto, estado
+                      FROM tb_detalles_viajes_rendidos
+                      WHERE id_rendicion = :id_rendicion";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id_rendicion' => $id_rendicion]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log('Error al obtener detalles rendidos de viáticos: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function guardarItemViaje($id_rendicion, $id_detalle_viaje, $montoRendido, $fecha, $archivoNombre = null) {
+        try {
+            $this->db->beginTransaction();
+
+            $querySelect = "SELECT archivo_adjunto FROM tb_detalles_viajes_rendidos 
+                            WHERE id_detalle_viaje = :id_detalle_viaje AND id_rendicion = :id_rendicion";
+            $stmtSelect = $this->db->prepare($querySelect);
+            $stmtSelect->execute([':id_detalle_viaje' => $id_detalle_viaje, ':id_rendicion' => $id_rendicion]);
+            $existingRecord = $stmtSelect->fetch(PDO::FETCH_ASSOC);
+            $archivoAdjuntoExistente = $existingRecord ? $existingRecord['archivo_adjunto'] : null;
+
+            $archivoAdjunto = $archivoNombre;
+            if (!$archivoNombre && isset($_POST['archivo_existente'])) {
+                $archivoAdjunto = $_POST['archivo_existente'];
+            } elseif (!$archivoNombre && $archivoAdjuntoExistente) {
+                $archivoAdjunto = $archivoAdjuntoExistente;
+            }
+
+            $query = "INSERT INTO tb_detalles_viajes_rendidos (id_detalle_viaje, id_rendicion, monto_rendido, fecha, archivo_adjunto, estado)
+                      VALUES (:id_detalle_viaje, :id_rendicion, :monto_rendido, :fecha, :archivo_adjunto, 'rendido')
+                      ON DUPLICATE KEY UPDATE monto_rendido = :monto_rendido_update, fecha = :fecha_update, archivo_adjunto = :archivo_adjunto_update, estado = 'rendido'";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                ':id_detalle_viaje' => $id_detalle_viaje,
+                ':id_rendicion' => $id_rendicion,
+                ':monto_rendido' => $montoRendido,
+                ':fecha' => $fecha,
+                ':archivo_adjunto' => $archivoAdjunto,
+                ':monto_rendido_update' => $montoRendido,
+                ':fecha_update' => $fecha,
+                ':archivo_adjunto_update' => $archivoAdjunto
+            ]);
+
+            if ($archivoNombre && isset($_FILES['archivo']['tmp_name']) && is_uploaded_file($_FILES['archivo']['tmp_name'])) {
+                $uploadDir = 'uploads/';
+                if (!file_exists($uploadDir)) mkdir($uploadDir, 0777, true);
+                if ($archivoAdjuntoExistente && file_exists($uploadDir . $archivoAdjuntoExistente)) {
+                    unlink($uploadDir . $archivoAdjuntoExistente);
+                }
+                move_uploaded_file($_FILES['archivo']['tmp_name'], $uploadDir . $archivoNombre);
+            }
+
+            $this->db->commit();
+            return true;
+        } catch (PDOException $e) {
+            $this->db->rollBack();
+            error_log('Error al guardar ítem de viático: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Nuevos métodos para transportes
+    public function getDetallesTransportesByAnticipo($id_anticipo) {
+        try {
+            $query = "SELECT tp.id, tp.tipo_transporte AS descripcion, a.motivo_anticipo AS motivo, tp.moneda, tp.monto AS importe, tp.fecha, tp.ciudad_origen, tp.ciudad_destino
+                  FROM tb_transporte_provincial tp
+                  JOIN tb_viajes_personas vp ON tp.id_viaje_persona = vp.id
+                  JOIN tb_anticipos a ON vp.id_anticipo = a.id
+                  WHERE vp.id_anticipo = :id_anticipo AND vp.valido = 1 AND tp.monto > 0
+                  AND UPPER(tp.moneda) = 'PEN'";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id_anticipo' => $id_anticipo]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log('Error al obtener detalles de transportes: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDetallesTransportesRendidosByRendicion($id_rendicion) {
+        try {
+            $query = "SELECT id, id_transporte_provincial, monto_rendido, fecha, archivo_adjunto, estado
+                      FROM tb_detalles_transportes_rendidos
+                      WHERE id_rendicion = :id_rendicion";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id_rendicion' => $id_rendicion]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log('Error al obtener detalles rendidos de transportes: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function guardarItemTransporte($id_rendicion, $id_transporte_provincial, $montoRendido, $fecha, $archivoNombre = null) {
+        try {
+            $this->db->beginTransaction();
+
+            $querySelect = "SELECT archivo_adjunto FROM tb_detalles_transportes_rendidos 
+                            WHERE id_transporte_provincial = :id_transporte_provincial AND id_rendicion = :id_rendicion";
+            $stmtSelect = $this->db->prepare($querySelect);
+            $stmtSelect->execute([':id_transporte_provincial' => $id_transporte_provincial, ':id_rendicion' => $id_rendicion]);
+            $existingRecord = $stmtSelect->fetch(PDO::FETCH_ASSOC);
+            $archivoAdjuntoExistente = $existingRecord ? $existingRecord['archivo_adjunto'] : null;
+
+            $archivoAdjunto = $archivoNombre;
+            if (!$archivoNombre && isset($_POST['archivo_existente'])) {
+                $archivoAdjunto = $_POST['archivo_existente'];
+            } elseif (!$archivoNombre && $archivoAdjuntoExistente) {
+                $archivoAdjunto = $archivoAdjuntoExistente;
+            }
+
+            $query = "INSERT INTO tb_detalles_transportes_rendidos (id_transporte_provincial, id_rendicion, monto_rendido, fecha, archivo_adjunto, estado)
+                      VALUES (:id_transporte_provincial, :id_rendicion, :monto_rendido, :fecha, :archivo_adjunto, 'rendido')
+                      ON DUPLICATE KEY UPDATE monto_rendido = :monto_rendido_update, fecha = :fecha_update, archivo_adjunto = :archivo_adjunto_update, estado = 'rendido'";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                ':id_transporte_provincial' => $id_transporte_provincial,
+                ':id_rendicion' => $id_rendicion,
+                ':monto_rendido' => $montoRendido,
+                ':fecha' => $fecha,
+                ':archivo_adjunto' => $archivoAdjunto,
+                ':monto_rendido_update' => $montoRendido,
+                ':fecha_update' => $fecha,
+                ':archivo_adjunto_update' => $archivoAdjunto
+            ]);
+
+            if ($archivoNombre && isset($_FILES['archivo']['tmp_name']) && is_uploaded_file($_FILES['archivo']['tmp_name'])) {
+                $uploadDir = 'uploads/';
+                if (!file_exists($uploadDir)) mkdir($uploadDir, 0777, true);
+                if ($archivoAdjuntoExistente && file_exists($uploadDir . $archivoAdjuntoExistente)) {
+                    unlink($uploadDir . $archivoAdjuntoExistente);
+                }
+                move_uploaded_file($_FILES['archivo']['tmp_name'], $uploadDir . $archivoNombre);
+            }
+
+            $this->db->commit();
+            return true;
+        } catch (PDOException $e) {
+            $this->db->rollBack();
+            error_log('Error al guardar ítem de transporte: ' . $e->getMessage());
+            return false;
+        }
+    }
+
 }

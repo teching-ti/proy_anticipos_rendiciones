@@ -66,8 +66,14 @@ $routes = [
     'rendiciones' => ['controller' => 'rendiciones', 'action' => 'index'],
     'rendiciones/getRendicionDetails' => ['controller' => 'rendiciones', 'action' => 'getRendicionDetails'],
     'rendiciones/getDetallesComprasMenores' => ['controller' => 'rendiciones', 'action' => 'getDetallesComprasMenores'],
+    'rendiciones/getDetallesViajes' => ['controller' => 'rendiciones', 'action' => 'getDetallesViajes'],
     'rendiciones/getDetallesRendidosByRendicion' => ['controller' => 'rendiciones', 'action' => 'getDetallesRendidosByRendicion'],
-    'rendiciones/guardarItemRendido' => ['controller' => 'rendiciones', 'action' => 'guardarItemRendido']
+    'rendiciones/getDetallesTransportes' => ['controller'=> 'rendiciones', 'action' => 'getDetallesTransportes'],
+    'rendiciones/guardarItemRendido' => ['controller' => 'rendiciones', 'action' => 'guardarItemRendido'],
+    'rendiciones/guardarItemViaje' => ['controller' => 'rendiciones', 'action' => 'guardarItemViaje'],
+    'rendiciones/guardarItemTransporte' => ['controller' => 'rendiciones', 'action' => 'guardarItemTransporte'],
+    'rendiciones/getDetallesViajesRendidosByRendicion' => ['controller' => 'rendiciones', 'action' => 'getDetallesViajesRendidosByRendicion'],
+    'rendiciones/getDetallesTransportesRendidosByRendicion' => ['controller' => 'rendiciones', 'action' => 'getDetallesTransportesRendidosByRendicion']
 ];
 
 // Buscar la ruta en el arreglo de rutas
