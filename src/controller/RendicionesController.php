@@ -185,4 +185,74 @@ class RendicionesController {
         exit;
     }
 
+    public function getMontoSolicitadoByAnticipo() {
+        if (isset($_GET['id_anticipo'])) {
+
+            $monto = $this->rendicionesModel->getMontoSolicitadoByAnticipo($_GET['id_anticipo']);
+            echo json_encode($monto);
+        } else {
+            echo json_encode(0.00);
+        }
+        exit;
+    }
+
+    public function getMontoTotalRendidoByRendicion() {
+        if (isset($_GET['id_rendicion'])) {
+            $monto = $this->rendicionesModel->getMontoTotalRendidoByRendicion($_GET['id_rendicion']);
+            echo json_encode($monto);
+        } else {
+            echo json_encode(0.00);
+        }
+        exit;
+    }
+
+    public function getLatestEstadoRendicion() {
+        if (isset($_GET['id_rendicion'])) {
+            $estado = $this->rendicionesModel->getLatestEstadoRendicion($_GET['id_rendicion']);
+            header('Content-Type: application/json');
+            echo json_encode($estado);
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['estado' => 'Nuevo']);
+        }
+        exit;
+    }
+
+    public function aprobarRendicion() {
+        if (isset($_POST['id_rendicion']) && isset($_POST['id_usuario'])) {
+            $model = new RendicionesModel();
+            $success = $model->aprobarRendicion($_POST['id_rendicion'], $_POST['id_usuario']);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => $success, 'error' => $success ? '' : 'Error al aprobar']);
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Datos incompletos']);
+        }
+        exit;
+    }
+
+    public function observarRendicion() {
+        $id_rendicion = $_POST['id_rendicion'];
+        $id_usuario = $_POST['id_usuario'];
+        $comentario = $_POST['comentario'] ?? 'Sin comentario';
+
+        $model = new RendicionesModel();
+        $result = $model->observarRendicion($id_rendicion, $id_usuario, $comentario);
+
+        header('Content-Type: application/json');
+        echo json_encode(['success' => $result]);
+    }
+
+    public function cerrarRendicion() {
+        $id_rendicion = $_POST['id_rendicion'];
+        $id_usuario = $_POST['id_usuario'];
+        $comentario = $_POST['comentario'] ?? 'Rendición cerrada';
+        $id_anticipo = $_POST['id_anticipo'];
+
+        $model = new RendicionesModel();
+        $result = $model->cerrarRendicion($id_rendicion, $id_usuario, $comentario, $id_anticipo);
+
+        header('Content-Type: application/json');
+        echo json_encode(['success' => $result]);
+    }
 }

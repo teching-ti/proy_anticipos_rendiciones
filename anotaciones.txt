@@ -1,3 +1,10 @@
+18072025. 
+Se completarn las funcionalidades para cambios de estado de anticipos y rendiciones. Se agregó la ventana para colocar un mensaje tras realizar un cambio de estado para anticipos, para rendiciones se tiene el mismo proceso. Se deberá consultar si será obligatorio colocar texto dentro de esta casilla de comentarios
+(Trabajar en los actualizaciones correspondientes y observaciones presentadas por Ernesto). Día lunes 21, se deberá de trabajar en los detalles de facturas
+
+****19:05. Se debe ir trabajando en las Obs.
+Se agregó input de busqueda para filtro en anticipos. Se agregarán más filtros
+
 16072025 (11:34) jvalladares
 A la fecha ya se puede gurdar información de rendiciones relacionadas a las compras menores y viaticos. Se está iniciando con la creación de funcion para mostrar los montos, los cálculos y cambiar de estado una rendición por parte del aprobador.
 

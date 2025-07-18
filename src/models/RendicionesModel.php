@@ -387,4 +387,126 @@ class RendicionesModel {
         }
     }
 
+    public function getMontoSolicitadoByAnticipo($id_anticipo) {
+        try {
+            $query = "SELECT monto_total_solicitado FROM tb_anticipos WHERE id = :id_anticipo";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id_anticipo' => $id_anticipo]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? $result['monto_total_solicitado'] : 0.00;
+        } catch (PDOException $e) {
+            error_log('Error al obtener monto solicitado: ' . $e->getMessage());
+            return 0.00;
+        }
+    }
+
+    public function getMontoTotalRendidoByRendicion($id_rendicion) {
+        try {
+            $query = "SELECT SUM(monto_rendido) as total_rendido FROM (
+                SELECT monto_rendido FROM tb_detalles_compras_rendidos WHERE id_rendicion = :id_rendicion1
+                UNION ALL
+                SELECT monto_rendido FROM tb_detalles_viajes_rendidos WHERE id_rendicion = :id_rendicion2
+                UNION ALL
+                SELECT monto_rendido FROM tb_detalles_transportes_rendidos WHERE id_rendicion = :id_rendicion3
+            ) AS combined";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id_rendicion1' => $id_rendicion, ':id_rendicion2' => $id_rendicion, ':id_rendicion3' => $id_rendicion]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result['total_rendido'] ? floatval($result['total_rendido']) : 0.00;
+        } catch (PDOException $e) {
+            error_log('Error al obtener monto total rendido: ' . $e->getMessage());
+            return 0.00;
+        }
+    }
+
+    public function getLatestEstadoRendicion($id_rendicion) {
+        try {
+            $query = "SELECT estado FROM tb_historial_rendiciones WHERE id_rendicion = :id_rendicion ORDER BY fecha DESC LIMIT 1";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id_rendicion' => $id_rendicion]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return ['estado' => $result ? $result['estado'] : 'Nuevo'];
+        } catch (PDOException $e) {
+            error_log('Error al obtener estado más reciente: ' . $e->getMessage());
+            return ['estado' => 'Nuevo'];
+        }
+    }
+
+    public function aprobarRendicion($id_rendicion, $id_usuario) {
+        try {
+            $this->db->beginTransaction();
+
+            // Calcular monto_rendido (asumiendo que existe un método)
+            $montoRendido = $this->getMontoTotalRendidoByRendicion($id_rendicion);
+
+            // Actualizar tb_rendiciones
+            $queryUpdate = "UPDATE tb_rendiciones SET monto_rendido = :monto_rendido WHERE id = :id_rendicion";
+            $stmtUpdate = $this->db->prepare($queryUpdate);
+            $stmtUpdate->execute([':monto_rendido' => $montoRendido, ':id_rendicion' => $id_rendicion]);
+
+            // Insertar en tb_historial_rendiciones
+            $queryInsert = "INSERT INTO tb_historial_rendiciones (id_rendicion, estado, fecha, id_usuario, comentario) 
+                            VALUES (:id_rendicion, 'Aprobado', NOW(), :id_usuario, 'Rendición Aprobada')";
+            $stmtInsert = $this->db->prepare($queryInsert);
+            $stmtInsert->execute([':id_rendicion' => $id_rendicion, ':id_usuario' => $id_usuario]);
+
+            $this->db->commit();
+            return true;
+        } catch (PDOException $e) {
+            $this->db->rollBack();
+            error_log('Error al aprobar rendición: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function observarRendicion($id_rendicion, $id_usuario, $comentario) {
+        try {
+            $this->db->beginTransaction();
+            $query = "INSERT INTO tb_historial_rendiciones (id_rendicion, estado, fecha, id_usuario, comentario) 
+                    VALUES (:id_rendicion, 'Observado', NOW(), :id_usuario, :comentario)";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                ':id_rendicion' => $id_rendicion,
+                ':id_usuario' => $id_usuario,
+                ':comentario' => $comentario
+            ]);
+            $this->db->commit();
+            return true;
+        } catch (PDOException $e) {
+            $this->db->rollBack();
+            error_log('Error al observar rendición: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function cerrarRendicion($id_rendicion, $id_usuario, $comentario, $id_anticipo) {
+        try {
+            $this->db->beginTransaction();
+            $query = "INSERT INTO tb_historial_rendiciones (id_rendicion, estado, fecha, id_usuario, comentario) 
+                    VALUES (:id_rendicion, 'Cerrado', NOW(), :id_usuario, :comentario)";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                ':id_rendicion' => $id_rendicion,
+                ':id_usuario' => $id_usuario,
+                ':comentario' => $comentario
+            ]);
+
+            $queryAnticipo = "INSERT INTO tb_historial_anticipos (id_anticipo, estado, fecha, id_usuario, comentario) 
+                          VALUES (:id_anticipo, 'Rendido', NOW(), :id_usuario, :comentario)";
+            $stmtAnticipo = $this->db->prepare($queryAnticipo);
+            $stmtAnticipo->execute([
+                ':id_anticipo' => $id_anticipo,
+                ':id_usuario' => $id_usuario,
+                ':comentario' => $comentario
+            ]);
+
+            $this->db->commit();
+            return true;
+        } catch (PDOException $e) {
+            $this->db->rollBack();
+            error_log('Error al cerrar rendición: ' . $e->getMessage());
+            return false;
+        }
+    }
+
 }

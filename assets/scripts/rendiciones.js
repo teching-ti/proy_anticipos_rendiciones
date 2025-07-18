@@ -12,83 +12,6 @@ document.addEventListener("DOMContentLoaded", function(){
 
     function nextStep() {
         if (currentStep < steps.length - 1) {
-            if (currentStep === 0) {
-                const idAnticipo = document.getElementById("id-anticipo").value;
-                const idRendicion = document.getElementById("id-rendicion").value;
-                if (idAnticipo && idRendicion) {
-                    Promise.all([
-                        fetch(`rendiciones/getDetallesComprasMenores?id_anticipo=${encodeURIComponent(idAnticipo)}`).then(res => res.json()),
-                        fetch(`rendiciones/getDetallesViajes?id_anticipo=${encodeURIComponent(idAnticipo)}`).then(res => res.json()),
-                        fetch(`rendiciones/getDetallesTransportes?id_anticipo=${encodeURIComponent(idAnticipo)}`).then(res => res.json()),
-                        fetch(`rendiciones/getDetallesRendidosByRendicion?id_rendicion=${encodeURIComponent(idRendicion)}`).then(res => res.json()),
-                        fetch(`rendiciones/getDetallesViajesRendidosByRendicion?id_rendicion=${encodeURIComponent(idRendicion)}`).then(res => res.json()),
-                        fetch(`rendiciones/getDetallesTransportesRendidosByRendicion?id_rendicion=${encodeURIComponent(idRendicion)}`).then(res => res.json())
-                    ])
-                    .then(([detallesCompras, detallesViajes, detallesTransportes, detallesComprasRendidos, detallesViajesRendidos, detallesTransportesRendidos]) => {
-                        const detallesContainer = document.getElementById("detalles-compras-container");
-                        detallesContainer.innerHTML = '';
-
-                        console.log(detallesViajes);
-                        console.log(detallesTransportes);
-
-                        const rendidosMap = new Map([
-                            ...detallesComprasRendidos.map(item => [item.id_detalle_compra.toString(), { ...item, type: 'compra' }]),
-                            ...detallesViajesRendidos.map(item => [item.id_detalle_viaje.toString(), { ...item, type: 'viatico' }]),
-                            ...detallesTransportesRendidos.map(item => [item.id_transporte_provincial.toString(), { ...item, type: 'transporte' }])
-                        ]);
-
-                        const allDetalles = [
-                            ...detallesCompras.map(item => ({ ...item, type: 'compra' })),
-                            ...detallesViajes.map(item => ({ ...item, type: 'viatico' })),
-                            ...detallesTransportes.map(item => ({ ...item, type: 'transporte' }))
-                        ];
-
-                        if (allDetalles.length > 0) {
-                            
-                            // Sección de compras
-                            if(detallesCompras.length > 0){
-                                const comprasSection = document.createElement('div');
-                                comprasSection.innerHTML = '<h3>Compras Menores</h3>';
-                                detallesContainer.appendChild(comprasSection);
-                                allDetalles.filter(item => item.type === 'compra').forEach(item => {
-                                    const rendido = rendidosMap.get(item.id.toString())?.type === 'compra' ? rendidosMap.get(item.id.toString()) : null;
-                                    renderItem(item, rendido, detallesContainer, idRendicion);
-                                });
-                            }
-
-                            
-                            
-                            // Sección de viáticos
-                            if (detallesViajes.length > 0) {
-                                const viaticosSection = document.createElement('div');
-                                viaticosSection.innerHTML = '<h3>Viáticos</h3>';
-                                detallesContainer.appendChild(viaticosSection);
-                                allDetalles.filter(item => item.type === 'viatico').forEach(item => {
-                                    const rendido = rendidosMap.get(item.id.toString())?.type === 'viatico' ? rendidosMap.get(item.id.toString()) : null;
-                                    renderItem(item, rendido, detallesContainer, idRendicion);
-                                });
-                            }
-
-                            // Sección de transportes
-                            if (detallesTransportes.length > 0) {
-                                const transportesSection = document.createElement('div');
-                                transportesSection.innerHTML = '<h3>Transportes</h3>';
-                                detallesContainer.appendChild(transportesSection);
-                                allDetalles.filter(item => item.type === 'transporte').forEach(item => {
-                                    const rendido = rendidosMap.get(item.id.toString())?.type === 'transporte' ? rendidosMap.get(item.id.toString()) : null;
-                                    renderItem(item, rendido, detallesContainer, idRendicion);
-                                });
-                            }
-                        } else {
-                            detallesContainer.innerHTML = '<p>No hay detalles válidos.</p>';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error al cargar detalles: ', error);
-                        alert("No se pudieron cargar los detalles");
-                    });
-                }
-            }
             showStep(currentStep + 1);
         }
     }
@@ -99,7 +22,12 @@ document.addEventListener("DOMContentLoaded", function(){
         }
     }
 
-    function renderItem(item, rendido, container, idRendicion) {
+    function updatePanelMontosRendicion(montoSolicitado, montoRendido) {
+        document.getElementById("calculo-monto-solicitado").value = parseFloat(montoSolicitado).toFixed(2);
+        document.getElementById("calculo-monto-rendido").value = parseFloat(montoRendido).toFixed(2);
+    }
+
+    function renderItem(item, rendido, container, idRendicion, latestEstado) {
         const isRendido = !!rendido;
         const itemContainer = document.createElement('div');
         itemContainer.className = 'container-detalle';
@@ -110,7 +38,7 @@ document.addEventListener("DOMContentLoaded", function(){
                     <input type="text" class="rendicion-element" value="${item.type}" readonly>
                 </div>
                 <div class="modal-element">
-                    <span class="placeholder">${item.type === 'compra' ? 'Descripcion' : item.type === 'transporte' ? 'Tipo de transporte' : 'Concepto'}</span>
+                    <span class="placeholder">${item.type === 'compra' ? 'Descripción' : item.type === 'transporte' ? 'Tipo de transporte' : 'Concepto'}</span>
                     <input type="text" class="rendicion-element" value="${item.descripcion || item.nombre || ''}" readonly>
                 </div>
                 <div class="modal-element">
@@ -118,45 +46,44 @@ document.addEventListener("DOMContentLoaded", function(){
                     <input type="text" class="rendicion-element" value="${item.motivo || ''}" readonly>
                 </div>
                 ${item.type === 'viatico' ? `
-                <div class="modal-element">
-                    <span class="placeholder">Días</span>
-                    <input type="text" class="rendicion-element" value="${item.dias || '0'}" readonly>
-                </div>
-                <div class="modal-element">
-                    <span class="placeholder">Persona</span>
-                    <input type="text" class="rendicion-element" value="${item.nombre_persona || 'Sin nombre'}" readonly>
-                </div>
-            ` : item.type === 'transporte' ? `
-                <div class="modal-element">
-                    <span class="placeholder">Fecha del Viaje</span>
-                    <input type="text" class="rendicion-element" value="${item.fecha ? new Date(item.fecha).toLocaleDateString() : 'Sin fecha'}" readonly>
-                </div>
-                <div class="modal-element">
-                    <span class="placeholder">Ciudad Origen</span>
-                    <input type="text" class="rendicion-element" value="${item.ciudad_origen || 'Sin origen'}" readonly>
-                </div>
-                <div class="modal-element">
-                    <span class="placeholder">Ciudad Destino</span>
-                    <input type="text" class="rendicion-element" value="${item.ciudad_destino || 'Sin destino'}" readonly>
-                </div>
-            ` : ''}
-            
+                    <div class="modal-element">
+                        <span class="placeholder">Días</span>
+                        <input type="text" class="rendicion-element" value="${item.dias || '0'}" readonly>
+                    </div>
+                    <div class="modal-element">
+                        <span class="placeholder">Persona</span>
+                        <input type="text" class="rendicion-element" value="${item.nombre_persona || 'Sin nombre'}" readonly>
+                    </div>
+                ` : item.type === 'transporte' ? `
+                    <div class="modal-element">
+                        <span class="placeholder">Fecha del Viaje</span>
+                        <input type="text" class="rendicion-element" value="${item.fecha ? new Date(item.fecha).toLocaleDateString() : 'Sin fecha'}" readonly>
+                    </div>
+                    <div class="modal-element">
+                        <span class="placeholder">Ciudad Origen</span>
+                        <input type="text" class="rendicion-element" value="${item.ciudad_origen || 'Sin origen'}" readonly>
+                    </div>
+                    <div class="modal-element">
+                        <span class="placeholder">Ciudad Destino</span>
+                        <input type="text" class="rendicion-element" value="${item.ciudad_destino || 'Sin destino'}" readonly>
+                    </div>
+                ` : ''}
                 <div class="modal-element">
                     <span class="placeholder">Monto Solicitado</span>
                     <input type="text" class="rendicion-element" value="${item.importe || item.monto || '0.00'}" readonly>
                 </div>
                 <div class="modal-element">
                     <span class="placeholder">Monto Rendido</span>
-                    <input type="number" step="0.01" class="rendicion-element monto-rendido" value="${isRendido ? rendido.monto_rendido : '0.00'}" required>
+                    <input type="number" step="0.01" class="rendicion-element monto-rendido" value="${isRendido ? rendido.monto_rendido : '0.00'}" required ${['Nuevo', 'Observado'].includes(latestEstado) ? '' : 'disabled'}>
                 </div>
             </div>
             <div class="compras-elementos-dos">
                 <div class="modal-element">
                     <span class="placeholder">Fecha de Rendición</span>
-                    <input type="date" class="rendicion-element fecha-rendicion" value="${isRendido ? rendido.fecha : new Date().toISOString().split('T')[0]}" readonly required>
+                    <input type="date" class="rendicion-element fecha-rendicion" value="${isRendido ? rendido.fecha : new Date().toISOString().split('T')[0]}" ${['Nuevo', 'Observado'].includes(latestEstado) ? '' : 'disabled'} required>
                 </div>
                 <div class="modal-element">
-                    <input type="file" class="file-input" style="display: none;">
+                    <input type="file" class="file-input" style="display: none;" ${['Nuevo', 'Observado'].includes(latestEstado) ? '' : 'disabled'}>
                     <div class="btn btn-adjuntar"><i class="fa-solid fa-file-invoice"></i> Adjuntar</div>
                 </div>
                 <p class="enlace-factura">
@@ -164,7 +91,7 @@ document.addEventListener("DOMContentLoaded", function(){
                 </p>
             </div>
             <div class="modal-footer-item">
-                <button class="btn btn-default btn-guardar-item">Guardar ítem</button>
+                <button class="btn btn-default btn-guardar-item" ${['Nuevo', 'Observado'].includes(latestEstado) ? '' : 'disabled'}>Guardar ítem</button>
             </div>
         `;
         container.appendChild(itemContainer);
@@ -178,6 +105,29 @@ document.addEventListener("DOMContentLoaded", function(){
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
+                const extensionesValidas = ['pdf', 'jpg', 'jpeg', 'png'];
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                if (!extensionesValidas.includes(fileExtension)) {
+                    showAlert({
+                        title: 'Error',
+                        message: 'Solo se permiten archivos PDF, JPG, JPEG o PNG.',
+                        type: 'error'
+                    });
+                    fileInput.value = '';
+                    archivoNombre.textContent = 'Sin archivo';
+                    return;
+                }
+                const maxSize = 1 * 1024 * 1024; // 1 MB
+                if (file.size > maxSize) {
+                    showAlert({
+                        title: 'Error',
+                        message: 'El archivo no debe pesar más de 1 MB.',
+                        type: 'error'
+                    });
+                    fileInput.value = '';
+                    archivoNombre.textContent = 'Sin archivo';
+                    return;
+                }
                 archivoNombre.textContent = file.name;
                 archivoNombre.href = URL.createObjectURL(file);
             }
@@ -197,11 +147,29 @@ document.addEventListener("DOMContentLoaded", function(){
             };
             console.log(detalle);
             if (item.type === 'compra') {
-                guardarItemIndividual(detalle, idRendicion, itemContainer).then(() => guardarItemBtn.disabled = false);
+                guardarItemIndividual(detalle, idRendicion, itemContainer).then(() => {
+                    guardarItemBtn.disabled = false;
+                    updateTotals(idRendicion);
+                }).catch(error => {
+                    guardarItemBtn.disabled = false;
+                    console.error('Error en guardado: ', error);
+                });
             } else if (item.type === 'viatico') {
-                guardarItemViaje(detalle, idRendicion, itemContainer).then(() => guardarItemBtn.disabled = false);
+                guardarItemViaje(detalle, idRendicion, itemContainer).then(() => {
+                    guardarItemBtn.disabled = false;
+                    updateTotals(idRendicion);
+                }).catch(error => {
+                    guardarItemBtn.disabled = false;
+                    console.error('Error en guardado: ', error);
+                });
             } else if (item.type === 'transporte') {
-                guardarItemTransporte(detalle, idRendicion, itemContainer).then(() => guardarItemBtn.disabled = false);
+                guardarItemTransporte(detalle, idRendicion, itemContainer).then(() => {
+                    guardarItemBtn.disabled = false;
+                    updateTotals(idRendicion);
+                }).catch(error => {
+                    guardarItemBtn.disabled = false;
+                    console.error('Error en guardado: ', error);
+                });
             }
         });
 
@@ -210,105 +178,444 @@ document.addEventListener("DOMContentLoaded", function(){
         }
     }
 
-    function guardarItemIndividual(detalle, id_rendicion, container) {
-        const formData = new FormData();
-        formData.append('id_rendicion', id_rendicion);
-        formData.append('id_detalle_compra', detalle.id); // Usar detalle.id como se ajustó antes
-        formData.append('montoRendido', detalle.montoRendido);
-        formData.append('fecha', detalle.fecha);
-        if (detalle.archivo instanceof File) {
-            formData.append('archivo', detalle.archivo);
-        } else if (detalle.archivo && typeof detalle.archivo === 'object' && detalle.archivo.name) {
-            formData.append('archivo_existente', detalle.archivo.name);
-        }
-        return fetch('rendiciones/guardarItemRendido', { // Asegurar que devuelva la promesa
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert("Ítem de compra guardado o actualizado exitosamente.");
-                const archivoNombre = container.querySelector('.archivo-nombre');
-                if (detalle.archivo instanceof File) {
-                    archivoNombre.textContent = detalle.archivo.name;
-                    archivoNombre.href = URL.createObjectURL(detalle.archivo);
-                }
-            } else {
-                alert("Error al guardar el ítem de compra: " + (data.error || 'Intente de nuevo'));
+    function handleAprobarRendicion(idRendicion) {
+        showAlert({
+            title: 'Confirmación',
+            message: `¿Está seguro de aprobar la rendición #${idRendicion}?`,
+            type: 'confirm',
+            event: 'confirm'
+        });
+
+        const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+        const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+
+        acceptButton.onclick = async function() {
+            const resEstado = await fetch(`rendiciones/getLatestEstadoRendicion?id_rendicion=${encodeURIComponent(idRendicion)}`);
+            const idUsuarioAprobador = document.getElementById("btn-aprobar-rendicion").getAttribute("data-aprobador");
+            console.log(idUsuarioAprobador);
+            const estadoData = await resEstado.json();
+            const latestEstado = estadoData.estado || 'Nuevo';
+
+            if (!['Nuevo', 'Observado'].includes(latestEstado)) {
+                showAlert({
+                    title: 'Error',
+                    message: 'No se puede aprobar una rendición que no está en estado Nuevo u Observado.',
+                    type: 'error'
+                });
+                const modal = document.getElementById('custom-alert-modal');
+                modal.style.display = 'none';
+                return;
             }
-        })
-        .catch(error => {
-            console.error('Error al guardar ítem de compra: ', error);
-            alert("Error al guardar el ítem de compra");
+
+            const formData = new FormData();
+            formData.append('id_rendicion', idRendicion);
+            formData.append('id_usuario', idUsuarioAprobador);
+
+            fetch('rendiciones/aprobarRendicion', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert({
+                        title: 'Acción Completada',
+                        message: 'Rendición aprobada correctamente.',
+                        type: 'success',
+                        event: 'envio'
+                    });
+                    //showRendicionDetails({ id: idRendicion });
+                } else {
+                    showAlert({
+                        title: 'Error',
+                        message: 'Error al aprobar la rendición: ' + (data.error || 'Intente de nuevo'),
+                        type: 'error'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error al aprobar rendición: ', error);
+                showAlert({
+                    title: 'Error',
+                    message: 'Error al aprobar la rendición.',
+                    type: 'error'
+                });
+            });
+
+            const modal = document.getElementById('custom-alert-modal');
+            modal.style.display = 'none';
+        };
+
+        cancelButton.onclick = function() {
+            const modal = document.getElementById('custom-alert-modal');
+            modal.style.display = 'none';
+        };
+    }
+
+    // Función de ejemplo para cerrar rendición (ajusta según tu backend)
+    function handleCerrarRendicion(idRendicion) {
+        showAlert({
+            title: 'Confirmación',
+            message: `¿Está seguro de cerrar la rendición #${idRendicion}?`,
+            type: 'confirm',
+            event: 'confirm'
+        });
+        
+        const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+        const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+
+        acceptButton.onclick = async function() {
+            const idUsuarioCierre = document.getElementById("btn-cerrar-rendicion").getAttribute("data-contador");
+            const comentario = 'Rendición cerrada'; // Comentario fijo o vacío si no lo requiere
+            const idAnticipo = document.getElementById("id-anticipo").value;
+
+            const formData = new FormData();
+            formData.append('id_rendicion', idRendicion);
+            formData.append('id_usuario', idUsuarioCierre);
+            formData.append('comentario', comentario);
+            formData.append('id_anticipo', idAnticipo);
+
+            fetch('rendiciones/cerrarRendicion', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert({
+                        title: 'Acción Completada',
+                        message: 'Rendición cerrada correctamente.',
+                        type: 'success',
+                        event: 'envio'
+                    });
+                    //showRendicionDetails({ id: idRendicion });
+                } else {
+                    showAlert({
+                        title: 'Error',
+                        message: 'Error al cerrar la rendición: ' + (data.error || 'Intente de nuevo'),
+                        type: 'error'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error al cerrar rendición: ', error);
+                showAlert({
+                    title: 'Error',
+                    message: 'Error al cerrar la rendición.',
+                    type: 'error'
+                });
+            });
+
+            modal.style.display = 'none';
+        };
+
+        cancelButton.onclick = function() {
+            modal.style.display = 'none';
+        };
+    }
+
+    // Función de ejemplo para observar rendición (ajusta según tu backend)
+    function handleObservarRendicion(idRendicion) {
+        showAlert({
+            title: 'Confirmación',
+            message: `¿Marcar rendición #${idRendicion} como observada`,
+            type: 'confirm',
+            event: 'confirm-comment'
+        });
+
+        const modal = document.getElementById('custom-alert-modal');
+        const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+        const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+
+        acceptButton.onclick = async function() {
+            const idUsuarioObservador = document.getElementById("btn-observar-rendicion").getAttribute("data-contador");
+            const comentario = document.getElementById('custom-alert-comentario').value;
+
+            // Validación: al menos 5 letras si hay comentario
+            if (comentario !== 'Sin comentario' && comentario.length < 5) {
+                showAlert({
+                    title: 'Error',
+                    message: 'El comentario debe tener al menos 5 letras.',
+                    type: 'error'
+                });
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('id_rendicion', idRendicion);
+            formData.append('id_usuario', idUsuarioObservador);
+            formData.append('comentario', comentario);
+
+            fetch('rendiciones/observarRendicion', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert({
+                        title: 'Acción Completada',
+                        message: 'Rendición marcada como observada correctamente.',
+                        type: 'success',
+                        event: 'envio'
+                    });
+                    //showRendicionDetails({ id: idRendicion });
+                } else {
+                    showAlert({
+                        title: 'Error',
+                        message: 'Error al marcar como observada: ' + (data.error || 'Intente de nuevo'),
+                        type: 'error'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error al observar rendición: ', error);
+                showAlert({
+                    title: 'Error',
+                    message: 'Error al marcar como observada.',
+                    type: 'error'
+                });
+            });
+
+            modal.style.display = 'none';
+        };
+
+        cancelButton.onclick = function() {
+            modal.style.display = 'none';
+        };
+    }
+
+    function updateTotals(idRendicion) {
+        const idAnticipo = document.getElementById("id-anticipo").value;
+        Promise.all([
+            fetch(`rendiciones/getMontoSolicitadoByAnticipo?id_anticipo=${encodeURIComponent(idAnticipo)}`).then(res => res.json()),
+            fetch(`rendiciones/getMontoTotalRendidoByRendicion?id_rendicion=${encodeURIComponent(idRendicion)}`).then(res => res.json())
+        ]).then(([montoSolicitado, montoRendido]) => {
+            updatePanelMontosRendicion(montoSolicitado, montoRendido);
+        }).catch(error => {
+            console.error('Error al actualizar totales: ', error);
+        });
+    }
+
+    function guardarItemIndividual(detalle, id_rendicion, container) {
+        return new Promise((resolve, reject) => {
+            showAlert({
+                title: 'Confirmación',
+                message: `¿Está seguro de actualizar la rendición ${id_rendicion}.`,
+                type: 'confirm',
+                event: 'confirm'
+            });
+
+            const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+            const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+
+            acceptButton.onclick = function(){
+                const formData = new FormData();
+                formData.append('id_rendicion', id_rendicion);
+                formData.append('id_detalle_compra', detalle.id); // Usar detalle.id como se ajustó antes
+                formData.append('montoRendido', detalle.montoRendido);
+                formData.append('fecha', detalle.fecha);
+                if (detalle.archivo instanceof File) {
+                    formData.append('archivo', detalle.archivo);
+                } else if (detalle.archivo && typeof detalle.archivo === 'object' && detalle.archivo.name) {
+                    formData.append('archivo_existente', detalle.archivo.name);
+                }
+                fetch('rendiciones/guardarItemRendido', { // Asegurar que devuelva la promesa
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        //alert("Ítem de compra guardado o actualizado exitosamente.");
+                        showAlert({
+                            title: 'Acción Completada.',
+                            message: 'El item ha sido guardado correctamente',
+                            type: 'success'
+                        });
+                        const archivoNombre = container.querySelector('.archivo-nombre');
+                        if (detalle.archivo instanceof File) {
+                            archivoNombre.textContent = detalle.archivo.name;
+                            archivoNombre.href = URL.createObjectURL(detalle.archivo);
+                        }
+                        resolve(); // se resuelve la promesa en caso de exito
+                    } else {
+                        //alert("Error al guardar el ítem de compra: " + (data.error || 'Intente de nuevo'));
+                        showAlert({
+                            title: 'Error',
+                            message: 'Error al guardar el ítem de compra.',
+                            type: 'error'
+                        });
+                        reject(new Error(data.error || 'Error desconocido'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al guardar ítem de compra: ', error);
+                    // alert("Error al guardar el ítem de compra");
+                    reject(error);
+                    showAlert({
+                        title: 'Error',
+                        message: 'Error al guardar el ítem de compra.',
+                        type: 'error'
+                    });
+                });
+                const modal = document.getElementById("custom-alert-modal");
+                modal.style.display = "none";
+            };
+
+            cancelButton.onclick = () => {
+                const modal = document.getElementById('custom-alert-modal');
+                modal.style.display = 'none';
+                reject(new Error('Cancelado por el usuario'));
+            }
         });
     }
 
     function guardarItemViaje(detalle, id_rendicion, container) {
-        const formData = new FormData();
-        formData.append('id_rendicion', id_rendicion);
-        formData.append('id_detalle_viaje', detalle.id);
-        formData.append('montoRendido', detalle.montoRendido);
-        formData.append('fecha', detalle.fecha);
-        if (detalle.archivo instanceof File) {
-            formData.append('archivo', detalle.archivo);
-        } else if (detalle.archivo && typeof detalle.archivo === 'object' && detalle.archivo.name) {
-            formData.append('archivo_existente', detalle.archivo.name);
-        }
-        return fetch('rendiciones/guardarItemViaje', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert("Ítem de viático guardado o actualizado exitosamente.");
-                const archivoNombre = container.querySelector('.archivo-nombre');
+        return new Promise((resolve, reject) => {
+            showAlert({
+                title: 'Confirmación',
+                message: `¿Está seguro de actualizar la rendición ${id_rendicion}.`,
+                type: 'confirm',
+                event: 'confirm'
+            });
+
+            const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+            const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+
+            acceptButton.onclick = function(){
+                const formData = new FormData();
+                formData.append('id_rendicion', id_rendicion);
+                formData.append('id_detalle_viaje', detalle.id);
+                formData.append('montoRendido', detalle.montoRendido);
+                formData.append('fecha', detalle.fecha);
                 if (detalle.archivo instanceof File) {
-                    archivoNombre.textContent = detalle.archivo.name;
-                    archivoNombre.href = URL.createObjectURL(detalle.archivo);
+                    formData.append('archivo', detalle.archivo);
+                } else if (detalle.archivo && typeof detalle.archivo === 'object' && detalle.archivo.name) {
+                    formData.append('archivo_existente', detalle.archivo.name);
                 }
-            } else {
-                alert("Error al guardar el ítem de viático: " + (data.error || 'Intente de nuevo'));
+                fetch('rendiciones/guardarItemViaje', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        //alert("Ítem de viático guardado o actualizado exitosamente.");
+                        showAlert({
+                            title: 'Acción Completada.',
+                            message: 'El item ha sido guardado correctamente',
+                            type: 'success'
+                        });
+                        const archivoNombre = container.querySelector('.archivo-nombre');
+                        if (detalle.archivo instanceof File) {
+                            archivoNombre.textContent = detalle.archivo.name;
+                            archivoNombre.href = URL.createObjectURL(detalle.archivo);
+                        }
+                        resolve(); // se resuelve la promesa en caso de exito
+                    } else {
+                        //alert("Error al guardar el ítem de viático: " + (data.error || 'Intente de nuevo'));
+                        showAlert({
+                            title: 'Error',
+                            message: 'Error al guardar el ítem de viático.',
+                            type: 'error'
+                        });
+                        reject(new Error(data.error || 'Error desconocido'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al guardar ítem de viático: ', error);
+                    //alert("Error al guardar el ítem de viático");
+                    showAlert({
+                        title: 'Error',
+                        message: 'Error al guardar el ítem de compra.',
+                        type: 'error'
+                    });
+                    reject(error);
+                });
+
+                const modal = document.getElementById("custom-alert-modal");
+                modal.style.display = "none";
+            };
+
+            cancelButton.onclick = () => {
+                const modal = document.getElementById('custom-alert-modal');
+                modal.style.display = 'none';
+                reject(new Error('Cancelado por el usuario'));
             }
-        })
-        .catch(error => {
-            console.error('Error al guardar ítem de viático: ', error);
-            alert("Error al guardar el ítem de viático");
         });
     }
 
     function guardarItemTransporte(detalle, id_rendicion, container) {
-        const formData = new FormData();
-        formData.append('id_rendicion', id_rendicion);
-        formData.append('id_transporte_provincial', detalle.id);
-        formData.append('montoRendido', detalle.montoRendido);
-        formData.append('fecha', detalle.fecha);
-        if (detalle.archivo instanceof File) {
-            formData.append('archivo', detalle.archivo);
-        } else if (detalle.archivo && typeof detalle.archivo === 'object' && detalle.archivo.name) {
-            formData.append('archivo_existente', detalle.archivo.name);
-        }
-        return fetch('rendiciones/guardarItemTransporte', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert("Ítem de transporte guardado o actualizado exitosamente.");
-                const archivoNombre = container.querySelector('.archivo-nombre');
+        return new Promise((resolve, reject) => {
+            showAlert({
+                title: 'Confirmación',
+                message: `¿Está seguro de actualizar la rendición ${id_rendicion}.`,
+                type: 'confirm',
+                event: 'confirm'
+            });
+
+            const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+            const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+
+            acceptButton.onclick = function(){
+                const formData = new FormData();
+                formData.append('id_rendicion', id_rendicion);
+                formData.append('id_transporte_provincial', detalle.id);
+                formData.append('montoRendido', detalle.montoRendido);
+                formData.append('fecha', detalle.fecha);
                 if (detalle.archivo instanceof File) {
-                    archivoNombre.textContent = detalle.archivo.name;
-                    archivoNombre.href = URL.createObjectURL(detalle.archivo);
+                    formData.append('archivo', detalle.archivo);
+                } else if (detalle.archivo && typeof detalle.archivo === 'object' && detalle.archivo.name) {
+                    formData.append('archivo_existente', detalle.archivo.name);
                 }
-            } else {
-                alert("Error al guardar el ítem de transporte: " + (data.error || 'Intente de nuevo'));
+                fetch('rendiciones/guardarItemTransporte', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        //alert("Ítem de transporte guardado o actualizado exitosamente.");
+                        showAlert({
+                            title: 'Acción Completada.',
+                            message: 'El item ha sido guardado correctamente',
+                            type: 'success'
+                        });
+                        const archivoNombre = container.querySelector('.archivo-nombre');
+                        if (detalle.archivo instanceof File) {
+                            archivoNombre.textContent = detalle.archivo.name;
+                            archivoNombre.href = URL.createObjectURL(detalle.archivo);
+                        }
+                        resolve();
+                    } else {
+                        //alert("Error al guardar el ítem de transporte: " + (data.error || 'Intente de nuevo'));
+                        showAlert({
+                            title: 'Error',
+                            message: 'Error al guardar el ítem de transporte.',
+                            type: 'error'
+                        });
+                        reject(new Error(data.error || 'Error desconocido'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al guardar ítem de transporte: ', error);
+                    //alert("Error al guardar el ítem de transporte");
+                    showAlert({
+                        title: 'Error',
+                        message: 'Error al guardar el ítem de transporte.',
+                        type: 'error'
+                    });
+                    reject(error);
+                });
+                const modal = document.getElementById("custom-alert-modal");
+                modal.style.display = "none";
             }
-        })
-        .catch(error => {
-            console.error('Error al guardar ítem de transporte: ', error);
-            alert("Error al guardar el ítem de transporte");
+            cancelButton.onclick = () => {
+                const modal = document.getElementById('custom-alert-modal');
+                modal.style.display = 'none';
+                reject(new Error('Cancelado por el usuario'));
+            }
         });
     }
 
@@ -355,11 +662,12 @@ document.addEventListener("DOMContentLoaded", function(){
     const cargoResponsable = document.getElementById("cargo-responsable");
 
     // Contenedor para los items de detalles
-    const detallesContainer = document.createElement('div');
-    detallesContainer.id = 'detalles-compras-container';
-    detallesContainer.style.display = 'none'; // Oculto inicialmente
-    completarRendicionModal.querySelector('.modal-body').appendChild(detallesContainer);
-
+    const detallesContainer = document.getElementById('detalles-compras-container') || document.createElement('div');
+    if (!detallesContainer.id) {
+        detallesContainer.id = 'detalles-compras-container';
+        completarRendicionModal.querySelector('.modal-body').appendChild(detallesContainer);
+    }
+    detallesContainer.style.display = 'flex';
 
     async function showRendicionDetails(data) {
         currentStep = 0;
@@ -376,9 +684,109 @@ document.addEventListener("DOMContentLoaded", function(){
         rendicionResponsable.value = `${data.solicitante_nombres}`;
         dniResponsable.value = `${data.dni_solicitante}`;
         motivoAnticipoResponsableModal.value = `${data.motivo_anticipo}`;
-        departamentoResponsable.setAttribute("data-departamento",`${data.departamento}` );
+        departamentoResponsable.setAttribute("data-departamento", `${data.departamento}`);
         departamentoResponsable.value = `${data.departamento_nombre}`;
         cargoResponsable.value = `${data.cargo}`;
+
+        // Consultar el estado más reciente
+        const resEstado = await fetch(`rendiciones/getLatestEstadoRendicion?id_rendicion=${encodeURIComponent(data.id)}`);
+        const estadoData = await resEstado.json();
+        const latestEstado = estadoData.estado || 'Nuevo';
+
+        // Obtener todos los detalles
+        try {
+            const [detallesCompras, detallesViajes, detallesTransportes, detallesComprasRendidos, detallesViajesRendidos, detallesTransportesRendidos, montoSolicitado, montoRendido] = await Promise.all([
+                fetch(`rendiciones/getDetallesComprasMenores?id_anticipo=${encodeURIComponent(data.id_anticipo)}`).then(res => res.json()),
+                fetch(`rendiciones/getDetallesViajes?id_anticipo=${encodeURIComponent(data.id_anticipo)}`).then(res => res.json()),
+                fetch(`rendiciones/getDetallesTransportes?id_anticipo=${encodeURIComponent(data.id_anticipo)}`).then(res => res.json()),
+                fetch(`rendiciones/getDetallesRendidosByRendicion?id_rendicion=${encodeURIComponent(data.id)}`).then(res => res.json()),
+                fetch(`rendiciones/getDetallesViajesRendidosByRendicion?id_rendicion=${encodeURIComponent(data.id)}`).then(res => res.json()),
+                fetch(`rendiciones/getDetallesTransportesRendidosByRendicion?id_rendicion=${encodeURIComponent(data.id)}`).then(res => res.json()),
+                fetch(`rendiciones/getMontoSolicitadoByAnticipo?id_anticipo=${encodeURIComponent(data.id_anticipo)}`).then(res => res.json()),
+                fetch(`rendiciones/getMontoTotalRendidoByRendicion?id_rendicion=${encodeURIComponent(data.id)}`).then(res => res.json())
+            ]);
+
+            console.log('Detalles Compras:', detallesCompras);
+            console.log('Detalles Viajes:', detallesViajes);
+            console.log('Detalles Transportes:', detallesTransportes);
+
+            // Controlar visibilidad del botón "Aprobar"
+            const btnAprobar = document.getElementById('btn-aprobar-rendicion');
+            //console.log(latestEstado);
+            if (btnAprobar) {
+                const isEditable = ['Nuevo', 'Observado'].includes(latestEstado);
+                btnAprobar.style.display = isEditable ? 'inline-block' : 'none';
+                btnAprobar.style.opacity = isEditable ? '1' : '0';
+                btnAprobar.onclick = isEditable ? () => handleAprobarRendicion(data.id) : null;
+            }
+
+            // btn observar y btn cerrar.
+            const btnObservar = document.getElementById("btn-observar-rendicion");
+            const btnCerrar = document.getElementById("btn-cerrar-rendicion");
+            if(btnObservar && btnCerrar){
+                const isEditable = ['Aprobado'].includes(latestEstado);
+                btnObservar.style.display = isEditable ? 'block' : 'none';
+                btnObservar.style.opacity = isEditable ? '1' : '0';
+                btnCerrar.style.display = isEditable ? 'block' : 'none';
+                btnCerrar.style.opacity = isEditable ? '1' : '0';
+                btnObservar.onclick = isEditable ? () => handleObservarRendicion(data.id) : null;
+                btnCerrar.onclick = isEditable ? () => handleCerrarRendicion(data.id) : null;
+            }
+
+            // Renderizar detalles
+            const rendidosMap = new Map([
+                ...detallesComprasRendidos.map(item => [item.id_detalle_compra.toString(), { ...item, type: 'compra' }]),
+                ...detallesViajesRendidos.map(item => [item.id_detalle_viaje.toString(), { ...item, type: 'viatico' }]),
+                ...detallesTransportesRendidos.map(item => [item.id_transporte_provincial.toString(), { ...item, type: 'transporte' }])
+            ]);
+            const allDetalles = [
+                ...detallesCompras.map(item => ({ ...item, type: 'compra' })),
+                ...detallesViajes.map(item => ({ ...item, type: 'viatico' })),
+                ...detallesTransportes.map(item => ({ ...item, type: 'transporte' }))
+            ];
+
+            updatePanelMontosRendicion(montoSolicitado, montoRendido);
+
+            if (allDetalles.length > 0) {
+                if (detallesCompras.length > 0) {
+                    const comprasSection = document.createElement('div');
+                    comprasSection.innerHTML = '<h3>Compras Menores</h3>';
+                    detallesContainer.appendChild(comprasSection);
+                    allDetalles.filter(item => item.type === 'compra').forEach(item => {
+                        const rendido = rendidosMap.get(item.id.toString())?.type === 'compra' ? rendidosMap.get(item.id.toString()) : null;
+                        renderItem(item, rendido, detallesContainer, data.id, latestEstado);
+                    });
+                }
+                if (detallesViajes.length > 0) {
+                    const viaticosSection = document.createElement('div');
+                    viaticosSection.innerHTML = '<h3>Viáticos</h3>';
+                    detallesContainer.appendChild(viaticosSection);
+                    allDetalles.filter(item => item.type === 'viatico').forEach(item => {
+                        const rendido = rendidosMap.get(item.id.toString())?.type === 'viatico' ? rendidosMap.get(item.id.toString()) : null;
+                        renderItem(item, rendido, detallesContainer, data.id, latestEstado);
+                    });
+                }
+                if (detallesTransportes.length > 0) {
+                    const transportesSection = document.createElement('div');
+                    transportesSection.innerHTML = '<h3>Transportes</h3>';
+                    detallesContainer.appendChild(transportesSection);
+                    allDetalles.filter(item => item.type === 'transporte').forEach(item => {
+                        const rendido = rendidosMap.get(item.id.toString())?.type === 'transporte' ? rendidosMap.get(item.id.toString()) : null;
+                        renderItem(item, rendido, detallesContainer, data.id, latestEstado);
+                    });
+                }
+            } else {
+                detallesContainer.innerHTML = '<p>No hay detalles válidos.</p>';
+            }
+        } catch (error) {
+            console.error('Error en Promise.all:', error);
+            showAlert({
+                title: 'Error',
+                message: 'Error al cargar los detalles de la rendición.',
+                type: 'error'
+            });
+            detallesContainer.innerHTML = '<p>No se pudieron cargar los detalles.</p>';
+        }
     }
 
     function closeModal(modalId) {
@@ -395,6 +803,11 @@ document.addEventListener("DOMContentLoaded", function(){
             const modalId = button.dataset.modal;
             closeModal(modalId);
         });
-    });
+    }); /*Posiblemente se requiera eliminar dicha funcion y restaurarla a su estado anterior para que se realicen las autorizaciones de diferente manera.*/
 
+    // exportación global
+    window.nextStep = nextStep;
+    window.prevStep = prevStep;
+    //inicializar first step
+    showStep(currentStep);
 })

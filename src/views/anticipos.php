@@ -35,7 +35,19 @@ unset($_SESSION['success'], $_SESSION['error']);
     <!-- Tabla de anticipos -->
     <section class="section-table">
         <h2>Listado de Anticipos</h2>
-        <div class="btn btn-add-anticipo"><i class="fa-solid fa-circle-plus fa-lg"></i> Agregar Anticipo</div>
+        <div class="help-panel">
+            <div class="btn btn-add-anticipo"><i class="fa-solid fa-circle-plus fa-lg"></i> Agregar Anticipo</div>
+            <div class="container-search-input">
+                <span class="placeholder">Buscar</span>
+                <input type="text" class="form-control" id="input-buscar-anticipo" name="input-buscar-anticipo">
+                <!-- <span class="lupa">
+                    <i class="fa-solid fa-lg fa-magnifying-glass"></i>
+                </span> -->
+            </div>
+            <div id="btn-refresh" class="btn btn-refresh">
+                <i class="fa-solid fa-arrows-rotate"></i>
+            </div>
+        </div>
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead class="table-head">
@@ -63,7 +75,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                                 <td data-label="SSCC"><?php echo htmlspecialchars($anticipo['codigo_sscc'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td data-label="Monto"><?php echo number_format($anticipo['monto_total_solicitado'], 2); ?></td>
                                 <td data-label="Estado" class="td-estado">
-                                    <span class="span-td-estado <?=strtolower($anticipo['estado']);?>" title="<?=strtolower($anticipo['comentario']);?>"><?php echo htmlspecialchars($anticipo['estado'], ENT_QUOTES, 'UTF-8'); ?>
+                                    <span class="span-td-estado <?=strtolower($anticipo['estado']);?>" title="<?=ucfirst($anticipo['comentario']);?>"><?php echo htmlspecialchars($anticipo['estado'], ENT_QUOTES, 'UTF-8'); ?>
                                 </span></td>
                                 <td data-label="Ult. Actualizacion"><?php echo htmlspecialchars($anticipo['historial_fecha'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
                             </tr>
@@ -224,31 +236,6 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <input value="1" id="color_mode" name="color_mode" type="checkbox">
                         <label class="btn-color-mode-switch-inner" data-off="Ver" data-on="Editar" for="color_mode"></label>
                     </label>
-                    <?php if($_SESSION['rol']==2): ?>
-                        <div class="btn-cambio-estado-container">
-                            <div class="btn-aprobar-anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                Autorizado
-                            </div>
-                        </div>
-                    <?php endif;?>
-                    <?php if($_SESSION['rol']==4): ?>
-                        <div class="btn-cambio-estado-container">
-                            <div>
-                                <div class="btn-aprobar-totalmente" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                    Autorizado
-                                </div>
-                                <div class="btn-observar-anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                    Observado
-                                </div>
-                            </div>
-                            <div class="btn-abonar-anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                Abonado
-                            </div>
-                            <div class="modal-element">
-                                <input type="text" placeholder="Comentario..." class="form-control comentario-contador" id="comentario-aprobador">
-                            </div>
-                        </div>
-                    <?php endif;?>
                 </div>
                 <div class="modal-body">
                     <div class="form-step active" id="edit-step-1">
@@ -307,7 +294,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                             </div>
                             <div class="modal-element">
                                 <span class="placeholder">Nombre del Proyecto</span>
-                                <input type="text" class="form-control" id="edit-nombre-proyecto" name="edit-nombre-proyecto" required>
+                                <input type="text" class="form-control" id="edit-nombre-proyecto" name="edit-nombre-proyecto" readonly required>
                             </div>
                             <div class="modal-element">
                                 <span class="placeholder">Motivo del Anticipo</span>
@@ -370,6 +357,26 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <div class="modal-footer">
                             <!-- <div class="btn btn-default" onclick="prevStep()">Atrás</div> -->
                             <button type="submit" class="btn btn-default">Terminar</button>
+                            <div id="container-cambio-estado">
+                                <?php if($_SESSION['rol']==2): ?>
+                                    <div class="btn-aprobar-anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                        Autorizado
+                                    </div>
+                                <?php endif;?>
+                                <?php if($_SESSION['rol']==4): ?>
+                                    <div class="btn-aprobar-totalmente" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                        Autorizado
+                                    </div>
+                                    <div class="btn-observar-anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                        Observado
+                                    </div>
+                                <?php endif;?>
+                                <?php if($_SESSION['rol']==5): ?>
+                                    <div class="btn-abonar-anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                        Abonado
+                                    </div>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 </div>

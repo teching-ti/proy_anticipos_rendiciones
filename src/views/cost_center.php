@@ -340,14 +340,6 @@ include "base.php";
             <form action="cost_center/edit_sscc" method="POST">
                 <div class="modal-body">
                     <div class="container-input">
-                        <label for="edit_sscc_codigo">Código SSCC</label>
-                        <input type="text" id="edit_sscc_codigo" name="codigo" readonly>
-                    </div>
-                    <div class="container-input">
-                        <label for="edit_sscc_nombre">Nombre</label>
-                        <input type="text" id="edit_sscc_nombre" name="nombre" required>
-                    </div>
-                    <div class="container-input">
                         <label for="edit_sscc_scc_codigo">Subcentro de Costo</label>
                         <select id="edit_sscc_scc_codigo" name="scc_codigo" required>
                             <option value="">Seleccione un subcentro de costo</option>
@@ -357,6 +349,14 @@ include "base.php";
                                 </option>
                             <?php endforeach; ?>
                         </select>
+                    </div>
+                    <div class="container-input">
+                        <label for="edit_sscc_codigo">Código SSCC</label>
+                        <input type="text" id="edit_sscc_codigo" name="codigo" readonly>
+                    </div>
+                    <div class="container-input">
+                        <label for="edit_sscc_nombre">Nombre</label>
+                        <input type="text" id="edit_sscc_nombre" name="nombre" required>
                     </div>
                     <div class="container-input form-check">
                         <input type="checkbox" id="edit_sscc_activo" name="activo" value="1">
@@ -382,6 +382,17 @@ include "base.php";
             <form action="cost_center/add_sscc" method="POST">
                 <div class="modal-body">
                     <div class="container-input">
+                        <label for="sscc_scc_codigo">Subcentro de Costo</label>
+                        <select id="sscc_scc_codigo" name="scc_codigo" required>
+                            <option value="">Seleccione un subcentro de costo</option>
+                            <?php foreach ($scc_list as $scc): ?>
+                                <option value="<?php echo htmlspecialchars($scc['codigo'], ENT_QUOTES, 'UTF-8'); ?>">
+                                    <?php echo htmlspecialchars($scc['nombre'], ENT_QUOTES, 'UTF-8'); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="container-input">
                         <label for="sscc_codigo">Código SSCC</label>
                         <input type="text" id="sscc_codigo" name="codigo" required>
                     </div>
@@ -393,17 +404,7 @@ include "base.php";
                         <label for="sscc_nombre_corto">Nombre Corto</label>
                         <input type="text" id="sscc_nombre_corto" name="nombre_corto" required>
                     </div>
-                    <div class="container-input">
-                        <label for="sscc_scc_codigo">Subcentro de Costo</label>
-                        <select id="sscc_scc_codigo" name="scc_codigo" required>
-                            <option value="">Seleccione un subcentro de costo</option>
-                            <?php foreach ($scc_list as $scc): ?>
-                                <option value="<?php echo htmlspecialchars($scc['codigo'], ENT_QUOTES, 'UTF-8'); ?>">
-                                    <?php echo htmlspecialchars($scc['nombre'], ENT_QUOTES, 'UTF-8'); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+                    
                     <div class="container-input form-check">
                         <input type="checkbox" id="sscc_activo" name="activo" value="1" checked>
                         <label for="sscc_activo">Activo</label>

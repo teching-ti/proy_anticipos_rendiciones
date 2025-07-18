@@ -9,7 +9,7 @@ include "base.php";
     <!-- Habilitación de alerta modal-->
     <?php if (isset($_SESSION['success'])): ?>
         <script>
-            alert("Exito");
+            // alert("Exito");
             showAlert({
                 title: 'Usuario registrado correctamente.',
                 message: '<?php echo htmlspecialchars($_SESSION['success'], ENT_QUOTES, 'UTF-8'); ?>',

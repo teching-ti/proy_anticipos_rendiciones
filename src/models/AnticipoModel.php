@@ -1024,5 +1024,24 @@ class AnticipoModel {
         }
     }
     
+    public function getLatestAnticipoEstado($id_anticipo) {
+        try {
+            $query = "SELECT estado
+                    FROM tb_historial_anticipos
+                    WHERE id_anticipo = :id_anticipo
+                    AND (id_anticipo, fecha) IN (
+                        SELECT id_anticipo, MAX(fecha)
+                        FROM tb_historial_anticipos
+                        GROUP BY id_anticipo
+                    )";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id_anticipo' => $id_anticipo]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? $result['estado'] : null;
+        } catch (PDOException $e) {
+            error_log('Error al obtener el estado más reciente del anticipo: ' . $e->getMessage());
+            return null;
+        }
+    }
 }
 ?>

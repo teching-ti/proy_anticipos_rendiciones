@@ -44,7 +44,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                             <td data-label="Inicio"><?php echo htmlspecialchars($rendicion['fecha_inicio'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
                             <td data-label="Rendicion estimada"><?php echo htmlspecialchars($rendicion['fecha_rendicion'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
                             <td data-label="Estado" class="td-estado">
-                                <span class="span-td-estado <?=strtolower($rendicion['estado']);?>" title="<?=strtolower($rendicion['estado']);?>"><?php echo htmlspecialchars($rendicion['estado'], ENT_QUOTES, 'UTF-8'); ?>
+                                <span class="span-td-estado <?=strtolower($rendicion['estado']);?>" title="<?=ucfirst($rendicion['comentario']);?>"><?php echo htmlspecialchars($rendicion['estado'], ENT_QUOTES, 'UTF-8'); ?>
                             </span></td>
                             <td data-label="Ult. Actualizacion"><?php echo htmlspecialchars($rendicion['historial_fecha'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
                         </tr>
@@ -158,19 +158,43 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <h3>2. Detalles a rendir</h3>
                         <div class="datos-completar-rendicion">
                             <div id="detalles-compras-container">
-                                
+
+                            </div>
+                        </div>
+                        <div class="panel-montos-rendicion" id="panel-montos-rendicion">
+                            <div class="modal-element">
+                                <span class="input-icon-left">
+                                    <i class="fa-solid fa-coins"></i>
+                                </span>
+                                <span class="placeholder">Monto Total de Anticipo</span>
+                                <input type="text" class="form-control-icon" id="calculo-monto-solicitado" name="calculo-monto-solicitado" readonly>
+                            </div>
+                            <div class="modal-element">
+                                <span class="input-icon-left">
+                                    <i class="fa-solid fa-coins"></i>
+                                </span>
+                                <span class="placeholder">Monto Total Rendido</span>
+                                <input type="text" class="form-control-icon" id="calculo-monto-rendido" name="calculo-monto-rendido" readonly>
                             </div>
                         </div>
                         <hr>
                         <div class="modal-footer">
                             <div class="btn btn-default" onclick="prevStep()"><i class="fa-solid fa-caret-left"></i> Atrás</div>
-                            <!-- <button type="submit" class="btn btn-default" id="btn-guardar-rendicion">Guardar</button> -->
+                            <?php if($_SESSION['rol']==2): ?>
+                                <div class="btn btn-default" id="btn-aprobar-rendicion" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Aprobar</div> 
+                            <?php endif;?>
+                            <?php if($_SESSION['rol']==4): ?>
+                                <div class="btn btn-default" id="btn-cerrar-rendicion" data-contador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Cerrar</div>
+                                <div class="btn btn-default-clear" id="btn-observar-rendicion" data-contador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Observar</div> 
+                            <?php endif;?>
                         </div>
                     </div>
                 </div>
             </form>
         </div>
     </div>
-
+    <!-- 
+    Pendiente el agregar los cambios de estados relacionados al contador, posterior a ello, se deberá de integrar las nuevas tablas que servirán para cargar los detalles de facturas
+    -->
 </section>
 <?php include "footer.php"; ?>

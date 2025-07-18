@@ -39,7 +39,24 @@ function showAlert({ title = 'Alerta', message, type = 'info', event = ''} = {})
                 </div>
             </div>
         `;
-    } else if (event === 'envio') {
+    }else if(event === 'confirm-comment'){
+        modal.innerHTML = `
+            <div class="custom-alert-content">
+                <div class="modal-alert-header">
+                    <p><i class="fa-solid fa-circle-exclamation fa-2xl" style="color: rgb(71, 113, 168)"></i></p>
+                    <p id="custom-alert-title"></p>
+                </div>
+                <div class="modal-alert-body">
+                    <p id="custom-alert-message"></p>
+                    <textarea id="custom-alert-comentario" class="confirm-comment" placeholder="Favor de ingresar un comentario"></textarea>
+                    <div class="btn-confirm-container">
+                        <button id="custom-alert-btn-aceptar" class="custom-alert-button">Aceptar</button>
+                        <button id="custom-alert-btn-cancelar" class="custom-alert-button">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }else if (event === 'envio') {
         modal.innerHTML = `
             <div class="custom-alert-content">
                 <div class="modal-alert-header">
@@ -80,12 +97,6 @@ function showAlert({ title = 'Alerta', message, type = 'info', event = ''} = {})
     }
         
     document.body.appendChild(modal);
-    
-
-    // Establecer el título, mensaje y tipo
-    // const titleElement = document.getElementById('custom-alert-title');
-    // const messageElement = document.getElementById('custom-alert-message');
-    // const closeButton = document.getElementById('custom-alert-close');
 
     const titleElement = document.getElementById('custom-alert-title');
     const messageElement = document.getElementById('custom-alert-message');
@@ -132,14 +143,6 @@ function showAlert({ title = 'Alerta', message, type = 'info', event = ''} = {})
     
     // Mostrar el modal
     modal.style.display = 'flex';
-
-
-    // Cerrar el modal al hacer clic fuera del contenido
-    // modal.onclick = (event) => {
-    //     if (event.target === modal) {
-    //         modal.style.display = 'none';
-    //     }
-    // };
 
     //Cerrar con la tecla Escape
     document.addEventListener('keydown', function handler(event) {

@@ -73,7 +73,13 @@ $routes = [
     'rendiciones/guardarItemViaje' => ['controller' => 'rendiciones', 'action' => 'guardarItemViaje'],
     'rendiciones/guardarItemTransporte' => ['controller' => 'rendiciones', 'action' => 'guardarItemTransporte'],
     'rendiciones/getDetallesViajesRendidosByRendicion' => ['controller' => 'rendiciones', 'action' => 'getDetallesViajesRendidosByRendicion'],
-    'rendiciones/getDetallesTransportesRendidosByRendicion' => ['controller' => 'rendiciones', 'action' => 'getDetallesTransportesRendidosByRendicion']
+    'rendiciones/getDetallesTransportesRendidosByRendicion' => ['controller' => 'rendiciones', 'action' => 'getDetallesTransportesRendidosByRendicion'],
+    'rendiciones/getMontoSolicitadoByAnticipo' => ['controller' => 'rendiciones', 'action' => 'getMontoSolicitadoByAnticipo'],
+    'rendiciones/getMontoTotalRendidoByRendicion' => ['controller' => 'rendiciones', 'action' => 'getMontoTotalRendidoByRendicion'],
+    'rendiciones/getLatestEstadoRendicion' => ['controller' => 'rendiciones', 'action' => 'getLatestEstadoRendicion'],
+    'rendiciones/aprobarRendicion' => ['controller' => 'rendiciones', 'action' => 'aprobarRendicion'],
+    'rendiciones/observarRendicion' => ['controller' => 'rendiciones', 'action' => 'observarRendicion'],
+    'rendiciones/cerrarRendicion' => ['controller' => 'rendiciones', 'action' => 'cerrarRendicion']
 ];
 
 // Buscar la ruta en el arreglo de rutas

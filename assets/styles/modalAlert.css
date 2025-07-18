@@ -170,3 +170,20 @@
 .login-container button:hover {
     background-color: #0056b3;
 }
+
+.confirm-comment{
+    width: 80%;
+    border-bottom: 2px solid #ccc;
+    background: none;
+    font-size: 15px;
+    outline: solid 2px rgba(0,0,0,0);
+    transition: all ease-in-out .3s;
+    border-radius: .4rem;
+    border: solid 1px rgb(211, 206, 206);
+    padding: .4rem;
+    resize: none;
+}
+
+/* #custom-alert-comentario{
+    padding: .4rem;
+} */

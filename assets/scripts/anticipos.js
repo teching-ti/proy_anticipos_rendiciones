@@ -1,5 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    const btnRefresh = document.getElementById("btn-refresh");
+    btnRefresh.addEventListener("click", ()=>{
+        window.location.reload();
+    })
+
     // Funcionalidad que se utiliza para mostrar el formulario que permite crear un anticipo
     function openAddAnticipoModal() {
         const modal = document.getElementById('addAnticipoModal');
@@ -1494,24 +1499,16 @@ async function showAnticipoDetails(data) {
     // Validaciones para mostrar elementos de cambio de estado en base a estado de un anticipo y del rol del usuario
     const rolUsuario = document.getElementById("user-first-info").getAttribute("data-info");
     const estadoAnticipo = document.getElementById("edit-estado-anticipo").value;
-    if(rolUsuario=='4' && estadoAnticipo=='Autorizado'){
-        console.log("here1");
-        document.querySelector(".btn-cambio-estado-container").style.display = 'flex';
-        document.querySelector(".btn-abonar-anticipo").style.display = "none";
-    }else if(rolUsuario=='2' && (estadoAnticipo=='Nuevo' || estadoAnticipo=='Observado')){
-        console.log("here2");
-        document.querySelector(".btn-cambio-estado-container").style.display = 'flex';
-    }else if(rolUsuario=='4' && estadoAnticipo=='Autorizado Totalmente'){
-        console.log("here3");
-        document.querySelector(".btn-aprobar-totalmente").style.display = "none";
-        document.querySelector(".btn-observar-anticipo").style.display = "none";
-        document.querySelector(".btn-abonar-anticipo").style.display = "flex";
-        document.querySelector(".btn-cambio-estado-container").style.display = 'flex';
+    const containerCambioEstado = document.getElementById("container-cambio-estado");
+
+    if(rolUsuario==2 && (estadoAnticipo=='Nuevo' || estadoAnticipo=='Observado')){
+        containerCambioEstado.style.display = 'flex';
+    }else if(rolUsuario==4 && estadoAnticipo=='Autorizado'){
+        containerCambioEstado.style.display = 'flex';
+    }else if(rolUsuario==5 && estadoAnticipo=='Autorizado Totalmente'){
+        containerCambioEstado.style.display = 'flex';
     }else{
-        console.log("nada");
-        if(document.querySelector(".btn-cambio-estado-container")){
-            document.querySelector(".btn-cambio-estado-container").style.display = 'none';
-        }
+        containerCambioEstado.style.display = 'none';
     }
 }
 
@@ -1953,10 +1950,6 @@ editForm.addEventListener('submit', async function(event) {
     }
 });
 
-
-
-
-
 // Actualizar visibilidad de botones de eliminación de personas
 function actualizarBotonesEliminarEdit() {
     editTabsBody.querySelectorAll(".remove-persona-btn").forEach(btn => btn.style.display = "none");
@@ -1977,18 +1970,19 @@ if(btnAutorizarAprobador){
             title: 'Confirmación',
             message: '¿Estás seguro de que deseas autorizar este anticipo? Esta acción no se puede deshacer.',
             type: 'confirm',
-            event: 'confirm'
+            event: 'confirm-comment'
         });
         
         const acceptButton = document.getElementById('custom-alert-btn-aceptar');
         const cancelButton = document.getElementById('custom-alert-btn-cancelar');
         
-        const formData = new FormData();
-
-        formData.append("id", idAnticipo);
-        formData.append("comentario", "Autorizado");
-
         acceptButton.onclick = async () => {
+
+            const comentario = document.getElementById('custom-alert-comentario').value;
+            const formData = new FormData();
+
+            formData.append("id", idAnticipo);
+            formData.append("comentario", comentario);
 
             try {
                 const response = await fetch('anticipos/autorizar', {
@@ -2034,7 +2028,6 @@ const btnAutorizarTotalmente = document.querySelector(".btn-aprobar-totalmente")
 if(btnAutorizarTotalmente){
     btnAutorizarTotalmente.addEventListener("click", async function(e){
         let idAnticipo = document.getElementById("edit-id-anticipo").value;
-        let comentarioAprobador = document.getElementById("comentario-aprobador").value;
         //let userId = btnAutorizarAprobador.getAttribute("data-aprobador");
         
         e.preventDefault();
@@ -2042,18 +2035,19 @@ if(btnAutorizarTotalmente){
             title: 'Confirmación',
             message: '¿Estás seguro de que desea autorizar totalmente este anticipo? Esta acción no se puede deshacer.',
             type: 'confirm',
-            event: 'confirm'
+            event: 'confirm-comment'
         });
         
         const acceptButton = document.getElementById('custom-alert-btn-aceptar');
         const cancelButton = document.getElementById('custom-alert-btn-cancelar');
-        
-        const formData = new FormData();
-
-        formData.append("id", idAnticipo);
-        formData.append("comentario", comentarioAprobador);
 
         acceptButton.onclick = async () => {
+
+            const comentario = document.getElementById('custom-alert-comentario').value;
+            const formData = new FormData();
+
+            formData.append("id", idAnticipo);
+            formData.append("comentario", comentario);
 
             try {
                 const response = await fetch('anticipos/autorizarTotalmente', {
@@ -2099,7 +2093,6 @@ const btnObservarAnticipo = document.querySelector(".btn-observar-anticipo");
 if(btnObservarAnticipo){
     btnObservarAnticipo.addEventListener("click", async function(e){
         let idAnticipo = document.getElementById("edit-id-anticipo").value;
-        let comentarioAprobador = document.getElementById("comentario-aprobador").value;
         //let userId = btnAutorizarAprobador.getAttribute("data-aprobador");
         
         e.preventDefault();
@@ -2107,18 +2100,19 @@ if(btnObservarAnticipo){
             title: 'Confirmación',
             message: '¿Estás seguro de que desea marcar este anticipo como observado? Esta acción no se puede deshacer.',
             type: 'confirm',
-            event: 'confirm'
+            event: 'confirm-comment'
         });
 
         const acceptButton = document.getElementById('custom-alert-btn-aceptar');
         const cancelButton = document.getElementById('custom-alert-btn-cancelar');
         
-        const formData = new FormData();
-
-        formData.append("id", idAnticipo);
-        formData.append("comentario", comentarioAprobador);
-
         acceptButton.onclick = async () => {
+
+            const comentario = document.getElementById('custom-alert-comentario').value;
+            const formData = new FormData();
+
+            formData.append("id", idAnticipo);
+            formData.append("comentario", comentario);
 
             try {
                 const response = await fetch('anticipos/observarAnticipo', {
@@ -2163,7 +2157,6 @@ const btnAbonarAnticipo = document.querySelector(".btn-abonar-anticipo");
 if(btnAbonarAnticipo){
     btnAbonarAnticipo.addEventListener("click", async function(e){
         let idAnticipo = document.getElementById("edit-id-anticipo").value;
-        let comentarioAprobador = document.getElementById("comentario-aprobador").value;
         //let userId = btnAutorizarAprobador.getAttribute("data-aprobador");
         
         e.preventDefault();
@@ -2171,18 +2164,18 @@ if(btnAbonarAnticipo){
             title: 'Confirmación',
             message: '¿Estás seguro de que desea marcar este anticipo como observado? Esta acción no se puede deshacer.',
             type: 'confirm',
-            event: 'confirm'
+            event: 'confirm-comment'
         });
 
         const acceptButton = document.getElementById('custom-alert-btn-aceptar');
         const cancelButton = document.getElementById('custom-alert-btn-cancelar');
         
-        const formData = new FormData();
-
-        formData.append("id", idAnticipo);
-        formData.append("comentario", comentarioAprobador);
-
         acceptButton.onclick = async () => {
+            const comentario = document.getElementById('custom-alert-comentario').value;
+            const formData = new FormData();
+
+            formData.append("id", idAnticipo);
+            formData.append("comentario", comentario);
 
             try {
                 const response = await fetch('anticipos/abonarAnticipo', {
