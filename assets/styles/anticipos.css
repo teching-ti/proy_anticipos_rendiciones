@@ -35,8 +35,15 @@
 .help-panel{
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: .8rem;
     margin-bottom: .8rem;
+}
+
+.help-panel-buttons{
+    display: flex;
+    flex-direction: row;
+    gap: 1.2rem;
 }
 
 .btn-add-anticipo {
@@ -49,16 +56,19 @@
     position: relative;
 }
 
+.container-search-input .placeholder{
+    color: #1f58a8;
+}
+
 #input-buscar-anticipo{
     width: 260px;
-    padding: .4rem;
-    border-bottom: 2px solid #ccc;
+    padding: .4rem .6rem;
     background: none;
     font-size: 15px;
     outline: solid 2px rgba(0,0,0,0);
     transition: all ease-in-out .3s;
     border-radius: .4rem;
-    border: solid 1px rgb(211, 206, 206);
+    border: solid 1px #1f58a8;
 }
 
 .btn-refresh{
@@ -117,9 +127,6 @@
 
 /* Encabezado de la tabla */
 .table-head {
-    /* background-color: #f2f2f2; */
-    /* background: #7FAFE6;
-    background: linear-gradient(100deg, rgba(228, 238, 247, 1) 58%, rgba(217, 237, 255, 1) 78%, rgba(220, 233, 245, 1) 100%); */
     background: #7FAFE6;
     background: linear-gradient(100deg, rgb(193, 221, 255) 0%, rgba(227, 244, 255, 1) 46%, rgba(228, 238, 247, 1) 58%, rgba(217, 237, 255, 1) 78%, rgba(220, 233, 245, 1) 100%);
     position: sticky;
@@ -559,32 +566,28 @@
 }
 
 /*Formulario para editar*/
-/* #editAnticipoModal{
-    display: block;
-} */
+
+.modal-header-element{
+    display: flex;
+    gap: 1.6rem;
+}
 
 #edit-step-1{
     display: block;
 }
 
-#edit-solicitante, #edit-dni-solicitante, #edit-departamento, #edit-cargo, #edit-monto-total{
+#edit-solicitante, #edit-dni-solicitante, #edit-departamento, #edit-cargo{
     width: 80%;
     padding: .4rem .4rem .4rem 2rem;
     transition: all ease-in-out .4s;
 }
 
-/* From Uiverse.io by JaydipPrajapati1910 */ 
 .btn-container {
     display: flex;
-    /* align-items: center; */
-    /* justify-content: space-between; */
     flex-direction: column;
     gap: .8rem;
     margin-top: .9rem;
     padding: 0 1.2rem;
-  /* display: table-cell; */
-  /* vertical-align: middle; */
-  /* text-align: center; */
 }
 
 label {
@@ -608,7 +611,6 @@ label {
   overflow: hidden;
   position: relative;
   transition: all 0.3s ease;
-    /*box-shadow: 0px 0px 8px 0px rgba(17, 17, 17, 0.34) inset;*/
   display: block;
 }
 
@@ -682,7 +684,7 @@ label {
     padding: .5rem 1rem;
     transition: all ease-in-out .4s;
     border-radius: .4rem;
-    font-size: .9rem;
+    font-size: .98rem;
     cursor: pointer;
 }
 
@@ -698,13 +700,14 @@ label {
 }
 
 .btn-aprobar-totalmente{
+    display: none;
     width: fit-content;
     padding: .5rem 1rem;
     background-color: #1f58a8;
     color: #fff;
     transition: all ease-in-out .4s;
     border-radius: .4rem;
-    font-size: .9rem;
+    font-size: .98rem;
     cursor: pointer;
 }
 
@@ -714,13 +717,14 @@ label {
 }
 
 .btn-observar-anticipo{
+    display: none;
     width: fit-content;
     padding: .5rem 1rem;
     background-color: #e72d1f;
     color: #fff;
     transition: all ease-in-out .4s;
     border-radius: .4rem;
-    font-size: .9rem;
+    font-size: .98rem;
     cursor: pointer;
 }
 
@@ -730,6 +734,7 @@ label {
 }
 
 .btn-abonar-anticipo{
+    display: none;
     width: fit-content;
     padding: .5rem 1rem;
     background-color: #1f58a8;
@@ -797,12 +802,64 @@ label {
     transition: color 0.2s;
 }
 
+.modal-element{
+    position: relative;
+    margin-bottom: 20px;
+}
+
+
+.mount-content{
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.2rem;
+    gap: .8rem;
+}
+
+.mount-element{
+    display: grid;
+    position: relative;
+    width: 100px;
+    padding: .4rem .4rem .4rem 2rem;
+    border-bottom: 2px solid #ccc;
+    background: none;
+    font-size: 15px;
+    outline: solid 2px rgba(0,0,0,0);
+    transition: all ease-in-out .3s;
+    border-radius: .4rem;
+    border: solid 1px rgb(211, 206, 206);
+}
+
+#edit-monto-total{
+    background: none;
+    border: none;
+    width: 80px
+}
+
+.viaticos-detalles{
+    outline: solid 1.8px #336FA9;
+    border-radius: .4rem;
+    padding: .38rem .5rem;
+    color: white;
+    background-color: #336FA9;
+    cursor: pointer;
+    transition: all ease-in .2s;
+}
+
+.viaticos-detalles:hover{
+    background-color: #265d91;
+    transform: scale(102%);
+}
+
 
 /* Media query para tablets (≤800px) */
 @media (max-width: 800px) {
     .help-panel{
         align-items: normal;
         flex-direction: column;
+    }
+
+    .help-panel-buttons{
+        justify-content: space-between;
     }
 
     .table{
@@ -843,55 +900,14 @@ label {
 /* Media query para móviles (≤600px) */
 @media (max-width: 600px) {
 
+    #input-buscar-anticipo{
+        width: auto
+    }
+
     /* .modal-elements-container{ */
     .datos-solicitantes-container{
         grid-template-columns: 100%;
     }
-
-    .table thead {
-        display: none;
-    }
-
-    .table tbody{
-        display: flex;
-        flex-direction: column;
-        gap: .6rem;
-    }
-    
-    .table tbody tr {
-        display: block;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        background-color: #fff;
-    }
-
-    .table td {
-        display: block;
-        text-align: right;
-        padding: 8px;
-        font-size: 0.85rem;
-        border: none;
-        position: relative;
-    }
-
-    .table td:before {
-        content: attr(data-label);
-        position: absolute;
-        left: 8px;
-        font-weight: 600;
-        color: #153f65;
-        text-transform: capitalize;
-    }
-
-    .table-responsive {
-        overflow-x: hidden;
-        max-height: 500px;
-    }
-
-    /* .anticipos-content {
-        padding: 10px;
-        height: 100vh;
-    } */
 
     .section-table h2 {
         font-size: 18px;

@@ -20,6 +20,7 @@ include "base.php";
                         <th>Nombre</th>
                         <th>Saldo Inicial</th>
                         <th>Saldo Final</th>
+                        <th>Saldo Abonado</th>
                         <th>Saldo Disponible</th>
                         <th>Estado</th>
                         <?php if (isset($_SESSION['rol']) && $_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
@@ -29,7 +30,7 @@ include "base.php";
                 </thead>
                 <tbody>
                     <?php if (empty($presupuestos)):?>
-                        <tr><td><h1>No hay presupuestos</h1></td></tr>
+                        <tr><td>No hay presupuestos</td></tr>
                     <?php else: ?>
                         <?php foreach($presupuestos as $p):?>
                         <tr class="filas">
@@ -37,6 +38,7 @@ include "base.php";
                             <td data-label="Nombre"><span><?= htmlspecialchars($p['nombre']); ?></span></td>
                             <td data-label="Saldo Incial"><?= htmlspecialchars($p['saldo_inicial']); ?></td>
                             <td data-label="Saldo Final"><?= htmlspecialchars($p['saldo_final']); ?></td>
+                            <td data-label="Saldo Abonado"><?= htmlspecialchars($p['saldo_abonado']); ?></td>
                             <td data-label="Saldo Disponible"><?= htmlspecialchars($p['saldo_disponible']); ?></td>
                             <td data-label="Estado"><?= htmlspecialchars($p['activo'] == 1 ? 'Activo' : 'Inactivo'  ); ?></td>
                             <?php if (isset($_SESSION['rol']) && $_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
@@ -49,7 +51,7 @@ include "base.php";
             </table>
         </div>
     </section>
-
+    
     <!-- Modal para crear presupuesto -->
     <div id="createPresupuestoModal" class="modal" style="display: none;">
         <div class="modal-content">

@@ -113,6 +113,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Evento para agregar nueva pestaña
     document.getElementById("add-tab").addEventListener("click", agregarNuevaPersona);
+
+    // función de búsqueda
+    document.getElementById("input-buscar-anticipo").addEventListener("input", function() {
+        const filter = this.value.toLowerCase();
+        // console.log(filter);
+
+        const rows = document.querySelectorAll("#table-body tr");
+
+        rows.forEach(row => {
+            // convierte el texto de la fila en un solo string para buscar coincidencias en cualquier columna
+            const rowText = row.textContent.toLowerCase();
+            // muestra u oculta la fila según si coincide o no con el filtro
+            row.style.display = rowText.includes(filter) ? "" : "none";
+        });
+    });
+    
 });
 
 /*Inicia funcionalidad para cambiar de pestañas dentro del formulario de creación de anticipos*/
@@ -165,9 +181,12 @@ function activarTab(tabId) {
 async function agregarNuevaPersona() {
     // Buscar el menor índice libre
     let newIndex = 1;
+
     while (personaIndices.includes(newIndex)) {
         newIndex++;
     }
+
+    // console.log("Nueva Persona", newIndex);
     personaIndices.push(newIndex);
     personaIndices.sort((a, b) => a - b);
 
@@ -178,6 +197,62 @@ async function agregarNuevaPersona() {
     newTabBtn.textContent = `Persona ${newIndex}`;
     newTabBtn.id = `tab-persona-${newIndex}`;
     document.getElementById("tabs-header").insertBefore(newTabBtn, document.getElementById("add-tab"));
+
+    // Obtener valores de Persona 1 para copiar
+    const persona1DiasAlimentacion = document.querySelector('[name="dias-alimentacion-1"]')?.value || '';
+    const persona1DiasMovilidad = document.querySelector('[name="dias-movilidad-1"]')?.value || '';
+    const persona1DiasHospedaje = document.querySelector('[name="dias-hospedaje-1"]')?.value || '';
+
+    //here
+    // Obtener ítems de Transporte Provincial de Persona 1
+    const persona1TranspProvList = document.getElementById('transp-prov-list-1');
+    let transpProvContent = '';
+    if (persona1TranspProvList) {
+        const items = persona1TranspProvList.querySelectorAll('.transp-prov-element');
+        items.forEach((item, itemIndex) => {
+            const oldIndex = 1; // Índice de Persona 1
+            const newItemIndex = itemIndex + 1; // Mantener el orden de los ítems
+
+            // Obtener valores de Persona 1
+            const tipoTransporte = item.querySelector('input[name="tipo-transporte-1-' + newItemIndex + '"]:checked')?.value || 'terrestre';
+            const ciudadOrigen = item.querySelector('[name="ciudad-origen-1-' + newItemIndex + '"]')?.value || '';
+            const ciudadDestino = item.querySelector('[name="ciudad-destino-1-' + newItemIndex + '"]')?.value || '';
+            const fecha = item.querySelector('[name="fecha-1-' + newItemIndex + '"]')?.value || '';
+            const monto = item.querySelector('[name="gasto-viaje-1-' + newItemIndex + '"]')?.value || '';
+
+            const grupo = document.createElement("div");
+            grupo.classList.add("transp-prov-element");
+            grupo.innerHTML = `
+                <div class="med-transporte">
+                    <div>
+                        <input type="radio" name="tipo-transporte-${newIndex}-${newItemIndex}" id="terrestre-${newIndex}-${newItemIndex}" value="terrestre" ${tipoTransporte === 'terrestre' ? 'checked' : ''} ${newIndex === 1 ? '' : 'disabled'}>
+                        <label for="terrestre-${newIndex}-${newItemIndex}">Terrestre</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="tipo-transporte-${newIndex}-${newItemIndex}" id="aereo-${newIndex}-${newItemIndex}" value="aereo" ${tipoTransporte === 'aereo' ? 'checked' : ''} ${newIndex === 1 ? '' : 'disabled'}>
+                        <label for="aereo-${newIndex}-${newItemIndex}">Aéreo</label>
+                    </div>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Ciudad Origen</span>
+                    <input type="text" class="form-control" name="ciudad-origen-${newIndex}-${newItemIndex}" value="${ciudadOrigen}" ${newIndex === 1 ? '' : 'readonly'}>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Ciudad Destino</span>
+                    <input type="text" class="form-control" name="ciudad-destino-${newIndex}-${newItemIndex}" value="${ciudadDestino}" ${newIndex === 1 ? '' : 'readonly'}>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Fecha</span>
+                    <input type="date" class="form-control" name="fecha-${newIndex}-${newItemIndex}" value="${fecha}" required ${newIndex === 1 ? '' : 'readonly'}>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Monto</span>
+                    <input type="number" class="form-control gasto-viaje" name="gasto-viaje-${newIndex}-${newItemIndex}" value="${monto}" required ${newIndex === 1 ? '' : 'readonly'}>
+                </div>
+            `;
+            transpProvContent += grupo.outerHTML;
+        });
+    }
 
     // ajax para obtener cargos
     const cargos = await obtenerCargosDesdeBD();
@@ -219,8 +294,8 @@ async function agregarNuevaPersona() {
         </h4>
         <hr class="separador-viaje-subtitle">
         <div class="viaje-element section-transporte-provincial-${newIndex}" style="display: none;">
-            <div class="transporte-prov-list" id="transp-prov-list-${newIndex}"></div>
-            <div class="btn add-transp-provincial" data-persona="${newIndex}">Añadir</div>
+            <div class="transporte-prov-list" id="transp-prov-list-${newIndex}">${transpProvContent}</div>
+            <div class="btn add-transp-provincial" data-persona="${newIndex}" ${newIndex == 1 ? '' : 'style="display: none;"'}>Añadir</div>
         </div>
 
         <h4 class="viaje-sub-title">Hospedaje
@@ -233,7 +308,7 @@ async function agregarNuevaPersona() {
         <div class="viaje-element section-hospedaje-${newIndex}" style="display: none;">
             <div class="modal-element">
                 <span class="placeholder">Días</span>
-                <input type="number" class="form-control" name="dias-hospedaje-${newIndex}" readonly>
+                <input type="number" class="form-control" name="dias-hospedaje-${newIndex}" value="${persona1DiasHospedaje}" ${newIndex == 1 ? '' : 'readonly'} >
             </div>
             <div class="modal-element">
                 <span class="placeholder">Monto</span>
@@ -251,7 +326,7 @@ async function agregarNuevaPersona() {
         <div class="viaje-element section-movilidad-${newIndex}" style="display: none;">
             <div class="modal-element">
                 <span class="placeholder">Días</span>
-                <input type="number" class="form-control" name="dias-movilidad-${newIndex}" readonly>
+                <input type="number" class="form-control" name="dias-movilidad-${newIndex}" value="${persona1DiasMovilidad}" ${newIndex == 1 ? '' : 'readonly'}>
             </div>
             <div class="modal-element">
                 <span class="placeholder">Monto</span>
@@ -269,7 +344,7 @@ async function agregarNuevaPersona() {
         <div class="viaje-element section-alimentacion-${newIndex}" style="display: none;">
             <div class="modal-element">
                 <span class="placeholder">Días</span>
-                <input type="number" class="form-control" name="dias-alimentacion-${newIndex}" readonly>
+                <input type="number" class="form-control" name="dias-alimentacion-${newIndex}" value="${persona1DiasAlimentacion}" ${newIndex == 1 ? '' : 'readonly'}>
             </div>
             <div class="modal-element">
                 <span class="placeholder">Monto</span>
@@ -277,7 +352,7 @@ async function agregarNuevaPersona() {
             </div>
         </div>
         <div class='container-remove-persona'>
-            <div class="btn remove-persona-btn" data-index="${newIndex}">Eliminar</div>
+            <div class="btn remove-persona-btn" data-index="${newIndex}" ${newIndex === 1 ? 'style="display: none;"' : ''}>Eliminar</div>
         </div>
     `;
 
@@ -334,14 +409,6 @@ async function agregarNuevaPersona() {
         const container = document.getElementById(`persona-${index}`);
         container.dataset.tarifas = JSON.stringify(tarifas);
 
-        // se quita el readonly para los dias del dataset
-        const inputDiasMovilidad = document.querySelector(`[name='dias-movilidad-${index}']`);
-        const inputDiasHospedaje = document.querySelector(`[name='dias-hospedaje-${index}']`);
-        const inputDiasAlimentacion = document.querySelector(`[name='dias-alimentacion-${index}']`);
-        inputDiasMovilidad.removeAttribute('readonly');
-        inputDiasHospedaje.removeAttribute('readonly');
-        inputDiasAlimentacion.removeAttribute('readonly');
-
         // Recalcular montos para los días ya ingresados
         ['alimentacion', 'hospedaje', 'movilidad'].forEach(tipo => {
             calcularMonto(index, tipo);
@@ -353,6 +420,23 @@ async function agregarNuevaPersona() {
         const diasInput = document.querySelector(`[name='dias-${tipo}-${index}']`);
         diasInput.addEventListener("input", () => {
             calcularMonto(index, tipo);
+            if (index == 1) {
+                    actualizarOtrasPersonas(tipo);
+                }
+        });
+    }
+
+    // Función para actualizar los campos de las demás personas
+    function actualizarOtrasPersonas(tipo) {
+        const valorPersona1 = document.querySelector(`[name='dias-${tipo}-1']`)?.value || '';
+        personaIndices.forEach(index => {
+            if (index !== 1) {
+                const diasInput = document.querySelector(`[name='dias-${tipo}-${index}']`);
+                if (diasInput) {
+                    diasInput.value = valorPersona1;
+                    calcularMonto(index, tipo);
+                }
+            }
         });
     }
 
@@ -360,6 +444,47 @@ async function agregarNuevaPersona() {
     ['alimentacion', 'hospedaje', 'movilidad'].forEach(tipo => {
         conectarCalculoAutomatico(newIndex, tipo);
     });
+
+    // Escuchar cambios en los inputs de transporte provincial de Persona 1
+    function conectarActualizacionTransporte() {
+        const persona1TranspList = document.getElementById('transp-prov-list-1');
+        if (persona1TranspList) {
+            persona1TranspList.querySelectorAll('.transp-prov-element').forEach((item, itemIndex) => {
+                const newItemIndex = itemIndex + 1;
+                const inputs = {
+                    ciudadOrigen: item.querySelector(`[name='ciudad-origen-1-${newItemIndex}']`),
+                    ciudadDestino: item.querySelector(`[name='ciudad-destino-1-${newItemIndex}']`),
+                    fecha: item.querySelector(`[name='fecha-1-${newItemIndex}']`),
+                    monto: item.querySelector(`[name='gasto-viaje-1-${newItemIndex}']`)
+                };
+
+                Object.values(inputs).forEach(input => {
+                    if (input) {
+                        input.addEventListener("input", () => {
+                            const values = {
+                                ciudadOrigen: inputs.ciudadOrigen?.value || '',
+                                ciudadDestino: inputs.ciudadDestino?.value || '',
+                                fecha: inputs.fecha?.value || '',
+                                monto: inputs.monto?.value || ''
+                            };
+                            personaIndices.forEach(index => {
+                                if (index !== 1) {
+                                    const otherItem = document.querySelector(`#transp-prov-list-${index} .transp-prov-element:nth-child(${itemIndex + 1})`);
+                                    if (otherItem) {
+                                        otherItem.querySelector(`[name='ciudad-origen-${index}-${newItemIndex}']`).value = values.ciudadOrigen;
+                                        otherItem.querySelector(`[name='ciudad-destino-${index}-${newItemIndex}']`).value = values.ciudadDestino;
+                                        otherItem.querySelector(`[name='fecha-${index}-${newItemIndex}']`).value = values.fecha;
+                                        otherItem.querySelector(`[name='gasto-viaje-${index}-${newItemIndex}']`).value = values.monto;
+                                    }
+                                }
+                            });
+                            actualizarTotalGastos();
+                        });
+                    }
+                });
+            });
+        }
+    }
 
     // Escuchar cambios en el nuevo input de monto
     newTabContent.querySelector(".monto-hospedaje").addEventListener("input", actualizarTotalGastos);
@@ -374,7 +499,7 @@ async function agregarNuevaPersona() {
         const res = await fetch(`usuarios/anticipoBuscarDni?doc-identidad=${docId}`);
         const data = await res.json();
         
-        console.log(data);
+        //console.log(data);
         
         if(data.success){
             inputNombres.value = `${data.data.nombres} ${data.data.apellidos}`;
@@ -382,6 +507,11 @@ async function agregarNuevaPersona() {
             alert("No se encontraron datos del trabajador.");
         }
     });
+
+    // Conectar actualización de transporte para Persona 1
+    if (newIndex === 1) {
+        conectarActualizacionTransporte();
+    }
 }
 
 function actualizarBotonesEliminar() {
@@ -395,28 +525,49 @@ function actualizarBotonesEliminar() {
 
 document.getElementById("tabs-body").addEventListener("click", function (e) {
     if (e.target.classList.contains("remove-persona-btn")) {
-        const index = parseInt(e.target.dataset.index, 10);
 
-        // Eliminar tab y contenido
-        const tab = document.getElementById(`tab-persona-${index}`);
-        const content = document.getElementById(`persona-${index}`);
-        if (tab) tab.remove();
-        if (content) content.remove();
+        showAlert({
+            title: 'Confirmación',
+            message: '¿Estás seguro de que desea eliminar este item, esta acción no se puede deshacer?',
+            type: 'confirm',
+            event: 'confirm'
+        });
 
-        // Eliminar del array
-        personaIndices = personaIndices.filter(i => i !== index);
+        const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+        const cancelButton = document.getElementById('custom-alert-btn-cancelar');
 
-        // Activar primera pestaña visible
-        const firstTab = document.querySelector(".tab-button[data-tab]");
-        if (firstTab) activarTab(firstTab.dataset.tab);
+        acceptButton.onclick = () => {
+          
+            const index = parseInt(e.target.dataset.index, 10);
 
-        actualizarBotonesEliminar();
-        
-        // caso actualizar total gastos
-        actualizarTotalGastos();
+            // Eliminar tab y contenido
+            const tab = document.getElementById(`tab-persona-${index}`);
+            const content = document.getElementById(`persona-${index}`);
+            if (tab) tab.remove();
+            if (content) content.remove();
+
+            // Eliminar del array
+            personaIndices = personaIndices.filter(i => i !== index);
+
+            // Activar primera pestaña visible
+            const firstTab = document.querySelector(".tab-button[data-tab]");
+            if (firstTab) activarTab(firstTab.dataset.tab);
+
+            actualizarBotonesEliminar();
+            
+            // caso actualizar total gastos
+            actualizarTotalGastos();
+
+            const modal = document.getElementById('custom-alert-modal');
+            modal.style.display = 'none';
+        };
+
+        cancelButton.onclick = () => {
+            const modal = document.getElementById('custom-alert-modal');
+            modal.style.display = 'none';
+        };        
     }
 });
-
 
 // Delegación para añadir transporte provincial dinámicamente por persona
 document.addEventListener("click", function (e) {
@@ -457,7 +608,41 @@ document.addEventListener("click", function (e) {
         `;
         container.appendChild(grupo);
 
-        // Escuchar cambios en el nuevo input de monto
+        // Escuchar cambios en los nuevos inputs
+        if (persona == 1) {
+            const newInputs = {
+                ciudadOrigen: grupo.querySelector(`[name='ciudad-origen-${persona}-${index}']`),
+                ciudadDestino: grupo.querySelector(`[name='ciudad-destino-${persona}-${index}']`),
+                fecha: grupo.querySelector(`[name='fecha-${persona}-${index}']`),
+                monto: grupo.querySelector(`[name='gasto-viaje-${persona}-${index}']`)
+            };
+            Object.values(newInputs).forEach(input => {
+                if (input) {
+                    input.addEventListener("input", () => {
+                        const values = {
+                            ciudadOrigen: newInputs.ciudadOrigen?.value || '',
+                            ciudadDestino: newInputs.ciudadDestino?.value || '',
+                            fecha: newInputs.fecha?.value || '',
+                            monto: newInputs.monto?.value || ''
+                        };
+                        personaIndices.forEach(idx => {
+                            if (idx !== 1) {
+                                const otherItem = document.querySelector(`#transp-prov-list-${idx} .transp-prov-element:nth-child(${index})`);
+                                if (otherItem) {
+                                    otherItem.querySelector(`[name='ciudad-origen-${idx}-${index}']`).value = values.ciudadOrigen;
+                                    otherItem.querySelector(`[name='ciudad-destino-${idx}-${index}']`).value = values.ciudadDestino;
+                                    otherItem.querySelector(`[name='fecha-${idx}-${index}']`).value = values.fecha;
+                                    otherItem.querySelector(`[name='gasto-viaje-${idx}-${index}']`).value = values.monto;
+                                }
+                            }
+                        });
+                        actualizarTotalGastos();
+                    });
+                }
+            });
+        }
+
+        // escuchar cambios en el nuevo input de monto
         grupo.querySelector(".gasto-viaje").addEventListener("input", actualizarTotalGastos);
     }
 });
@@ -586,10 +771,29 @@ document.getElementById("add-gasto-btn").addEventListener("click", () => {
     // Escuchar cambios en el nuevo input de monto
     //nuevoGasto.querySelector(".monto-gasto").addEventListener("input", actualizarTotalGastos);
 
-    // Evento para eliminar este gasto
+    // Evento para eliminar este gasto, compras menores
     nuevoGasto.querySelector(".remove-gasto-btn").addEventListener("click", () => {
-        nuevoGasto.remove();
-        actualizarTotalGastos();
+        showAlert({
+            title: 'Confirmación',
+            message: '¿Estás seguro de que desea eliminar este item, esta acción no se puede deshacer?',
+            type: 'confirm',
+            event: 'confirm'
+        });
+
+        const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+        const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+
+        acceptButton.onclick = () => {
+            nuevoGasto.remove();
+            actualizarTotalGastos();
+            const modal = document.getElementById('custom-alert-modal');
+            modal.style.display = 'none';
+        };
+
+        cancelButton.onclick = () => {
+            const modal = document.getElementById('custom-alert-modal');
+            modal.style.display = 'none';
+        };
     });
 
     // Llamar para recalcular total
@@ -635,7 +839,7 @@ async function actualizarTotalGastos() {
     const response = await fetch(`anticipos/getSaldoDisponibleTiempoReal?codigo_sscc=${codigoSscc}`);
 
     const data = await response.json();
-    console.log(`Monto SSCC: ${data}`);
+    //console.log(`Monto SSCC: ${data}`);
     
     if(montoTotal.value>data){
         //console.log(`No se podrá crear este anticipo el monto total ${montoTotal.value} supera a ${data}`)
@@ -690,7 +894,6 @@ sccSelect.addEventListener('change', async function() {
     }
 });
 
-//here here here
 document.getElementById('addAnticipoForm').addEventListener('submit', function(e) {
     e.preventDefault();
     showAlert({
@@ -742,7 +945,7 @@ document.getElementById('addAnticipoForm').addEventListener('submit', function(e
 
 });
 
-/*********************************************************************here */
+/**********************************************************************/
 /********************************Desde aquí inicia todo lo correspondiente a la edición de anticipos */
 
 const editAnticipoModal = document.getElementById("editAnticipoModal");
@@ -785,7 +988,7 @@ async function actualizarTotalGastosEdit(formPrefix = '') {
         if (!isNaN(valor) && (!validoInput || validoInput.value === '1') && (!diasInput || parseInt(diasInput.value) > 0)) total += valor;
     });
 
-    // Sumar montos de transporte // here revisar
+    // Sumar montos de transporte
     const montosTransporte = document.querySelectorAll(`input[name*='${formPrefix}detalles_viajes'][name*='[transporte]'][name$='[monto]']`);
     montosTransporte.forEach(input => {
         const valor = parseFloat(input.value);
@@ -793,18 +996,9 @@ async function actualizarTotalGastosEdit(formPrefix = '') {
         const validoInput = container.querySelector(`input[name*='[valido]']`);
         if (!isNaN(valor) && (!validoInput || validoInput.value === '1')) {
             total += valor;
-            console.log(`Transporte: ${input.name} = ${valor}`);
+            //console.log(`Transporte: ${input.name} = ${valor}`);
         }
     });
-
-    // const montosTransporte = document.querySelectorAll(`input[name*='${formPrefix}detalles_viajes'][name*='[transporte]'][name$='[monto]']`);
-    // montosTransporte.forEach(input => {
-    //     const valor = parseFloat(input.value);
-    //     const container = input.closest('.transp-prov-element');
-    //     const validoInput = container.querySelector(`input[name*='[valido]']`);
-    //     if (!isNaN(valor) && (!validoInput || validoInput.value === '1')) total += valor;
-    // });
-
 
     const montoTotalInput = document.querySelector(`#${formPrefix}monto-total`);
     if (montoTotalInput) {
@@ -826,7 +1020,7 @@ async function actualizarTotalGastosEdit(formPrefix = '') {
                 console.log(`No se podrá actualizar este anticipo. El monto total ${total.toFixed(2)} supera el saldo disponible ${saldoDisponible.toFixed(2)}.`);
             } else {
                 montoTotalInput.style.border = '';
-                console.log('Monto total dentro del saldo disponible.');
+                //console.log('Monto total dentro del saldo disponible.');
             }
         } catch (error) {
             console.error('Error al validar monto total:', error);
@@ -837,10 +1031,10 @@ async function actualizarTotalGastosEdit(formPrefix = '') {
     }
 
     // Depuración
-    console.log('Montos gastos menores:', Array.from(montosGastos).map(input => input.value));
-    console.log('Montos viáticos:', Array.from(montosViaticos).map(input => input.value));
-    console.log('Montos transporte:', Array.from(montosTransporte).map(input => input.value));
-    console.log('Total calculado:', total.toFixed(2));
+    // console.log('Montos gastos menores:', Array.from(montosGastos).map(input => input.value));
+    // console.log('Montos viáticos:', Array.from(montosViaticos).map(input => input.value));
+    // console.log('Montos transporte:', Array.from(montosTransporte).map(input => input.value));
+    // console.log('Total calculado:', total.toFixed(2));
 }
 
 
@@ -929,7 +1123,10 @@ editAddGastoBtn.addEventListener('click', function() {
     `;
     editComprasMenoresPanel.insertBefore(gastoDiv, editAddGastoBtn);
     gastoCounter++;
-    toggleEditMode(colorModeSwitch.checked);
+    if(colorModeSwitch){
+        toggleEditMode(colorModeSwitch.checked);
+    }
+    
 
     const selectDescripcion = gastoDiv.querySelector(".descripcion-gasto");
     const inputMonto = gastoDiv.querySelector("input[name*='[importe]']");
@@ -979,15 +1176,35 @@ editAddGastoBtn.addEventListener('click', function() {
         actualizarTotalGastosEdit('edit-');
     });
 
+    // funcionalidad para eliminar las compras menores agregadas
     gastoDiv.querySelector(".edit-remove-gasto-btn").addEventListener("click", () => {
-        const validoInput = gastoDiv.querySelector(`input[name*='[valido]']`);
-        if (validoInput) {
-            validoInput.value = '0';
-            gastoDiv.style.display = 'none';
-        } else {
-            gastoDiv.remove();
-        }
-        actualizarTotalGastosEdit('edit-');
+        showAlert({
+            title: 'Confirmación',
+            message: '¿Estás seguro de que desea eliminar este item, esta acción no se puede deshacer?',
+            type: 'confirm',
+            event: 'confirm'
+        });
+
+        const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+        const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+
+        acceptButton.onclick = () => {
+            const validoInput = gastoDiv.querySelector(`input[name*='[valido]']`);
+            if (validoInput) {
+                validoInput.value = '0';
+                gastoDiv.style.display = 'none';
+            } else {
+                gastoDiv.remove();
+            }
+            actualizarTotalGastosEdit('edit-');
+            const modal = document.getElementById('custom-alert-modal');
+            modal.style.display = 'none';
+        };
+        
+        cancelButton.onclick = () => {
+            const modal = document.getElementById('custom-alert-modal');
+            modal.style.display = 'none';
+        };
     });
 });
 
@@ -1000,7 +1217,7 @@ document.querySelectorAll('.table.table-hover tbody tr').forEach((e) => {
             if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
             const data = await res.json();
             if (data.error) throw new Error(data.error);
-            console.log(data);
+            //console.log(data);
             await showAnticipoDetails(data);
         } catch (error) {
             console.error('Error al cargar detalles del anticipo:', error);
@@ -1071,6 +1288,22 @@ async function showAnticipoDetails(data) {
     editForm.querySelector("#edit-fecha-solicitud").value = data.fecha_solicitud || '';
     editForm.querySelector("#edit-estado-anticipo").value = data.estado || '';
     editForm.querySelector("#edit-monto-total").value = (parseFloat(data.monto_total_solicitado) || 0).toFixed(2);
+
+    document.getElementById("editAnticipoModal").setAttribute("data-user-anticipo", data.id_usuario);
+
+    let idUserAnticipo = document.getElementById("editAnticipoModal").getAttribute("data-user-anticipo");;
+    let idActualUser = document.getElementById("user-first-info").getAttribute("data-user");
+
+    if(editForm.querySelector("#edit-estado-anticipo").value != 'Nuevo' || editForm.querySelector("#edit-estado-anticipo").value == 'Observado'){
+        document.querySelector(".switch").style.display = "none";
+    }else{
+        //console.log(idActualUser);
+        if(idUserAnticipo == idActualUser){
+            document.querySelector(".switch").style.display = "block";
+        }else{
+            document.querySelector(".switch").style.display = "none";
+        }
+    }
 
     // Cargar opciones de SCC y preseleccionar
     const editSccSelect = editForm.querySelector("#edit-codigo-scc");
@@ -1195,14 +1428,34 @@ async function showAnticipoDetails(data) {
             });
 
             gastoDiv.querySelector(".edit-remove-gasto-btn").addEventListener("click", () => {
-                const validoInput = gastoDiv.querySelector(`input[name*='[valido]']`);
-                if (validoInput) {
-                    validoInput.value = '0';
-                    gastoDiv.style.display = 'none';
-                } else {
-                    gastoDiv.remove();
-                }
-                actualizarTotalGastosEdit('edit-');
+                showAlert({
+                    title: 'Confirmación',
+                    message: '¿Estás seguro de que desea eliminar este item, esta acción no se puede deshacer?',
+                    type: 'confirm',
+                    event: 'confirm'
+                });
+                
+                const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+                const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+
+                acceptButton.onclick = () => {
+                    //here antiguos
+                    const validoInput = gastoDiv.querySelector(`input[name*='[valido]']`);
+                    if (validoInput) {
+                        validoInput.value = '0';
+                        gastoDiv.style.display = 'none';
+                    } else {
+                        gastoDiv.remove();
+                    }
+                    actualizarTotalGastosEdit('edit-');
+                    const modal = document.getElementById('custom-alert-modal');
+                    modal.style.display = 'none';
+                };
+
+                cancelButton.onclick = () => {
+                    const modal = document.getElementById('custom-alert-modal');
+                    modal.style.display = 'none';
+                };
             });
         });
     } else {
@@ -1211,8 +1464,14 @@ async function showAnticipoDetails(data) {
         editCambioConcepto();
     }
 
+    // Se obtiene el boton de detalle de viaticos
+    const btnDetallesViaticos = document.querySelector(".viaticos-detalles");
+
     // Llenar viáticos y transporte
     if (data.detalles_viajes && data.detalles_viajes.length > 0) {
+        // Se mostrará el botón de detalles de viáticos, únicamene si hay información al respecto
+        btnDetallesViaticos.style.display = "block";
+
         editForm.querySelector("#edit-viajes").checked = true;
         editForm.querySelector("#edit-compras-menores").checked = false;
         editCambioConcepto();
@@ -1482,9 +1741,16 @@ async function showAnticipoDetails(data) {
         }));
         // Actualizar el total después de cargar todos los datos
         actualizarTotalGastosEdit('edit-');
+    }else{
+        // Se mostrará el botón de detalles de viáticos, únicamene si hay información al respecto
+        console.log("No hay detalles de viaticos");
+        btnDetallesViaticos.style.display = "none";
     }
 
-    colorModeSwitch.checked = false;
+    if(colorModeSwitch){
+        colorModeSwitch.checked = false;
+    }
+    
     editSubmitButton.disabled = true;
     editAddGastoBtn.style.display = 'none';
     editAddTabBtn.style.display = 'none';    
@@ -1503,10 +1769,17 @@ async function showAnticipoDetails(data) {
 
     if(rolUsuario==2 && (estadoAnticipo=='Nuevo' || estadoAnticipo=='Observado')){
         containerCambioEstado.style.display = 'flex';
-    }else if(rolUsuario==4 && estadoAnticipo=='Autorizado'){
-        containerCambioEstado.style.display = 'flex';
-    }else if(rolUsuario==5 && estadoAnticipo=='Autorizado Totalmente'){
-        containerCambioEstado.style.display = 'flex';
+    }else if(rolUsuario==5){
+        if(estadoAnticipo=='Autorizado'){
+            containerCambioEstado.style.display = 'flex';
+            document.querySelector(".btn-observar-anticipo").style.display='block';
+            document.querySelector(".btn-aprobar-totalmente").style.display='block';
+        }else if(estadoAnticipo=='Autorizado Totalmente'){
+            console.log("El anticipo se encuentra autorizado totalmente")
+            document.querySelector(".btn-abonar-anticipo").style.display='block';
+        }else{
+            containerCambioEstado.style.display = 'none';
+        }
     }else{
         containerCambioEstado.style.display = 'none';
     }
@@ -1542,6 +1815,68 @@ editAddTabBtn.addEventListener('click', async function() {
         cargoOptions += `<option value="${c.id}">${c.nombre}</option>`;
     });
 
+    // Obtener ítems de Transporte Provincial de Persona 1
+    const persona1TranspProvList = document.getElementById('edit-transp-prov-list-1');
+    let transpProvContent = '';
+    if (persona1TranspProvList) {
+        const items = persona1TranspProvList.querySelectorAll('.transp-prov-element');
+        items.forEach((item, itemIndex) => {
+
+            const oldIndex = 1; // Índice de Persona 1
+            const newItemIndex = itemIndex + 1; // Mantener el orden de los ítems
+            
+            // Obtener valores de Persona 1
+            const tipoTransporte = item.querySelector('input[name="edit-tipo-transporte-1-' + itemIndex + '"]:checked')?.value || '';
+            const ciudadOrigen = item.querySelector('[name="edit-detalles_viajes[0][transporte]['+itemIndex+'][ciudad_origen]"]')?.value || '';
+            const ciudadDestino = item.querySelector('[name="edit-detalles_viajes[0][transporte]['+itemIndex+'][ciudad_destino]"]')?.value || '';
+            const fecha = item.querySelector('[name="edit-detalles_viajes[0][transporte]['+itemIndex+'][fecha]"]')?.value || '';
+            const monto = item.querySelector('[name="edit-detalles_viajes[0][transporte]['+itemIndex+'][monto]"]')?.value || '';
+
+            const grupo = document.createElement("div");
+            grupo.classList.add("transp-prov-element");
+            grupo.innerHTML = `
+                <input type="hidden" name="edit-detalles_viajes[${newIndex-1}][transporte][${itemIndex}][valido]" value="1">
+                <div class="med-transporte">
+                    <div>
+                        <input type="radio" name="edit-tipo-transporte-${newIndex}-${itemIndex}" id="edit-terrestre-${newIndex}-${itemIndex}" value="terrestre" ${tipoTransporte === 'terrestre' ? 'checked' : ''} ${newIndex === 1 ? '' : 'readonly'}>
+                        <label for="edit-terrestre-${newIndex-1}-${itemIndex}">Terrestre</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="edit-tipo-transporte-${newIndex}-${itemIndex}" id="edit-aereo-${newIndex}-${itemIndex}" value="aereo" ${tipoTransporte === 'aereo' ? 'checked' : ''} ${newIndex === 1 ? '' : 'readonly'}>
+                        <label for="edit-aereo-${newIndex}-${itemIndex}">Aéreo</label>
+                    </div>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Ciudad Origen</span>
+                    <input type="text" class="form-control" name="edit-detalles_viajes[${newIndex-1}][transporte][${itemIndex}][ciudad_origen]" value="${ciudadOrigen}" ${newIndex === 1 ? '' : 'readonly'}>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Ciudad Destino</span>
+                    <input type="text" class="form-control" name="edit-detalles_viajes[${newIndex-1}][transporte][${itemIndex}][ciudad_destino]" value="${ciudadDestino}" ${newIndex === 1 ? '' : 'readonly'}>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Fecha</span>
+                    <input type="date" class="form-control" name="edit-detalles_viajes[${newIndex-1}][transporte][${itemIndex}][fecha]" value="${fecha}" required ${newIndex === 1 ? '' : 'readonly'}>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Monto</span>
+                    <input type="number" class="form-control gasto-viaje" name="edit-detalles_viajes[${newIndex-1}][transporte][${itemIndex}][monto]" value="${monto}" required ${newIndex === 1 ? '' : 'readonly'}>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Moneda</span>
+                    <select class="form-control" name="edit-detalles_viajes[${newIndex-1}][transporte][${itemIndex}][moneda]">
+                        <option value="PEN" selected>PEN</option>
+                    </select>
+                </div>
+            `;
+            transpProvContent += grupo.outerHTML;
+        });
+    }
+
+    const editNumDiasHospedaje = document.querySelector('[name="edit-dias-hospedaje-1"]').value;
+    const editNumDiasMovilidad = document.querySelector('[name="edit-dias-movilidad-1"]').value;
+    const editNumDiasAlimentacion = document.querySelector('[name="edit-dias-alimentacion-1"]').value;
+
     const newTabContent = document.createElement("div");
     newTabContent.className = "tab-content";
     newTabContent.id = `edit-persona-${newIndex}`;
@@ -1573,8 +1908,8 @@ editAddTabBtn.addEventListener('click', async function() {
         </h4>
         <hr class="separador-viaje-subtitle">
         <div class="viaje-element section-transporte-provincial-${newIndex}" style="display: none;">
-            <div class="transporte-prov-list" id="edit-transp-prov-list-${newIndex}"></div>
-            <div class="btn edit-adding-transp-provincial" data-persona="${newIndex}">Añadir</div>
+            <div class="transporte-prov-list" id="edit-transp-prov-list-${newIndex}">${transpProvContent}</div>
+            <div class="btn edit-adding-transp-provincial" data-persona="${newIndex}" ${newIndex === 1 ? '' : 'style="display: none;"'}>Añadir</div>
         </div>
         <h4 class="viaje-sub-title">Hospedaje
             <div class="icon-container toggle-icon" data-target=".section-hospedaje-${newIndex}">
@@ -1586,7 +1921,7 @@ editAddTabBtn.addEventListener('click', async function() {
         <div class="viaje-element section-hospedaje-${newIndex}" style="display: none;">
             <div class="modal-element">
                 <span class="placeholder">Días</span>
-                <input type="number" class="form-control" name="edit-dias-hospedaje-${newIndex}" readonly>
+                <input type="number" class="form-control" name="edit-dias-hospedaje-${newIndex}" value="${editNumDiasHospedaje}" readonly>
             </div>
             <div class="modal-element">
                 <span class="placeholder">Monto</span>
@@ -1603,7 +1938,7 @@ editAddTabBtn.addEventListener('click', async function() {
         <div class="viaje-element section-movilidad-${newIndex}" style="display: none;">
             <div class="modal-element">
                 <span class="placeholder">Días</span>
-                <input type="number" class="form-control" name="edit-dias-movilidad-${newIndex}" readonly>
+                <input type="number" class="form-control" name="edit-dias-movilidad-${newIndex}" value="${editNumDiasMovilidad}" readonly>
             </div>
             <div class="modal-element">
                 <span class="placeholder">Monto</span>
@@ -1620,7 +1955,7 @@ editAddTabBtn.addEventListener('click', async function() {
         <div class="viaje-element section-alimentacion-${newIndex}" style="display: none;">
             <div class="modal-element">
                 <span class="placeholder">Días</span>
-                <input type="number" class="form-control" name="edit-dias-alimentacion-${newIndex}" readonly>
+                <input type="number" class="form-control" name="edit-dias-alimentacion-${newIndex}" value="${editNumDiasAlimentacion}" readonly>
             </div>
             <div class="modal-element">
                 <span class="placeholder">Monto</span>
@@ -1712,41 +2047,63 @@ editAddTabBtn.addEventListener('click', async function() {
     actualizarBotonesEliminarEdit();
 });
 
+
 // Manejando la eliminación de personas - Edit Panel
 editTabsBody.addEventListener("click", function(e) {
     if (e.target.classList.contains("remove-persona-btn")) {
-        const index = parseInt(e.target.dataset.index, 10);
-        const tab = document.getElementById(`edit-tab-persona-${index}`);
-        const content = document.getElementById(`edit-persona-${index}`);
-        const validoInput = content.querySelector(`input[name*='[valido]']`);
+        
+        showAlert({
+            title: 'Confirmación',
+            message: '¿Estás seguro de que desea eliminar este item, esta acción no se puede deshacer?',
+            type: 'confirm',
+            event: 'confirm'
+        });
 
-        if (validoInput) {
-            validoInput.value = '0';
-            // Marcar transportes como inactivos
-            content.querySelectorAll('input[name*="transporte"][name*="valido"]').forEach(input => {
-                input.value = '0';
-            });
-            // Resetear días y montos de viáticos
-            ['hospedaje', 'movilidad', 'alimentacion'].forEach(tipo => {
-                const diasInput = content.querySelector(`input[name="edit-dias-${tipo}-${index}"]`);
-                const montoInput = content.querySelector(`input[name="edit-monto-${tipo}-${index}"]`);
-                if (diasInput) diasInput.value = '0';
-                if (montoInput) montoInput.value = '0';
-            });
-            content.style.display = 'none';
-            tab.style.display = 'none';
-        } else {
-            content.remove();
-            tab.remove();
-        }
-        editpersonaIndices = editpersonaIndices.filter(i => i !== index);
-        const firstTab = editTabsHeader.querySelector(".tab-button[data-tab]:not([style*='display: none'])");
-        if (firstTab) {
-            firstTab.classList.add('active');
-            document.getElementById(firstTab.dataset.tab).style.display = 'block';
-        }
-        actualizarBotonesEliminarEdit();
-        actualizarTotalGastosEdit('edit-');
+        const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+        const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+
+        acceptButton.onclick = () => {
+            const index = parseInt(e.target.dataset.index, 10);
+            const tab = document.getElementById(`edit-tab-persona-${index}`);
+            const content = document.getElementById(`edit-persona-${index}`);
+            const validoInput = content.querySelector(`input[name*='[valido]']`);
+
+            if (validoInput) {
+                validoInput.value = '0';
+                // Marcar transportes como inactivos
+                content.querySelectorAll('input[name*="transporte"][name*="valido"]').forEach(input => {
+                    input.value = '0';
+                });
+                // Resetear días y montos de viáticos
+                ['hospedaje', 'movilidad', 'alimentacion'].forEach(tipo => {
+                    const diasInput = content.querySelector(`input[name="edit-dias-${tipo}-${index}"]`);
+                    const montoInput = content.querySelector(`input[name="edit-monto-${tipo}-${index}"]`);
+                    if (diasInput) diasInput.value = '0';
+                    if (montoInput) montoInput.value = '0';
+                });
+                content.style.display = 'none';
+                tab.style.display = 'none';
+            } else {
+                content.remove();
+                tab.remove();
+            }
+            editpersonaIndices = editpersonaIndices.filter(i => i !== index);
+            const firstTab = editTabsHeader.querySelector(".tab-button[data-tab]:not([style*='display: none'])");
+            if (firstTab) {
+                firstTab.classList.add('active');
+                document.getElementById(firstTab.dataset.tab).style.display = 'block';
+            }
+            actualizarBotonesEliminarEdit();
+            actualizarTotalGastosEdit('edit-');
+
+            const modal = document.getElementById('custom-alert-modal');
+            modal.style.display = 'none';
+        };
+
+        cancelButton.onclick = () => {
+            const modal = document.getElementById('custom-alert-modal');
+            modal.style.display = 'none';
+        };
     }
 });
 
@@ -1844,9 +2201,9 @@ function toggleEditMode(isEditMode) {
     const inputs = editForm.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), select');
 
     inputs.forEach(input => {
-        if (['edit-solicitante', 'edit-dni-solicitante', 'edit-departamento', 'edit-cargo', 'edit-fecha-solicitud'].includes(input.id)) {
+        if (['edit-solicitante', 'edit-dni-solicitante', 'edit-departamento', 'edit-cargo', 'edit-fecha-solicitud', 'edit-nombre-proyecto'].includes(input.id)) {
             input.readOnly = true;
-            input.disabled = true;
+            // input.disabled = true;
         } else if (input.name.includes('edit-detalles_gastos') || input.name.includes('edit-detalles_viajes')) {
             // Habilitar todos los campos de detalles_gastos y detalles_viajes en modo edición
             input.readOnly = !isEditMode;
@@ -1879,10 +2236,13 @@ function toggleEditMode(isEditMode) {
     //document.querySelector(".edit-adding-transp-provincial").style.display = isEditMode && isEditable ? 'block' : 'none';
 }
 
-// Manejar el interruptor de modo
-colorModeSwitch.addEventListener('change', function() {
-    toggleEditMode(this.checked);
-});
+// Manejar el interruptor de modo, si existe
+if(colorModeSwitch){
+    colorModeSwitch.addEventListener('change', function() {
+        toggleEditMode(this.checked);
+    });
+}
+
 
 // Selección y cambio de vista en sección de Concepto
 const editOpcionesConcepto = document.querySelectorAll("input[name='edit-concepto']");
@@ -1917,37 +2277,57 @@ editAnticipoModal.querySelector('.btn-close-modal').addEventListener('click', fu
 // Manejar envío del formulario
 editForm.addEventListener('submit', async function(event) {
     event.preventDefault();
-    const formData = new FormData(this);
-    try {
-        const response = await fetch('anticipos/update', {
-            method: 'POST',
-            body: formData
-        });
-        const result = await response.json();
-        if (result.success) {
-            showAlert({
-                title: 'Completado',
-                message: `El anticipo fue actualizado correctamente.`,
-                type: 'success',
-                event: 'envio'
+    showAlert({
+        title: 'Confirmación',
+        message: '¿Estás seguro de que desea culminar con la actualización de este anticipo?',
+        type: 'confirm',
+        event: 'confirm'
+    });
+
+    const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+    const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+
+    acceptButton.onclick = async () => {
+
+        // here here here here
+        
+        const formData = new FormData(this);
+        try {
+            const response = await fetch('anticipos/update', {
+                method: 'POST',
+                body: formData
             });
-            editAnticipoModal.style.display = 'none';
-        } else {
+            const result = await response.json();
+            if (result.success) {
+                showAlert({
+                    title: 'Completado',
+                    message: `El anticipo fue actualizado correctamente.`,
+                    type: 'success',
+                    event: 'envio'
+                });
+                //editAnticipoModal.style.display = 'none';
+            } else {
+                showAlert({
+                    title: 'Error',
+                    message: `El anticipo no pudo ser actualizado. "${result.error}".`,
+                    type: 'error',
+                    event: 'envio'
+                });
+            }
+        } catch (error) {
             showAlert({
                 title: 'Error',
-                message: `El anticipo no pudo ser actualizado. "${result.error}".`,
+                message: `No se pudo enviar la información del anticipo.`,
                 type: 'error',
                 event: 'envio'
             });
         }
-    } catch (error) {
-        showAlert({
-            title: 'Error',
-            message: `No se pudo enviar la información del anticipo.`,
-            type: 'error',
-            event: 'envio'
-        });
-    }
+    };
+
+    cancelButton.onclick = () => {
+        const modal = document.getElementById('custom-alert-modal');
+        modal.style.display = 'none';
+    };
 });
 
 // Actualizar visibilidad de botones de eliminación de personas
@@ -1970,7 +2350,7 @@ if(btnAutorizarAprobador){
             title: 'Confirmación',
             message: '¿Estás seguro de que deseas autorizar este anticipo? Esta acción no se puede deshacer.',
             type: 'confirm',
-            event: 'confirm-comment'
+            event: 'confirm'
         });
         
         const acceptButton = document.getElementById('custom-alert-btn-aceptar');
@@ -1978,11 +2358,11 @@ if(btnAutorizarAprobador){
         
         acceptButton.onclick = async () => {
 
-            const comentario = document.getElementById('custom-alert-comentario').value;
+            // const comentario = document.getElementById('custom-alert-comentario').value;
             const formData = new FormData();
 
             formData.append("id", idAnticipo);
-            formData.append("comentario", comentario);
+            formData.append("comentario", 'Anticipo Aprobado');
 
             try {
                 const response = await fetch('anticipos/autorizar', {
@@ -1994,7 +2374,7 @@ if(btnAutorizarAprobador){
                 if (result.success) {
                     showAlert({
                         title: 'Completado',
-                        message: `El anticipo fue actualizado correctamente.`,
+                        message: `El anticipo fue autorizado correctamente.`,
                         type: 'success',
                         event: 'envio'
                     });
@@ -2002,7 +2382,7 @@ if(btnAutorizarAprobador){
                 } else {
                     showAlert({
                         title: 'Error',
-                        message: `El anticipo no pudo ser actualizado. "${result.error}".`,
+                        message: `El anticipo no pudo ser autorizado. "${result.error}".`,
                         type: 'error',
                         event: 'envio'
                     });
@@ -2035,7 +2415,7 @@ if(btnAutorizarTotalmente){
             title: 'Confirmación',
             message: '¿Estás seguro de que desea autorizar totalmente este anticipo? Esta acción no se puede deshacer.',
             type: 'confirm',
-            event: 'confirm-comment'
+            event: 'confirm'
         });
         
         const acceptButton = document.getElementById('custom-alert-btn-aceptar');
@@ -2043,11 +2423,9 @@ if(btnAutorizarTotalmente){
 
         acceptButton.onclick = async () => {
 
-            const comentario = document.getElementById('custom-alert-comentario').value;
             const formData = new FormData();
 
             formData.append("id", idAnticipo);
-            formData.append("comentario", comentario);
 
             try {
                 const response = await fetch('anticipos/autorizarTotalmente', {
@@ -2098,7 +2476,7 @@ if(btnObservarAnticipo){
         e.preventDefault();
         showAlert({
             title: 'Confirmación',
-            message: '¿Estás seguro de que desea marcar este anticipo como observado? Esta acción no se puede deshacer.',
+            message: '¿Estás seguro de que desea marcar este anticipo como observado?',
             type: 'confirm',
             event: 'confirm-comment'
         });
@@ -2108,9 +2486,19 @@ if(btnObservarAnticipo){
         
         acceptButton.onclick = async () => {
 
-            const comentario = document.getElementById('custom-alert-comentario').value;
-            const formData = new FormData();
+            const comentario = document.getElementById('custom-alert-comentario').value.trim();
 
+            // Validación: comentario obligatorio con al menos 6 caracteres
+            if (!comentario || comentario.length < 6) {
+                showAlert({
+                    title: 'Error',
+                    message: 'El comentario es obligatorio y debe tener al menos 6 caracteres.',
+                    type: 'error'
+                });
+                return; // No cerrar el modal ni proceder
+            }
+
+            const formData = new FormData();
             formData.append("id", idAnticipo);
             formData.append("comentario", comentario);
 
@@ -2162,20 +2550,18 @@ if(btnAbonarAnticipo){
         e.preventDefault();
         showAlert({
             title: 'Confirmación',
-            message: '¿Estás seguro de que desea marcar este anticipo como observado? Esta acción no se puede deshacer.',
+            message: '¿Estás seguro de que desea marcar este anticipo como abonado?.',
             type: 'confirm',
-            event: 'confirm-comment'
+            event: 'confirm'
         });
 
         const acceptButton = document.getElementById('custom-alert-btn-aceptar');
         const cancelButton = document.getElementById('custom-alert-btn-cancelar');
         
         acceptButton.onclick = async () => {
-            const comentario = document.getElementById('custom-alert-comentario').value;
             const formData = new FormData();
 
             formData.append("id", idAnticipo);
-            formData.append("comentario", comentario);
 
             try {
                 const response = await fetch('anticipos/abonarAnticipo', {
@@ -2215,3 +2601,15 @@ if(btnAbonarAnticipo){
         };
     })
 }
+
+document.querySelector(".viaticos-detalles").addEventListener("click", function() {
+    let idAnticipo = document.getElementById("edit-id-anticipo").value;
+    if (idAnticipo) {
+        const detalleWindow = window.open(`detallesViaticos?id_anticipo=${idAnticipo}`, '_blank');
+        if (detalleWindow) {
+            detalleWindow.focus();
+        } else {
+            alert('Por favor, permite las ventanas emergentes para ver el informe.');
+        }
+    }
+});

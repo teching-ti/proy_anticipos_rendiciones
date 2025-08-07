@@ -1,3 +1,6 @@
+07082025
+El sistema cuenta con las rendiciones actualizadas y con lso nombres de estado según las observaciones presentadas. Se ha configurado el dominio correcto junto con su correo, se requiere de programar el envío de notificaciones y finalizar con el guardado de items basados en facturas para procesos de rendiciones
+
 18072025. 
 Se completarn las funcionalidades para cambios de estado de anticipos y rendiciones. Se agregó la ventana para colocar un mensaje tras realizar un cambio de estado para anticipos, para rendiciones se tiene el mismo proceso. Se deberá consultar si será obligatorio colocar texto dentro de esta casilla de comentarios
 (Trabajar en los actualizaciones correspondientes y observaciones presentadas por Ernesto). Día lunes 21, se deberá de trabajar en los detalles de facturas

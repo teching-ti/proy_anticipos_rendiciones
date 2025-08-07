@@ -58,7 +58,7 @@ class RendicionesModel {
     public function getRendicionesByRole($user_id, $rol) {
         try {
             $query = "SELECT r.id, r.id_anticipo, a.departamento, a.solicitante_nombres, a.departamento_nombre, a.codigo_sscc, a.nombre_proyecto,
-                             s.nombre AS sscc_nombre, r.fecha_inicio, r.fecha_rendicion, r.monto_rendido, 
+                             a.motivo_anticipo, a.monto_total_solicitado, s.nombre AS sscc_nombre, r.fecha_inicio, r.fecha_rendicion, r.monto_rendido, 
                              h.estado AS estado, h.comentario AS comentario, u.nombre_usuario AS historial_usuario_nombre,
                              h.fecha AS historial_fecha, h.id_usuario AS historial_usuario_id
                       FROM tb_rendiciones r
@@ -209,6 +209,13 @@ class RendicionesModel {
                 move_uploaded_file($_FILES['archivo']['tmp_name'], $uploadDir . $archivoNombre);
             }
 
+            $montoTotalRendido = $this->getMontoTotalRendidoByRendicion($id_rendicion);
+            // Actualizar tb_rendiciones
+            $queryUpdate = "UPDATE tb_rendiciones SET monto_rendido = :monto_rendido WHERE id = :id_rendicion";
+            $stmtUpdate = $this->db->prepare($queryUpdate);
+            $stmtUpdate->execute([':monto_rendido' => $montoTotalRendido, ':id_rendicion' => $id_rendicion]);
+
+
             $this->db->commit();
             return true;
         } catch (PDOException $e) {
@@ -223,10 +230,10 @@ class RendicionesModel {
     public function getDetallesViajesByAnticipo($id_anticipo) {
         try {
             error_log("Buscando viáticos para id_anticipo: $id_anticipo");
-            $query = "SELECT dv.id, vc.nombre AS descripcion, a.motivo_anticipo AS motivo, dv.moneda, dv.monto AS importe, dv.dias, vp.nombre_persona
+            $query = "SELECT dv.id, ct.nombre AS descripcion, a.motivo_anticipo AS motivo, dv.moneda, dv.monto AS importe, dv.dias, vp.nombre_persona
                   FROM tb_detalles_viajes dv
                   JOIN tb_viajes_personas vp ON dv.id_viaje_persona = vp.id
-                  JOIN tb_viaticos_concepto vc ON dv.id_concepto = vc.id
+                  JOIN tb_categorias_tarifario ct ON dv.id_concepto = ct.id
                   JOIN tb_anticipos a ON vp.id_anticipo = a.id
                   WHERE vp.id_anticipo = :id_anticipo AND vp.valido = 1 AND dv.monto > 0
                   AND UPPER(dv.moneda) = 'PEN'";
@@ -294,6 +301,12 @@ class RendicionesModel {
                 }
                 move_uploaded_file($_FILES['archivo']['tmp_name'], $uploadDir . $archivoNombre);
             }
+
+            $montoTotalRendido = $this->getMontoTotalRendidoByRendicion($id_rendicion);
+            // Actualizar tb_rendiciones
+            $queryUpdate = "UPDATE tb_rendiciones SET monto_rendido = :monto_rendido WHERE id = :id_rendicion";
+            $stmtUpdate = $this->db->prepare($queryUpdate);
+            $stmtUpdate->execute([':monto_rendido' => $montoTotalRendido, ':id_rendicion' => $id_rendicion]);
 
             $this->db->commit();
             return true;
@@ -378,6 +391,12 @@ class RendicionesModel {
                 move_uploaded_file($_FILES['archivo']['tmp_name'], $uploadDir . $archivoNombre);
             }
 
+            $montoTotalRendido = $this->getMontoTotalRendidoByRendicion($id_rendicion);
+            // Actualizar tb_rendiciones
+            $queryUpdate = "UPDATE tb_rendiciones SET monto_rendido = :monto_rendido WHERE id = :id_rendicion";
+            $stmtUpdate = $this->db->prepare($queryUpdate);
+            $stmtUpdate->execute([':monto_rendido' => $montoTotalRendido, ':id_rendicion' => $id_rendicion]);
+
             $this->db->commit();
             return true;
         } catch (PDOException $e) {
@@ -446,7 +465,7 @@ class RendicionesModel {
 
             // Insertar en tb_historial_rendiciones
             $queryInsert = "INSERT INTO tb_historial_rendiciones (id_rendicion, estado, fecha, id_usuario, comentario) 
-                            VALUES (:id_rendicion, 'Aprobado', NOW(), :id_usuario, 'Rendición Aprobada')";
+                            VALUES (:id_rendicion, 'Autorizado', NOW(), :id_usuario, 'Rendición Autorizada')";
             $stmtInsert = $this->db->prepare($queryInsert);
             $stmtInsert->execute([':id_rendicion' => $id_rendicion, ':id_usuario' => $id_usuario]);
 
@@ -454,7 +473,7 @@ class RendicionesModel {
             return true;
         } catch (PDOException $e) {
             $this->db->rollBack();
-            error_log('Error al aprobar rendición: ' . $e->getMessage());
+            error_log('Error al autorizar rendición: ' . $e->getMessage());
             return false;
         }
     }
@@ -483,7 +502,7 @@ class RendicionesModel {
         try {
             $this->db->beginTransaction();
             $query = "INSERT INTO tb_historial_rendiciones (id_rendicion, estado, fecha, id_usuario, comentario) 
-                    VALUES (:id_rendicion, 'Cerrado', NOW(), :id_usuario, :comentario)";
+                    VALUES (:id_rendicion, 'Rendido', NOW(), :id_usuario, :comentario)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 ':id_rendicion' => $id_rendicion,

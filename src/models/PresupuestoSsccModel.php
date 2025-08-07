@@ -80,7 +80,8 @@ class PresupuestoSsccModel {
     // Obtener todos los presupuestos registrados.
     public function getAllPresupuestos(){
         try{
-            $query = "SELECT p.id, p.codigo_sscc, s.nombre, p.saldo_inicial, p.saldo_final, p.saldo_disponible, p.activo FROM tb_presupuestos_sscc p LEFT JOIN tb_sscc s ON p.codigo_sscc= s.codigo";
+            //$query = "SELECT p.id, p.codigo_sscc, s.nombre, p.saldo_inicial, p.saldo_final, p.saldo_disponible, p.activo FROM tb_presupuestos_sscc p LEFT JOIN tb_sscc s ON p.codigo_sscc= s.codigo";
+            $query = "SELECT p.id, p.codigo_sscc, s.nombre, p.saldo_inicial, p.saldo_final, p.saldo_disponible, p.activo, COALESCE(( SELECT SUM(monto) FROM tb_movimientos_presupuesto mp WHERE mp.id_presupuesto = p.id AND mp.tipo_movimiento = 2 ), 0.00) AS saldo_abonado FROM tb_presupuestos_sscc p LEFT JOIN tb_sscc s ON p.codigo_sscc = s.codigo";
             $stmt = $this->db->prepare($query);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);

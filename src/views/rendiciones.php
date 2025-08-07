@@ -14,35 +14,52 @@ unset($_SESSION['success'], $_SESSION['error']);
     <!-- Tabla de rendiciones -->
     <section class="section-table">
         <h2>Listado de Rendiciones</h2>
+        <div class="help-panel">
+            <div class="container-search-input">
+                <span class="placeholder">Buscar</span>
+                <input type="text" class="form-control" id="input-buscar-rendicion" name="input-buscar-rendicion">
+            </div>
+            <div class="help-panel-buttons">
+                <div id="btn-refresh" class="btn btn-refresh">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </div>
+            </div>
+        </div>
 
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead class="table-head">
                     <tr>
-                        <th>Id</th>
+                        <th style="display: none;">Id</th>
                         <th>Id. Anticipo</th>
                         <th>Nombre y apellido</th>
                         <th>Departamento</th>
                         <th>SSCC</th>
+                        <th>Motivo&nbsp;del&nbsp;Anticipo</th>
                         <th title="Fecha de cuando se registró la rendición automáticamente, tras haber registrado el abono">Inicio</th>
                         <th title="Fecha en la que el usuario debería de haber terminado de rendir el anticipo correspondiente. (3 días tras haberse generado el abono)">Rendición estimada</th>
+                        <th>Monto anticipo</th>
+                        <th>Monto rendido</th>
                         <th>Estado</th>
                         <th title="Cambio de estado más reciente">Ult. Actualizacion</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="table-body">
                     <?php if (empty($rendiciones_data)): ?>
-                        <tr><td colspan="<?php echo isset($_SESSION['rol']) && $_SESSION['rol'] == 2 ? 9 : 8; ?>">No hay anticipos registrados</td></tr>
+                        <tr><td colspan="<?php echo isset($_SESSION['rol']) && $_SESSION['rol'] == 2 ? 9 : 8; ?>">No hay rendiciones registradas</td></tr>
                     <?php else: ?>
                         <?php foreach ($rendiciones_data as $rendicion): ?>
                         <tr>
-                            <td data-label="Id"><?php echo htmlspecialchars($rendicion['id'], ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td style="display: none;" data-label="Id"><?php echo htmlspecialchars($rendicion['id'], ENT_QUOTES, 'UTF-8'); ?></td>
                             <td data-label="Id. Anticipo"><?php echo htmlspecialchars($rendicion['id_anticipo'], ENT_QUOTES, 'UTF-8'); ?></td>
                             <td data-label="Nombre y Apellido"><?php echo htmlspecialchars($rendicion['solicitante_nombres'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
                             <td data-label="Departamento"><?php echo htmlspecialchars($rendicion['departamento_nombre'], ENT_QUOTES, 'UTF-8'); ?></td>
                             <td data-label="SSCC" title="<?php echo htmlspecialchars($rendicion['nombre_proyecto'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($rendicion['codigo_sscc'], ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td data-label="Motivo del Anticipo" title="<?php echo htmlspecialchars($rendicion['motivo_anticipo'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($rendicion['motivo_anticipo'], ENT_QUOTES, 'UTF-8'); ?></td>
                             <td data-label="Inicio"><?php echo htmlspecialchars($rendicion['fecha_inicio'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
                             <td data-label="Rendicion estimada"><?php echo htmlspecialchars($rendicion['fecha_rendicion'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars($rendicion['monto_total_solicitado'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars($rendicion['monto_rendido'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
                             <td data-label="Estado" class="td-estado">
                                 <span class="span-td-estado <?=strtolower($rendicion['estado']);?>" title="<?=ucfirst($rendicion['comentario']);?>"><?php echo htmlspecialchars($rendicion['estado'], ENT_QUOTES, 'UTF-8'); ?>
                             </span></td>
@@ -181,11 +198,11 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <div class="modal-footer">
                             <div class="btn btn-default" onclick="prevStep()"><i class="fa-solid fa-caret-left"></i> Atrás</div>
                             <?php if($_SESSION['rol']==2): ?>
-                                <div class="btn btn-default" id="btn-aprobar-rendicion" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Aprobar</div> 
+                                <div id="btn-aprobar-rendicion" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Autorizar</div> 
                             <?php endif;?>
                             <?php if($_SESSION['rol']==4): ?>
-                                <div class="btn btn-default" id="btn-cerrar-rendicion" data-contador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Cerrar</div>
-                                <div class="btn btn-default-clear" id="btn-observar-rendicion" data-contador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Observar</div> 
+                                <div id="btn-observar-rendicion" data-contador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Observar</div>
+                                <div id="btn-cerrar-rendicion" data-contador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Finalizar</div>
                             <?php endif;?>
                         </div>
                     </div>

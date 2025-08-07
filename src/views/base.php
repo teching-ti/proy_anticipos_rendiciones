@@ -49,7 +49,7 @@
                 </li>
                 <li>
                     <a href="anticipos" class="link-text">
-                        <i class="fa-solid fa-hand-holding-dollar fa-lg"></i>
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
                         <span>Anticipos</span>
                     </a>
                 </li>
@@ -65,7 +65,7 @@
                         echo "
                         <li>
                             <a href='usuarios' class='link-text'>
-                                <i class='fa-solid fa-users-line fa-lg'></i>
+                                <i class='fa-solid fa-users-line'></i>
                                 <span>Usuarios</span>
                             </a>
                         </li>";
@@ -83,6 +83,14 @@
                         <a href='presupuestos' class='link-text'>
                             <i class='fa-solid fa-money-bill-wave'></i>
                             <span>Presupuestos</span>
+                        </a>
+                    </li>
+                <?php endif; ?>
+                <?php if($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
+                    <li>
+                        <a href='tarifario' class='link-text'>
+                            <i class="fa-solid fa-clipboard-list"></i>
+                            <span>Tarifario</span>
                         </a>
                     </li>
                 <?php endif; ?>
@@ -107,10 +115,13 @@
                 <?php if ($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
                     <li><a href="presupuestos">Presupuestos</a></li>
                 <?php endif; ?>
+                <?php if ($_SESSION['rol'] == 1 || $_SESSION['rol'] == 4): ?>
+                    <li><a href="tarifario">Tarifario</a></li>
+                <?php endif; ?>
                 
             </ul>
             <div class="close-responsive-menu" id="close-responsive-menu">
-                <span><i class="fa-regular fa-circle-xmark fa-2xl"></i></span>
+                <span><i class="fa-regular fa-circle-xmark fa-xl"></i></span>
             </div>
         </nav>
     </div>
@@ -120,7 +131,7 @@
             <button class="btn-menu-responsive" id="open-responsive-menu">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <div id="user-first-info" class="user-first-info" data-info = "<?php echo htmlspecialchars($_SESSION['rol'], ENT_QUOTES, 'UTF-8'); ?>">
+            <div id="user-first-info" class="user-first-info" data-info = "<?php echo htmlspecialchars($_SESSION['rol'], ENT_QUOTES, 'UTF-8');?>" data-user = <?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');?> >
                 <?php echo htmlspecialchars($_SESSION['nombre_usuario'], ENT_QUOTES, 'UTF-8'); ?>
                 <i class="fa-solid fa-caret-down"></i>
             </div>
@@ -128,18 +139,6 @@
                 <p><strong>Departamento:</strong> <?php echo htmlspecialchars($_SESSION['trabajador']['departamento_nombre'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></p>    
                 <p><strong>Cargo:</strong> <?php echo htmlspecialchars($_SESSION['trabajador']['cargo'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></p>
                 <p><strong>Correo:</strong> <?php echo htmlspecialchars($_SESSION['trabajador']['correo'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></p>
-                <?php
-                    // $rol = "";
-                    // if($_SESSION['rol']==1){
-                    //     $rol = "Administrador";
-                    // }else if($_SESSION['rol']==2){
-                    //     $rol = "Aprobador";
-                    // }else if($_SESSION['rol']==3){
-                    //     $rol = "Contador";
-                    // }else{
-                    //     $rol = "Usuario";
-                    // }
-                ?>
                 <p><strong>Rol:</strong> <?php echo htmlspecialchars($_SESSION['rol_nombre'], ENT_QUOTES, 'UTF-8'); ?></p>
                 <p class="line-exit-session">
                     <a href="/proy_anticipos_rendiciones/logout" class="exit-session">

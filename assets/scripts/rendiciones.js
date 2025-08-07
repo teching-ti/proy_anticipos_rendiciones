@@ -150,6 +150,8 @@ document.addEventListener("DOMContentLoaded", function(){
                 guardarItemIndividual(detalle, idRendicion, itemContainer).then(() => {
                     guardarItemBtn.disabled = false;
                     updateTotals(idRendicion);
+                    guardarItemBtn.style.backgroundColor = "#4cd137";
+                    guardarItemBtn.innerHTML = '<i class="fa-solid fa-check"></i> Guardar ítem';
                 }).catch(error => {
                     guardarItemBtn.disabled = false;
                     console.error('Error en guardado: ', error);
@@ -158,6 +160,8 @@ document.addEventListener("DOMContentLoaded", function(){
                 guardarItemViaje(detalle, idRendicion, itemContainer).then(() => {
                     guardarItemBtn.disabled = false;
                     updateTotals(idRendicion);
+                    guardarItemBtn.style.backgroundColor = "#4cd137";
+                    guardarItemBtn.innerHTML = '<i class="fa-solid fa-check"></i> Guardar ítem';
                 }).catch(error => {
                     guardarItemBtn.disabled = false;
                     console.error('Error en guardado: ', error);
@@ -166,6 +170,8 @@ document.addEventListener("DOMContentLoaded", function(){
                 guardarItemTransporte(detalle, idRendicion, itemContainer).then(() => {
                     guardarItemBtn.disabled = false;
                     updateTotals(idRendicion);
+                                        guardarItemBtn.style.backgroundColor = "#4cd137";
+                    guardarItemBtn.innerHTML = '<i class="fa-solid fa-check"></i> Guardar ítem';
                 }).catch(error => {
                     guardarItemBtn.disabled = false;
                     console.error('Error en guardado: ', error);
@@ -181,7 +187,7 @@ document.addEventListener("DOMContentLoaded", function(){
     function handleAprobarRendicion(idRendicion) {
         showAlert({
             title: 'Confirmación',
-            message: `¿Está seguro de aprobar la rendición #${idRendicion}?`,
+            message: `¿Está seguro de autorizar la rendición #${idRendicion}?`,
             type: 'confirm',
             event: 'confirm'
         });
@@ -190,12 +196,12 @@ document.addEventListener("DOMContentLoaded", function(){
         const cancelButton = document.getElementById('custom-alert-btn-cancelar');
 
         acceptButton.onclick = async function() {
+            // valores necesarios para poder aprobar una rendición
+            // obtiene el estado actual de la rendición
             const resEstado = await fetch(`rendiciones/getLatestEstadoRendicion?id_rendicion=${encodeURIComponent(idRendicion)}`);
             const idUsuarioAprobador = document.getElementById("btn-aprobar-rendicion").getAttribute("data-aprobador");
-            console.log(idUsuarioAprobador);
             const estadoData = await resEstado.json();
             const latestEstado = estadoData.estado || 'Nuevo';
-
             if (!['Nuevo', 'Observado'].includes(latestEstado)) {
                 showAlert({
                     title: 'Error',
@@ -204,6 +210,19 @@ document.addEventListener("DOMContentLoaded", function(){
                 });
                 const modal = document.getElementById('custom-alert-modal');
                 modal.style.display = 'none';
+                return;
+            }
+            
+            const resMontoRendido = await fetch(`rendiciones/getMontoTotalRendidoByRendicion?id_rendicion=${encodeURIComponent(idRendicion)}`);
+            const montoRendido = await resMontoRendido.json();
+            if (montoRendido<1) {
+                showAlert({
+                    title: 'Error',
+                    message: 'Esta rendición no puede ser aprobada, debido a que presenta como monto rendido "0".',
+                    type: 'error'
+                });
+                //const modal = document.getElementById('custom-alert-modal');
+                //modal.style.display = 'none';
                 return;
             }
 
@@ -220,7 +239,7 @@ document.addEventListener("DOMContentLoaded", function(){
                 if (data.success) {
                     showAlert({
                         title: 'Acción Completada',
-                        message: 'Rendición aprobada correctamente.',
+                        message: 'Rendición autorizada correctamente.',
                         type: 'success',
                         event: 'envio'
                     });
@@ -228,16 +247,16 @@ document.addEventListener("DOMContentLoaded", function(){
                 } else {
                     showAlert({
                         title: 'Error',
-                        message: 'Error al aprobar la rendición: ' + (data.error || 'Intente de nuevo'),
+                        message: 'Error al autorizar la rendición: ' + (data.error || 'Intente de nuevo'),
                         type: 'error'
                     });
                 }
             })
             .catch(error => {
-                console.error('Error al aprobar rendición: ', error);
+                console.error('Error al autorizar rendición: ', error);
                 showAlert({
                     title: 'Error',
-                    message: 'Error al aprobar la rendición.',
+                    message: 'Error al autorizar la rendición.',
                     type: 'error'
                 });
             });
@@ -256,17 +275,18 @@ document.addEventListener("DOMContentLoaded", function(){
     function handleCerrarRendicion(idRendicion) {
         showAlert({
             title: 'Confirmación',
-            message: `¿Está seguro de cerrar la rendición #${idRendicion}?`,
+            message: `¿Está seguro de finalizar la rendición #${idRendicion}?`,
             type: 'confirm',
             event: 'confirm'
         });
         
         const acceptButton = document.getElementById('custom-alert-btn-aceptar');
         const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+        const modal = document.getElementById('custom-alert-modal');
 
         acceptButton.onclick = async function() {
             const idUsuarioCierre = document.getElementById("btn-cerrar-rendicion").getAttribute("data-contador");
-            const comentario = 'Rendición cerrada'; // Comentario fijo o vacío si no lo requiere
+            const comentario = 'Rendición finalizada'; // Comentario fijo o vacío si no lo requiere
             const idAnticipo = document.getElementById("id-anticipo").value;
 
             const formData = new FormData();
@@ -284,7 +304,7 @@ document.addEventListener("DOMContentLoaded", function(){
                 if (data.success) {
                     showAlert({
                         title: 'Acción Completada',
-                        message: 'Rendición cerrada correctamente.',
+                        message: 'Rendición finalizada correctamente.',
                         type: 'success',
                         event: 'envio'
                     });
@@ -292,16 +312,16 @@ document.addEventListener("DOMContentLoaded", function(){
                 } else {
                     showAlert({
                         title: 'Error',
-                        message: 'Error al cerrar la rendición: ' + (data.error || 'Intente de nuevo'),
+                        message: 'Error al finalizar la rendición: ' + (data.error || 'Intente de nuevo'),
                         type: 'error'
                     });
                 }
             })
             .catch(error => {
-                console.error('Error al cerrar rendición: ', error);
+                console.error('Error al finalizar rendición: ', error);
                 showAlert({
                     title: 'Error',
-                    message: 'Error al cerrar la rendición.',
+                    message: 'Error al finalizar la rendición.',
                     type: 'error'
                 });
             });
@@ -318,7 +338,7 @@ document.addEventListener("DOMContentLoaded", function(){
     function handleObservarRendicion(idRendicion) {
         showAlert({
             title: 'Confirmación',
-            message: `¿Marcar rendición #${idRendicion} como observada`,
+            message: `Marcando rendición #${idRendicion} como observada. Deberá de ingresar un comentario para completar el procedimiento`,
             type: 'confirm',
             event: 'confirm-comment'
         });
@@ -329,13 +349,13 @@ document.addEventListener("DOMContentLoaded", function(){
 
         acceptButton.onclick = async function() {
             const idUsuarioObservador = document.getElementById("btn-observar-rendicion").getAttribute("data-contador");
-            const comentario = document.getElementById('custom-alert-comentario').value;
+            const comentario = document.getElementById('custom-alert-comentario').value.trim();
 
             // Validación: al menos 5 letras si hay comentario
             if (comentario !== 'Sin comentario' && comentario.length < 5) {
                 showAlert({
                     title: 'Error',
-                    message: 'El comentario debe tener al menos 5 letras.',
+                    message: 'Por favor, escriba la obeservación correspondiente.',
                     type: 'error'
                 });
                 return;
@@ -401,7 +421,7 @@ document.addEventListener("DOMContentLoaded", function(){
         return new Promise((resolve, reject) => {
             showAlert({
                 title: 'Confirmación',
-                message: `¿Está seguro de actualizar la rendición ${id_rendicion}.`,
+                message: `¿Está seguro de guardar el item correspondiente a la rendición ${id_rendicion}.`,
                 type: 'confirm',
                 event: 'confirm'
             });
@@ -475,7 +495,7 @@ document.addEventListener("DOMContentLoaded", function(){
         return new Promise((resolve, reject) => {
             showAlert({
                 title: 'Confirmación',
-                message: `¿Está seguro de actualizar la rendición ${id_rendicion}.`,
+                message: `¿Está seguro de guardar este item correspondiente a la rendición ${id_rendicion}.`,
                 type: 'confirm',
                 event: 'confirm'
             });
@@ -550,7 +570,7 @@ document.addEventListener("DOMContentLoaded", function(){
         return new Promise((resolve, reject) => {
             showAlert({
                 title: 'Confirmación',
-                message: `¿Está seguro de actualizar la rendición ${id_rendicion}.`,
+                message: `¿Está seguro de que desea guardar este item correspondiente a la rendición ${id_rendicion}.`,
                 type: 'confirm',
                 event: 'confirm'
             });
@@ -724,7 +744,7 @@ document.addEventListener("DOMContentLoaded", function(){
             const btnObservar = document.getElementById("btn-observar-rendicion");
             const btnCerrar = document.getElementById("btn-cerrar-rendicion");
             if(btnObservar && btnCerrar){
-                const isEditable = ['Aprobado'].includes(latestEstado);
+                const isEditable = ['Autorizado'].includes(latestEstado);
                 btnObservar.style.display = isEditable ? 'block' : 'none';
                 btnObservar.style.opacity = isEditable ? '1' : '0';
                 btnCerrar.style.display = isEditable ? 'block' : 'none';
@@ -810,4 +830,25 @@ document.addEventListener("DOMContentLoaded", function(){
     window.prevStep = prevStep;
     //inicializar first step
     showStep(currentStep);
+
+    // funcionalidad de reload
+    const btnRefresh = document.getElementById("btn-refresh");
+    btnRefresh.addEventListener("click", ()=>{
+        window.location.reload();
+    })
+
+    // función de búsqueda
+    document.getElementById("input-buscar-rendicion").addEventListener("input", function() {
+        const filter = this.value.toLowerCase();
+        console.log(filter);
+
+        const rows = document.querySelectorAll("#table-body tr");
+
+        rows.forEach(row => {
+            // convierte el texto de la fila en un solo string para buscar coincidencias en cualquier columna
+            const rowText = row.textContent.toLowerCase();
+            // muestra u oculta la fila según si coincide o no con el filtro
+            row.style.display = rowText.includes(filter) ? "" : "none";
+        });
+    });
 })

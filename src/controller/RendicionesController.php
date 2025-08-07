@@ -219,11 +219,18 @@ class RendicionesController {
     }
 
     public function aprobarRendicion() {
+        if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 2) {
+            error_log('No tiene permisos para realizar este tipo de actividad');
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'No tiene permisos para realizar este tipo de actividad']);
+            exit;
+        }
+
         if (isset($_POST['id_rendicion']) && isset($_POST['id_usuario'])) {
             $model = new RendicionesModel();
             $success = $model->aprobarRendicion($_POST['id_rendicion'], $_POST['id_usuario']);
             header('Content-Type: application/json');
-            echo json_encode(['success' => $success, 'error' => $success ? '' : 'Error al aprobar']);
+            echo json_encode(['success' => $success, 'error' => $success ? '' : 'Error al realizar la autorización']);
         } else {
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'error' => 'Datos incompletos']);
@@ -232,27 +239,44 @@ class RendicionesController {
     }
 
     public function observarRendicion() {
-        $id_rendicion = $_POST['id_rendicion'];
-        $id_usuario = $_POST['id_usuario'];
-        $comentario = $_POST['comentario'] ?? 'Sin comentario';
+        if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 4) {
+            error_log('No tiene permisos para realizar este tipo de actividad');
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'No tiene permisos para realizar este tipo de actividad']);
+            exit;
+        }
 
-        $model = new RendicionesModel();
-        $result = $model->observarRendicion($id_rendicion, $id_usuario, $comentario);
-
-        header('Content-Type: application/json');
-        echo json_encode(['success' => $result]);
+        if (isset($_POST['id_rendicion']) && isset($_POST['id_usuario'])) {
+            $id_rendicion = $_POST['id_rendicion'];
+            $id_usuario = $_POST['id_usuario'];
+            $comentario = $_POST['comentario'];
+            $model = new RendicionesModel();
+            $result = $model->observarRendicion($id_rendicion, $id_usuario, $comentario);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => $result]);
+        }
     }
-
+    
     public function cerrarRendicion() {
-        $id_rendicion = $_POST['id_rendicion'];
-        $id_usuario = $_POST['id_usuario'];
-        $comentario = $_POST['comentario'] ?? 'Rendición cerrada';
-        $id_anticipo = $_POST['id_anticipo'];
+        if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 4) {
+            error_log('No tiene permisos para realizar este tipo de actividad');
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'No tiene permisos para realizar este tipo de actividad']);
+            exit;
+        }
 
-        $model = new RendicionesModel();
-        $result = $model->cerrarRendicion($id_rendicion, $id_usuario, $comentario, $id_anticipo);
+        if (isset($_POST['id_rendicion']) && isset($_POST['id_usuario'])) {
 
-        header('Content-Type: application/json');
-        echo json_encode(['success' => $result]);
+            $id_rendicion = $_POST['id_rendicion'];
+            $id_usuario = $_POST['id_usuario'];
+            $comentario = $_POST['comentario'] ?? 'Rendición finalizada';
+            $id_anticipo = $_POST['id_anticipo'];
+
+            $model = new RendicionesModel();
+            $result = $model->cerrarRendicion($id_rendicion, $id_usuario, $comentario, $id_anticipo);
+
+            header('Content-Type: application/json');
+            echo json_encode(['success' => $result]);
+        }
     }
 }

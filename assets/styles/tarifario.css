@@ -1,0 +1,285 @@
+.content-tables{
+    display: none;
+    /* justify-content: space-around; */
+    margin-top: 1.4rem;
+}
+
+.container-table h2{
+    margin-bottom: 15px;
+    font-size: 24px;
+    color: #153f65;
+}
+
+/* Contenedor responsive para la tabla */
+.table-responsive {
+    overflow-x: auto;
+    max-height: 600px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: .8rem;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 50px;
+}
+
+/* Estilos base de la tabla */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para celdas */
+.table th,
+.table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    color: #03131f;
+}
+
+/* Encabezado de la tabla */
+.table-head {
+    background: #7FAFE6;
+    background: linear-gradient(100deg, rgb(193, 221, 255) 0%, rgba(227, 244, 255, 1) 46%, rgba(228, 238, 247, 1) 58%, rgba(217, 237, 255, 1) 78%, rgba(220, 233, 245, 1) 100%);
+    position: sticky;
+    text-align: left;
+    top: 0;
+    z-index: 2;
+}
+
+.table-head tr th{
+    /* color: #1a4faa; */
+    color: #153f65;
+    font-weight: bold;
+    /* font-size: 1.2rem; */
+}
+
+/* Efecto hover en las filas */
+.table-hover tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+.btn-edit{
+    display: flex;
+    font-size: .9rem;
+    align-items: center;
+    gap: .2rem;
+    width: fit-content;
+    padding: .4rem;
+    border-radius: .3rem;
+    text-align: center;
+    background-color: #2771d8;
+    margin: 0 auto;
+    color: white;
+    cursor: pointer;
+    transition: all ease-in-out .2s;
+}
+
+.btn-edit:hover{
+    background: #1556b1;
+    transform: translateY(-1px);
+}
+
+.container-table{
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+}
+
+.container-table-header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.btn-add-cargos{
+    padding: .3rem .8rem;
+    border-radius: .3rem;
+    text-align: center;
+    background-color: #1f58a8;
+    color: white;
+    cursor: pointer;
+    transition: all ease-in-out .2s;
+}
+
+.btn-add-cargos:hover{
+    background: #1556b1;
+    transform: translateY(-1px);
+}
+
+/*Estilos para el modal inicia*/
+.modal{
+    display: none;
+    position: fixed;
+    z-index: 99;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+
+/* Modal Content */
+.modal-content {
+  position: relative;
+  background-color: #fefefe;
+  border-radius: 1.2rem;
+  margin:12px auto;
+  border: 1px solid #888;
+  width: 336px;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  -webkit-animation-name: animatetop;
+  -webkit-animation-duration: 0.4s;
+  animation-name: animatetop;
+  animation-duration: 0.4s;
+  overflow: auto;
+}
+
+/* Add Animation */
+@-webkit-keyframes animatetop {
+  from {top:-300px; opacity:0} 
+  to {top:0; opacity:1}
+}
+
+@keyframes animatetop {
+  from {top:-300px; opacity:0}
+  to {top:0; opacity:1}
+}
+
+.modal-header {
+    padding: 8px 16px;
+    color: #1a4fac;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(100deg, rgb(236, 241, 247) 0%, rgb(195, 216, 243) 46%);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header h3{
+    font-size: large;
+    font-weight: bolder;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    margin-top: .9rem;
+    padding: 2px 16px;
+    gap: 1.2rem;
+}
+
+.modal-footer {
+    display: flex;
+    gap: .6rem;
+    padding: 8px 16px;
+    color: white;
+}
+
+.btn-close-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #1a4fac;
+    cursor: pointer;
+}
+
+.btn-close-modal:hover{
+    transition: linear .4s;
+    font-weight: bold;
+    rotate: 90deg;
+}
+
+.modal-element{
+    position: relative;
+}
+
+.modal-element input{
+    width: 80%;
+    padding: .4rem;
+    border-bottom: 2px solid #ccc;
+    background: none;
+    font-size: 15px;
+    outline: solid 2px rgba(0,0,0,0);
+    transition: all ease-in-out .3s;
+    border-radius: .4rem;
+    border: solid 1px rgb(211, 206, 206);
+}
+
+.placeholder{
+    position: absolute;
+    left: 8px;
+    background: #f9fdff;
+    top: 50%;
+    transform: translateY(-28px);
+    padding: 0 .2rem;
+    color: #777;
+    pointer-events: none;
+    font-size: 12px;
+    transition: 0.3s;
+    text-transform: capitalize;
+}
+
+.btn-guardar{
+    width: fit-content;
+    background-color: #1f58a8;
+    color: #fff;
+    padding: .4rem .8rem;
+    transition: all ease-in-out .4s;
+    border-radius: .4rem;
+    font-size: .8rem;
+    cursor: pointer;
+    outline: none;
+    border: none;
+}
+
+.btn-guardar:hover{
+    background-color: #1b4a8b;
+    box-shadow: rgba(29, 116, 216, 0.4) 0px 0px 0px 2px, rgba(29, 116, 216, 0.4) 0px 4px 6px -1px, rgba(29, 116, 216, 0.4) 0px 1px 0px inset;
+}
+
+.activo-container{
+    display: flex;
+    padding: 2px 16px;
+    margin-top: .4rem;
+    gap: .8rem;
+}
+
+#edit-id-tarifario{
+    display: none;
+}
+
+#edit-categoria-monto{
+    text-transform: capitalize;
+}
+
+#edit-monto:focus{
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}
+
+#cargos-tarifario{
+    display: none;
+}
+
+@keyframes clash{
+    0%{
+        color: red;
+        rotate: 0deg;
+    }
+    50%{
+        color: black;
+        rotate: 60deg;
+    }
+    100%{
+        color: red;
+        rotate: 0deg;
+    }
+}
+
+@media (max-width: 1050px){
+    .content-tables{
+        flex-direction: column;
+        gap: 1.4rem;
+    }
+}

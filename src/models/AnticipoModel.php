@@ -17,7 +17,7 @@ class AnticipoModel {
     // Obtener anticipos según el rol del usuario
     public function getAnticiposByRole($user_id, $rol) {
         try {
-            $query = "SELECT a.id, a.departamento, a.solicitante_nombres, a.departamento_nombre, a.codigo_sscc, a.solicitante, s.nombre AS sscc_nombre, a.fecha_solicitud, 
+            $query = "SELECT a.id, a.departamento, a.solicitante_nombres, a.departamento_nombre, a.codigo_sscc, a.solicitante, a.motivo_anticipo, s.nombre AS sscc_nombre, a.fecha_solicitud, 
                              a.monto_total_solicitado, 
                              h.id_usuario AS historial_usuario_id, h.estado as estado, h.comentario as comentario, u.nombre_usuario AS historial_usuario_nombre,
                              h.fecha AS historial_fecha
@@ -458,10 +458,10 @@ class AnticipoModel {
                 ];
 
                 // Obtener viáticos
-                $query_viaticos = "SELECT dv.id, dv.id_concepto, c.nombre AS concepto_nombre, dv.dias, dv.monto, dv.moneda
-                                   FROM tb_detalles_viajes dv
-                                   LEFT JOIN tb_categorias_tarifario c ON dv.id_concepto = c.id
-                                   WHERE dv.id_viaje_persona = :id_viaje_persona";
+                        $query_viaticos = "SELECT dv.id, dv.id_concepto, c.nombre AS concepto_nombre, dv.dias, dv.monto, dv.moneda
+                                        FROM tb_detalles_viajes dv
+                                        LEFT JOIN tb_categorias_tarifario c ON dv.id_concepto = c.id
+                                        WHERE dv.id_viaje_persona = :id_viaje_persona";
                 $stmt_viaticos = $this->db->prepare($query_viaticos);
                 $stmt_viaticos->execute(['id_viaje_persona' => $id_viaje_persona]);
                 $persona_data['viaticos'] = $stmt_viaticos->fetchAll(PDO::FETCH_ASSOC);
@@ -1043,5 +1043,49 @@ class AnticipoModel {
             return null;
         }
     }
+
+    public function getDetallesViaticosByAnticipo($id_anticipo) {
+        // Datos generales del anticipo
+        $query_anticipo = "SELECT id AS anticipo_id, monto_total_solicitado, solicitante_nombres, dni_solicitante 
+                        FROM tb_anticipos 
+                        WHERE id = :id_anticipo";
+        $stmt_anticipo = $this->db->prepare($query_anticipo);
+        $stmt_anticipo->execute([':id_anticipo' => $id_anticipo]);
+        $anticipo = $stmt_anticipo->fetch(PDO::FETCH_ASSOC);
+
+        // Personas asociadas al anticipo
+        $query_personas = "SELECT id AS viaje_id, doc_identidad, nombre_persona 
+                        FROM tb_viajes_personas 
+                        WHERE id_anticipo = :id_anticipo";
+        $stmt_personas = $this->db->prepare($query_personas);
+        $stmt_personas->execute([':id_anticipo' => $id_anticipo]);
+        $personas = $stmt_personas->fetchAll(PDO::FETCH_ASSOC);
+
+        // Detalles de transporte
+        $query_transporte = "SELECT id AS transporte_id, id_viaje_persona, tipo_transporte, ciudad_origen, ciudad_destino, fecha, monto AS monto_transporte, moneda AS moneda_transporte, valido AS valido_transporte 
+                            FROM tb_transporte_provincial 
+                            WHERE id_viaje_persona IN (SELECT id FROM tb_viajes_personas WHERE id_anticipo = :id_anticipo) AND valido = 1";
+        $stmt_transporte = $this->db->prepare($query_transporte);
+        $stmt_transporte->execute([':id_anticipo' => $id_anticipo]);
+        $transporte = $stmt_transporte->fetchAll(PDO::FETCH_ASSOC);
+
+        // Detalles de viáticos
+        $query_detalles = "SELECT id AS detalle_id, id_viaje_persona, id_concepto, dias, monto AS monto_detalle, moneda AS moneda_detalle 
+                        FROM tb_detalles_viajes 
+                        WHERE id_viaje_persona IN (SELECT id FROM tb_viajes_personas WHERE id_anticipo = :id_anticipo)";
+        $stmt_detalles = $this->db->prepare($query_detalles);
+        $stmt_detalles->execute([':id_anticipo' => $id_anticipo]);
+        $detalles = $stmt_detalles->fetchAll(PDO::FETCH_ASSOC);
+
+        // Retornar un arreglo con todos los datos
+        return [
+            'anticipo' => $anticipo,
+            'personas' => $personas,
+            'transporte' => $transporte,
+            'detalles' => $detalles
+        ];
+    }
+
+    
 }
 ?>

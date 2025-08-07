@@ -130,7 +130,7 @@ class AnticipoController {
                         $index = $matches[1];
                         $subindex = $matches[2];
                         $detalles_viajes[$index]['transporte'][] = [
-                            'tipo_transporte' => $_POST["tipo-transporte-$index-$subindex"] ?? 'terrestre',
+                            'tipo_transporte' => $_POST["tipo-transporte-$index-$subindex"] ?? '',
                             'ciudad_origen' => $_POST["ciudad-origen-$index-$subindex"] ?? '',
                             'ciudad_destino' => $_POST["ciudad-destino-$index-$subindex"] ?? '',
                             'fecha' => $_POST["fecha-$index-$subindex"] ?? '',
@@ -228,7 +228,7 @@ class AnticipoController {
 
                 if ($response['message'] === '') {
                     if ($this->anticipoModel->anticipoPendiente($id_usuario)) {
-                    $response['message'] = 'El solicitante aún tiene pendiente un anticipo.';
+                    $response['message'] = 'El solicitante aún tiene pendiente un anticipo por rendir.';
                     error_log($response['message']);
                     } else {
                         // Verificar saldo disponible
@@ -398,7 +398,6 @@ class AnticipoController {
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id'])) {
             $id = (int)$_POST['id'];
-            $comentario = trim($_POST['comentario'] ?? 'Anticipo aprobado');
 
             $latestEstado = $this->anticipoModel->getLatestAnticipoEstado($id);
             if ($latestEstado === null) {
@@ -414,7 +413,7 @@ class AnticipoController {
                 exit;
             }
 
-            if ($this->anticipoModel->updateAnticipoEstado($id, 'Autorizado', $_SESSION['id'], $comentario)) {
+            if ($this->anticipoModel->updateAnticipoEstado($id, 'Autorizado', $_SESSION['id'], 'Autorizado')) {
                 // $_SESSION['success'] = 'Anticipo aprobado correctamente.';
                 header('Content-Type: application/json');
                 echo json_encode(['success' => 'Anticipo autorizado correctamente.']);
@@ -432,7 +431,7 @@ class AnticipoController {
 
     //Autorizar totalmente un anticipo - funcionalidad de personal contador
     public function autorizarTotalmente() {
-        if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 4) {
+        if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 5) {
             error_log( 'No tiene permisos para realizar este tipo de aprobación');
             header('Content-Type: application/json');
             echo json_encode(['error' => 'No tiene permisos para realizar este tipo de aprobación']);
@@ -441,7 +440,6 @@ class AnticipoController {
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id'])) {
             $id = (int)$_POST['id'];
-            $comentario = trim($_POST['comentario'] ?? 'Anticipo autorizado totalmente');
 
             $latestEstado = $this->anticipoModel->getLatestAnticipoEstado($id);
             if ($latestEstado === null) {
@@ -457,7 +455,7 @@ class AnticipoController {
                 exit;
             }
 
-            if ($this->anticipoModel->updateAnticipoEstado($id, 'Autorizado Totalmente', $_SESSION['id'], $comentario)) {
+            if ($this->anticipoModel->updateAnticipoEstado($id, 'Autorizado Totalmente', $_SESSION['id'], 'Autorizado Totalmente')) {
                 // $_SESSION['success'] = 'Anticipo aprobado correctamente.';
                 header('Content-Type: application/json');
                 echo json_encode(['success' => 'Anticipo autorizado totalmente.']);
@@ -475,7 +473,7 @@ class AnticipoController {
 
     //  Funcionalidad para marcar como observado un anticipo
     public function observarAnticipo() {
-        if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 4) {
+        if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 5) {
             error_log( 'No tiene permisos para realizar este tipo de actividad');
             header('Content-Type: application/json');
             echo json_encode(['error' => 'No tiene permisos para realizar este tipo de actividad']);
@@ -496,7 +494,7 @@ class AnticipoController {
             // Validar que el estado actual sea autorizado
             if (!in_array($latestEstado, ['Autorizado'])) {
                 header('Content-Type: application/json');
-                echo json_encode(['error' => 'El anticipo no puede ser autorizado. Solo se pueden autorizar anticipos en estado "Nuevo" u "Observado".']);
+                echo json_encode(['error' => 'El anticipo no pudo ser marcado como observado. Solo se pueden observar anticipos en estado "Aprobado".']);
                 exit;
             }
 
@@ -521,7 +519,6 @@ class AnticipoController {
             echo json_encode(['error' => 'No tiene permisos para realizar este tipo de actividad']);
             exit;
         }
-
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
             $id = (int)$_POST['id'];
@@ -574,6 +571,11 @@ class AnticipoController {
         }
         exit;
     }
-
+    
+    public function detallesViaticos() {
+        $id_anticipo = $_GET['id_anticipo'];
+        $info_anticipo = $this->anticipoModel->getDetallesViaticosByAnticipo($id_anticipo);
+        require_once 'src/views/anticipos_detalles_viaticos.php';
+    }
 }
 ?>

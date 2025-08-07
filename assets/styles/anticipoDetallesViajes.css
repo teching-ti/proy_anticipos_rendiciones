@@ -1,0 +1,68 @@
+.viaticos-report {
+    margin: 20px;
+}
+
+.title{
+    text-align: center;
+    font-size: 1.2rem;
+    margin-bottom: .8rem;
+    font-weight: bolder;
+}
+
+.solicitante{
+    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: .8rem;
+    font-weight: bolder;
+}
+
+.fecha-actual{
+    font-size: .9rem;
+    font-weight: bolder;
+    margin-bottom: .8rem;
+}
+
+.resumen, .alimentacion, .total-title{
+    font-weight: bolder;
+    text-align: center;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.viaticos-report table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.viaticos-report th, .viaticos-report td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.viaticos-report th {
+    font-weight: bolder;
+    background-color: #f1f2f6;
+}
+
+.total{
+    font-weight: bolder;
+}
+
+.print-viaticos {
+    display: none;
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    align-items: center;
+    gap: .4rem;
+}
+
+.print-viaticos:hover {
+    background-color: #0056b3;
+}

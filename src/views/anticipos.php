@@ -36,16 +36,15 @@ unset($_SESSION['success'], $_SESSION['error']);
     <section class="section-table">
         <h2>Listado de Anticipos</h2>
         <div class="help-panel">
-            <div class="btn btn-add-anticipo"><i class="fa-solid fa-circle-plus fa-lg"></i> Agregar Anticipo</div>
             <div class="container-search-input">
                 <span class="placeholder">Buscar</span>
                 <input type="text" class="form-control" id="input-buscar-anticipo" name="input-buscar-anticipo">
-                <!-- <span class="lupa">
-                    <i class="fa-solid fa-lg fa-magnifying-glass"></i>
-                </span> -->
             </div>
-            <div id="btn-refresh" class="btn btn-refresh">
-                <i class="fa-solid fa-arrows-rotate"></i>
+            <div class="help-panel-buttons">
+                <div class="btn btn-add-anticipo"><i class="fa-solid fa-circle-plus fa-lg"></i> Agregar Anticipo</div>
+                <div id="btn-refresh" class="btn btn-refresh">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </div>
             </div>
         </div>
         <div class="table-responsive">
@@ -57,12 +56,13 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <th>Nombre y apellido</th>
                         <th>Departamento</th>
                         <th>SSCC</th>
+                        <th>Motivo&nbsp;del&nbsp;Anticipo</th>
                         <th>Monto</th>
                         <th>Estado</th>
-                        <th title="Cambio de estado más reciente">Ult. Actualizacion</th>
+                        <th title="Cambio de estado más reciente">Ult. Actualización</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="table-body">
                     <?php if (empty($anticipos_data)): ?>
                         <tr><td colspan="<?php echo isset($_SESSION['rol']) && $_SESSION['rol'] == 2 ? 9 : 8; ?>">No hay anticipos registrados</td></tr>
                     <?php else: ?>
@@ -73,6 +73,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                                 <td data-label="Solicitante"><?php echo htmlspecialchars($anticipo['solicitante_nombres'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td data-label="Departamento"><?php echo htmlspecialchars($anticipo['departamento_nombre'], ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td data-label="SSCC"><?php echo htmlspecialchars($anticipo['codigo_sscc'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td data-label="Motivo del Anticipo" title="<?php echo htmlspecialchars($anticipo['motivo_anticipo'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($anticipo['motivo_anticipo'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td data-label="Monto"><?php echo number_format($anticipo['monto_total_solicitado'], 2); ?></td>
                                 <td data-label="Estado" class="td-estado">
                                     <span class="span-td-estado <?=strtolower($anticipo['estado']);?>" title="<?=ucfirst($anticipo['comentario']);?>"><?php echo htmlspecialchars($anticipo['estado'], ENT_QUOTES, 'UTF-8'); ?>
@@ -154,7 +155,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                             </div>
                             <div class="modal-element">
                                 <span class="placeholder">Nombre del Proyecto</span>
-                                <input type="text" class="form-control" id="nombre_proyecto" name="nombre_proyecto" required>
+                                <input type="text" class="form-control" id="nombre_proyecto" name="nombre_proyecto" readonly required>
                             </div>
                             <div class="modal-element">
                                 <span class="placeholder">Motivo del Anticipo</span>
@@ -224,7 +225,7 @@ unset($_SESSION['success'], $_SESSION['error']);
     </div>
 
     <!-- Modal para Editar Anticipo -->
-    <div id="editAnticipoModal" class="modal">
+    <div id="editAnticipoModal" class="modal" data-user-anticipo="">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="edit-modal-title" id="edit-modal-title"></h3>
@@ -308,16 +309,12 @@ unset($_SESSION['success'], $_SESSION['error']);
                                 <input type="date" class="form-control" id="edit-fecha-solicitud" name="edit-fecha-solicitud" required readonly>
                             </div>
                         </div>
-                        
                         <hr>
-                        <!-- <div class="modal-footer">
-                            <div class="btn btn-default" onclick="nextStep()">Siguiente</div>
-                        </div> -->
                     </div>
 
                     <!-- 2. Concepto -->
                     <div class="edit-form-step" id="edit-step-2">
-                        <div class="title-concepto" style="">
+                        <div class="title-concepto">
                             <h3>2. Concepto</h3>
                             <div class="concepto-categoria">
                                 <div>
@@ -336,7 +333,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                             <div id="edit-add-gasto-btn" class="btn">Añadir</div>
                         </div>
                         
-                        <div class="panel-viajes" id="edit-panel-viajes">
+                        <div class="panel-viajes" id="edit-panel-viajes"> 
                             <div id="edit-viajes-tabs">
                                 <div class="tabs-header" id="edit-tabs-header">
                                     <div class="tab-button add-tab" id="add-tab">+</div>
@@ -346,16 +343,17 @@ unset($_SESSION['success'], $_SESSION['error']);
                                 </div>
                             </div>
                         </div>
-
-                        <div class="modal-element">
-                            <span class="input-icon-left"><i class="fa-solid fa-money-bill-wave"></i></span>
-                            <span class="placeholder">Monto Total</span>
-                            <input type="number" class="form-control" id="edit-monto-total" name="edit-monto-total" required readonly>
+                        <div class="mount-content">
+                            <div class="mount-element">
+                                <span class="input-icon-left"><i class="fa-solid fa-money-bill-wave"></i></span>
+                                <span class="placeholder">Monto Total</span>
+                                <input type="number" class="form-control" id="edit-monto-total" name="edit-monto-total" required readonly>
+                            </div>
+                            <!-- Boton para mostrar detalles de viaticos -->
+                            <div class="viaticos-detalles" title="Detalles de viáticos"><i class="fa-solid fa-circle-info fa-lg"></i> Detalles viáticos</div>
                         </div>
-
                         <hr>
                         <div class="modal-footer">
-                            <!-- <div class="btn btn-default" onclick="prevStep()">Atrás</div> -->
                             <button type="submit" class="btn btn-default">Terminar</button>
                             <div id="container-cambio-estado">
                                 <?php if($_SESSION['rol']==2): ?>
@@ -363,19 +361,17 @@ unset($_SESSION['success'], $_SESSION['error']);
                                         Autorizado
                                     </div>
                                 <?php endif;?>
-                                <?php if($_SESSION['rol']==4): ?>
+                                <?php if($_SESSION['rol']==5): ?>
                                     <div class="btn-aprobar-totalmente" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                        Autorizado
+                                        Autorizado Totalmente
                                     </div>
                                     <div class="btn-observar-anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
                                         Observado
                                     </div>
-                                <?php endif;?>
-                                <?php if($_SESSION['rol']==5): ?>
                                     <div class="btn-abonar-anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
                                         Abonado
                                     </div>
-                                <?php endif; ?>
+                                <?php endif;?>
                             </div>
                         </div>
                     </div>
