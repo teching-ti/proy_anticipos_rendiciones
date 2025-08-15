@@ -1,5 +1,3 @@
-Anticipo Controller linea 316 para el update de un anticipo, se deberá notificar si su estado actual es observado y deberá de cambiar a nuevo
-
 15082025
 El sistema hasta el punto en donde puede registrar anticipos-rendiciones, enviar notificaciones y guardar comprobantes de pago para realizar calculos
 
