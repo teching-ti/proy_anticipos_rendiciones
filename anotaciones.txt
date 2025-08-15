@@ -1,3 +1,8 @@
+Anticipo Controller linea 316 para el update de un anticipo, se deberá notificar si su estado actual es observado y deberá de cambiar a nuevo
+
+15082025
+El sistema hasta el punto en donde puede registrar anticipos-rendiciones, enviar notificaciones y guardar comprobantes de pago para realizar calculos
+
 07082025
 El sistema cuenta con las rendiciones actualizadas y con lso nombres de estado según las observaciones presentadas. Se ha configurado el dominio correcto junto con su correo, se requiere de programar el envío de notificaciones y finalizar con el guardado de items basados en facturas para procesos de rendiciones
 

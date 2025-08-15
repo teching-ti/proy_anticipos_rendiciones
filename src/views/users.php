@@ -41,10 +41,13 @@ include "base.php";
             <table class="table table-hover">
                 <thead class="table-head">
                     <tr>
-                        <th>Nombre de Usuario</th>
+                        <th>Usuario</th>
                         <th>DNI</th>
+                        <th>Nombres Completos</th>
                         <th>Rol</th>
                         <th>Estado</th>
+                        <!-- <th>Editar</th> -->
+                        <th>Num. Cuenta</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -55,8 +58,11 @@ include "base.php";
                             <tr>
                                 <td data-label="Nombre de Usuario"><?php echo htmlspecialchars($user['nombre_usuario'], ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td data-label="DNI"><?php echo htmlspecialchars($user['dni'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td data-label="nombres-completos"><?php echo htmlspecialchars($user['nombres-completos'], ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td data-label="Rol"><?php echo htmlspecialchars($user['rol_nombre'], ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td data-label="Estado"><?php echo htmlspecialchars($user['estado'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <!-- <td data-label="Editar"><button class="btn-edit" data-dni="<?php //echo htmlspecialchars($user['dni'], ENT_QUOTES, 'UTF-8'); ?>"><i class="fa-solid fa-pen-to-square"></i></button></td> -->
+                                <td data-label="Ver"><div class="btn-view" data-dni="<?php echo htmlspecialchars($user['dni'], ENT_QUOTES, 'UTF-8'); ?>"><i class="fa-solid fa-eye"></i></div></td>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -76,11 +82,11 @@ include "base.php";
                 <div class="modal-body">
                     <div class="modal-elements-container">
                         <div class="modal-element doc-id">
-                            <span class="placeholder">Documento de Identidad</span>
+                            <span class="placeholder"><span style="color: red;">*</span> Documento de Identidad</span>
                             <span class="input-icon-left">
                                 <i class="fa-solid fa-id-card"></i>
                             </span>
-                            <input type="text" class="form-control" id="doc-identidad" name="doc-identidad">
+                            <input type="text" class="form-control" id="doc-identidad" name="doc-identidad" required>
                             <span class="lupa">
                                 <i class="fa-solid fa-lg fa-magnifying-glass"></i>
                             </span>
@@ -94,6 +100,13 @@ include "base.php";
                         </div>
                         <div class="modal-element">
                             <span class="input-icon-left">
+                                <i class="fa-solid fa-credit-card"></i>
+                            </span>
+                            <span class="placeholder"><span style="color: red;">*</span> Núm. de Cuenta</span>
+                            <input type="text" class="form-control" id="user-cuenta" name="user-cuenta" required>
+                        </div>
+                        <div class="modal-element">
+                            <span class="input-icon-left">
                                 <i class="fa-solid fa-key"></i>
                             </span>
                             <span class="placeholder">Contraseña</span>
@@ -103,7 +116,7 @@ include "base.php";
                             <span class="input-icon-left">
                                 <i class="fa-solid fa-pen-nib"></i>
                             </span>
-                            <span class="placeholder">Rol</span>
+                            <span class="placeholder"><span style="color: red;">*</span> Rol</span>
                             <select class="form-control" id="user-rol" name="user-rol">
                                 <?php foreach ($roles as $rol):?>
                                         <option value="<?php echo htmlspecialchars($rol['id'], ENT_QUOTES, 'UTF-8'); ?>">
@@ -140,6 +153,25 @@ include "base.php";
                     <button type="submit" class="btn btn-limpiar">Limpiar<i class="fa-solid fa-eraser"></i></button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal para Ver Número de Cuenta -->
+    <div id="viewNCuentaModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Ver Número de Cuenta</h2>
+                <button type="button" class="btn-close-modal" data-modal="viewNCuentaModal"><i class="fa-solid fa-lg fa-xmark"></i></button>
+            </div>
+            <div class="modal-body-ncuenta">
+                <div class="modal-element-ncuenta" id="n-cuenta-display">
+                    <span class="input-icon-left">
+                                <i class="fa-solid fa-credit-card"></i>
+                            </span>
+                    <span class="placeholder">Número de Cuenta</span>
+                    <input type="text" class="form-control" id="view-n-cuenta" readonly>
+                </div>
+            </div>
         </div>
     </div>
 </section>

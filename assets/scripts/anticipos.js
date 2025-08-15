@@ -224,12 +224,12 @@ async function agregarNuevaPersona() {
             grupo.classList.add("transp-prov-element");
             grupo.innerHTML = `
                 <div class="med-transporte">
-                    <div>
-                        <input type="radio" name="tipo-transporte-${newIndex}-${newItemIndex}" id="terrestre-${newIndex}-${newItemIndex}" value="terrestre" ${tipoTransporte === 'terrestre' ? 'checked' : ''} ${newIndex === 1 ? '' : 'disabled'}>
+                    <div ${newIndex === 1 ? '' : 'style="display: none;"'}>
+                        <input type="radio" name="tipo-transporte-${newIndex}-${newItemIndex}" id="terrestre-${newIndex}-${newItemIndex}" value="terrestre" ${tipoTransporte === 'terrestre' ? 'checked' : ''}>
                         <label for="terrestre-${newIndex}-${newItemIndex}">Terrestre</label>
                     </div>
-                    <div>
-                        <input type="radio" name="tipo-transporte-${newIndex}-${newItemIndex}" id="aereo-${newIndex}-${newItemIndex}" value="aereo" ${tipoTransporte === 'aereo' ? 'checked' : ''} ${newIndex === 1 ? '' : 'disabled'}>
+                    <div ${newIndex === 1 ? '' : 'style="display: none;"'}>
+                        <input type="radio" name="tipo-transporte-${newIndex}-${newItemIndex}" id="aereo-${newIndex}-${newItemIndex}" value="aereo" ${tipoTransporte === 'aereo' ? 'checked' : ''}>
                         <label for="aereo-${newIndex}-${newItemIndex}">Aéreo</label>
                     </div>
                 </div>
@@ -907,9 +907,13 @@ document.getElementById('addAnticipoForm').addEventListener('submit', function(e
     const cancelButton = document.getElementById('custom-alert-btn-cancelar');
     
     acceptButton.onclick = () => {
+
         const modal = document.getElementById('custom-alert-modal');
         if (modal.style.display !== 'none') {
             const formData = new FormData(this);
+
+            acceptButton.disabled = true;
+            cancelButton.disabled = true;
 
             fetch('anticipos/add', {
                 method: 'POST',
@@ -1294,7 +1298,8 @@ async function showAnticipoDetails(data) {
     let idUserAnticipo = document.getElementById("editAnticipoModal").getAttribute("data-user-anticipo");;
     let idActualUser = document.getElementById("user-first-info").getAttribute("data-user");
 
-    if(editForm.querySelector("#edit-estado-anticipo").value != 'Nuevo' || editForm.querySelector("#edit-estado-anticipo").value == 'Observado'){
+    if(editForm.querySelector("#edit-estado-anticipo").value != 'Nuevo' && editForm.querySelector("#edit-estado-anticipo").value != 'Observado'){
+        console.log(editForm.querySelector("#edit-estado-anticipo").value);
         document.querySelector(".switch").style.display = "none";
     }else{
         //console.log(idActualUser);
@@ -1470,7 +1475,9 @@ async function showAnticipoDetails(data) {
     // Llenar viáticos y transporte
     if (data.detalles_viajes && data.detalles_viajes.length > 0) {
         // Se mostrará el botón de detalles de viáticos, únicamene si hay información al respecto
-        btnDetallesViaticos.style.display = "block";
+        if(btnDetallesViaticos){
+            btnDetallesViaticos.style.display = "block";
+        }
 
         editForm.querySelector("#edit-viajes").checked = true;
         editForm.querySelector("#edit-compras-menores").checked = false;
@@ -1744,7 +1751,10 @@ async function showAnticipoDetails(data) {
     }else{
         // Se mostrará el botón de detalles de viáticos, únicamene si hay información al respecto
         console.log("No hay detalles de viaticos");
-        btnDetallesViaticos.style.display = "none";
+        if(btnDetallesViaticos){
+            btnDetallesViaticos.style.display = "none";
+        }
+        
     }
 
     if(colorModeSwitch){
@@ -2201,7 +2211,7 @@ function toggleEditMode(isEditMode) {
     const inputs = editForm.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), select');
 
     inputs.forEach(input => {
-        if (['edit-solicitante', 'edit-dni-solicitante', 'edit-departamento', 'edit-cargo', 'edit-fecha-solicitud', 'edit-nombre-proyecto'].includes(input.id)) {
+        if (['edit-solicitante', 'edit-dni-solicitante', 'edit-departamento', 'edit-cargo', 'edit-fecha-solicitud', 'edit-nombre-proyecto', 'edit-monto-total'].includes(input.id)) {
             input.readOnly = true;
             // input.disabled = true;
         } else if (input.name.includes('edit-detalles_gastos') || input.name.includes('edit-detalles_viajes')) {
@@ -2342,7 +2352,15 @@ function actualizarBotonesEliminarEdit() {
 const btnAutorizarAprobador = document.querySelector(".btn-aprobar-anticipo");
 if(btnAutorizarAprobador){
     btnAutorizarAprobador.addEventListener("click", async function(e){
+        // estos valores serán usados también para la notificación por correo electrónico
         let idAnticipo = document.getElementById("edit-id-anticipo").value;
+        let dniSolicitante = document.getElementById("edit-dni-solicitante").value;
+        let solicitanteNombre = document.getElementById("edit-solicitante").value;
+        let sscc = document.getElementById("edit-codigo-sscc").value;
+        let nombreProyecto = document.getElementById("edit-nombre-proyecto").value;
+        let motivoAnticipo = document.getElementById("edit-motivo-anticipo").value;
+        let montoTotal = document.getElementById("edit-monto-total").value;
+
         //let userId = btnAutorizarAprobador.getAttribute("data-aprobador");
         
         e.preventDefault();
@@ -2361,8 +2379,17 @@ if(btnAutorizarAprobador){
             // const comentario = document.getElementById('custom-alert-comentario').value;
             const formData = new FormData();
 
-            formData.append("id", idAnticipo);
+            acceptButton.disabled = true;
+            cancelButton.disabled = true;
+
+            formData.append("id", idAnticipo);//here here here here
+            formData.append("dniSolicitante", dniSolicitante);
             formData.append("comentario", 'Anticipo Aprobado');
+            formData.append("sscc", sscc);
+            formData.append("solicitanteNombre", solicitanteNombre);
+            formData.append("nombreProyecto", nombreProyecto);
+            formData.append("motivoAnticipo", motivoAnticipo);
+            formData.append("montoTotal", montoTotal);
 
             try {
                 const response = await fetch('anticipos/autorizar', {
@@ -2409,7 +2436,14 @@ if(btnAutorizarTotalmente){
     btnAutorizarTotalmente.addEventListener("click", async function(e){
         let idAnticipo = document.getElementById("edit-id-anticipo").value;
         //let userId = btnAutorizarAprobador.getAttribute("data-aprobador");
+        let dniSolicitante = document.getElementById("edit-dni-solicitante").value;
+        let solicitanteNombre = document.getElementById("edit-solicitante").value;
+        let sscc = document.getElementById("edit-codigo-sscc").value;
+        let nombreProyecto = document.getElementById("edit-nombre-proyecto").value;
+        let motivoAnticipo = document.getElementById("edit-motivo-anticipo").value;
+        let montoTotal = document.getElementById("edit-monto-total").value;
         
+
         e.preventDefault();
         showAlert({
             title: 'Confirmación',
@@ -2425,7 +2459,16 @@ if(btnAutorizarTotalmente){
 
             const formData = new FormData();
 
+            acceptButton.disabled = true;
+            cancelButton.disabled = true;
+
             formData.append("id", idAnticipo);
+            formData.append("dniSolicitante", dniSolicitante);
+            formData.append("solicitanteNombre", solicitanteNombre);
+            formData.append("sscc", sscc);
+            formData.append("nombreProyecto", nombreProyecto);
+            formData.append("motivoAnticipo", motivoAnticipo);
+            formData.append("montoTotal", montoTotal);
 
             try {
                 const response = await fetch('anticipos/autorizarTotalmente', {
@@ -2472,6 +2515,13 @@ if(btnObservarAnticipo){
     btnObservarAnticipo.addEventListener("click", async function(e){
         let idAnticipo = document.getElementById("edit-id-anticipo").value;
         //let userId = btnAutorizarAprobador.getAttribute("data-aprobador");
+
+        let dniSolicitante = document.getElementById("edit-dni-solicitante").value;
+        let solicitanteNombre = document.getElementById("edit-solicitante").value;
+        let sscc = document.getElementById("edit-codigo-sscc").value;
+        let nombreProyecto = document.getElementById("edit-nombre-proyecto").value;
+        let motivoAnticipo = document.getElementById("edit-motivo-anticipo").value;
+        let montoTotal = document.getElementById("edit-monto-total").value;
         
         e.preventDefault();
         showAlert({
@@ -2499,8 +2549,18 @@ if(btnObservarAnticipo){
             }
 
             const formData = new FormData();
+
+            acceptButton.disabled = true;
+            cancelButton.disabled = true;
+
             formData.append("id", idAnticipo);
             formData.append("comentario", comentario);
+            formData.append("dniSolicitante", dniSolicitante);
+            formData.append("solicitanteNombre", solicitanteNombre);
+            formData.append("sscc", sscc);
+            formData.append("nombreProyecto", nombreProyecto);
+            formData.append("motivoAnticipo", motivoAnticipo);
+            formData.append("montoTotal", montoTotal);
 
             try {
                 const response = await fetch('anticipos/observarAnticipo', {
@@ -2546,6 +2606,13 @@ if(btnAbonarAnticipo){
     btnAbonarAnticipo.addEventListener("click", async function(e){
         let idAnticipo = document.getElementById("edit-id-anticipo").value;
         //let userId = btnAutorizarAprobador.getAttribute("data-aprobador");
+
+        let dniSolicitante = document.getElementById("edit-dni-solicitante").value;
+        let solicitanteNombre = document.getElementById("edit-solicitante").value;
+        let sscc = document.getElementById("edit-codigo-sscc").value;
+        let nombreProyecto = document.getElementById("edit-nombre-proyecto").value;
+        let motivoAnticipo = document.getElementById("edit-motivo-anticipo").value;
+        let montoTotal = document.getElementById("edit-monto-total").value;
         
         e.preventDefault();
         showAlert({
@@ -2561,8 +2628,17 @@ if(btnAbonarAnticipo){
         acceptButton.onclick = async () => {
             const formData = new FormData();
 
-            formData.append("id", idAnticipo);
+            acceptButton.disabled = true;
+            cancelButton.disabled = true;
 
+            formData.append("id", idAnticipo);
+            formData.append("dniSolicitante", dniSolicitante);
+            formData.append("solicitanteNombre", solicitanteNombre);
+            formData.append("sscc", sscc);
+            formData.append("nombreProyecto", nombreProyecto);
+            formData.append("motivoAnticipo", motivoAnticipo);
+            formData.append("montoTotal", montoTotal);
+            
             try {
                 const response = await fetch('anticipos/abonarAnticipo', {
                     method: 'POST',
@@ -2602,14 +2678,58 @@ if(btnAbonarAnticipo){
     })
 }
 
-document.querySelector(".viaticos-detalles").addEventListener("click", function() {
-    let idAnticipo = document.getElementById("edit-id-anticipo").value;
-    if (idAnticipo) {
-        const detalleWindow = window.open(`detallesViaticos?id_anticipo=${idAnticipo}`, '_blank');
-        if (detalleWindow) {
-            detalleWindow.focus();
-        } else {
-            alert('Por favor, permite las ventanas emergentes para ver el informe.');
+const btnAnticipoViaticosDetalles = document.querySelector(".viaticos-detalles");
+
+if(btnAnticipoViaticosDetalles){
+    btnAnticipoViaticosDetalles.addEventListener("click", function() {
+        let idAnticipo = document.getElementById("edit-id-anticipo").value;
+        if (idAnticipo) {
+            const modal = document.getElementById("detalleViaticosModal");
+            const modalContent = document.getElementById("detalle-viaticos-content");
+
+            // Mostrar el modal
+            modal.style.display = "block";
+
+            // Cargar contenido dinámicamente
+            fetch(`detallesViaticos?id_anticipo=${idAnticipo}`)
+                .then(response => response.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                    // Añadir evento al botón de impresión dentro del modal
+                    const printButton = modalContent.querySelector("#print-viaticos");
+                    if (printButton) {
+                        printButton.addEventListener("click", function() {
+                            // const cerrarButton = modalContent.querySelector(".cerrar-detalles-viaticos");
+                            // if (cerrarButton) cerrarButton.style.display = "none";
+                            document.querySelector(".modal-header-detalles-viaticos").style.display = "none";
+                            document.getElementById("open-responsive-menu").style.display = "none";
+                            document.getElementById("user-first-info").style.display = "none";
+                            printButton.style.display = "none";
+                            window.print();
+                            // Restaurar visibilidad después de imprimir
+                            setTimeout(() => {
+                                document.getElementById("open-responsive-menu").style.display = "";
+                                document.getElementById("user-first-info").style.display = "";
+                                document.querySelector(".modal-header-detalles-viaticos").style.display = "";
+                                printButton.style.display = "";
+                                // cerrarButton.style.display = "";
+                            }, 1000);
+                        });
+                    }
+                })
+                .catch(error => {
+                    modalContent.innerHTML = "<p>Error al cargar los detalles: " + error.message + "</p>";
+                    console.error("Error al cargar detalles:", error);
+                });
         }
-    }
+    });
+}
+
+// cerrar el modal al hacer clic en "X"
+document.querySelectorAll(".btn-close-modal").forEach(button => {
+    button.addEventListener("click", function() {
+        const modalId = this.getAttribute("data-modal");
+        console.log(modalId);
+        document.getElementById(modalId).style.display = "none";
+    });
 });

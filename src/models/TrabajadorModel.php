@@ -1,9 +1,15 @@
 <?php
+require_once 'src/config/Database.php';
+
 class TrabajadorModel {
+    private $db;
     private $db_external;
 
     public function __construct() {
         $this->db_external = $this->connectExternal();
+
+        $database = new Database();
+        $this->db = $database->connect();
     }
 
     private function connectExternal() {
@@ -31,10 +37,10 @@ class TrabajadorModel {
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             // este error es solo para pruebas y revisión, deberá de eliminarse
             if($result){
-                error_log("Trabajador encontrado para DNI $dni: ".json_encode($result));
+                //error_log("Trabajador encontrado para DNI $dni: ".json_encode($result));
                 return $result;
             }else{
-                error_log("No se encontró trabajadora activo para DNI: $dni");
+                //error_log("No se encontró trabajadora activo para DNI: $dni");
                 return null;
             }
         } catch (PDOException $e) {
@@ -57,6 +63,86 @@ class TrabajadorModel {
         } catch (PDOException $e) {
             error_log('Error al buscar trabajador por DNI: ' . $e->getMessage());
             return null;
+        }
+    }
+
+    // Obtener aprobadores (rol 2) activos con departamento específico
+    public function getAprobadoresByDepartamento($departamento) {
+        try {
+            // Paso 1: Obtener los DNI de los aprobadores (rol = 2) desde tb_usuarios
+            $query = "SELECT dni FROM tb_usuarios WHERE rol = 2";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute();
+            $dnis = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            if (empty($dnis)) {
+                error_log("No se encontraron aprobadores con rol 2");
+                return [];
+            }
+
+            // Paso 2: Construir la consulta con parámetros con nombre para el IN
+            $placeholders = [];
+            $params = [];
+            foreach ($dnis as $index => $dni) {
+                $paramName = ":dni_$index";
+                $placeholders[] = $paramName;
+                $params[$paramName] = $dni;
+            }
+            $placeholdersStr = implode(',', $placeholders);
+            $query = "SELECT correo FROM tb_trabajadores WHERE id IN ($placeholdersStr) AND activo = 1 AND departamento = :departamento";
+            $params[':departamento'] = $departamento;
+
+            $stmt = $this->db_external->prepare($query);
+            $stmt->execute($params);
+            $correos = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            error_log("Aprobadores encontrados para departamento $departamento: " . json_encode($correos));
+            return $correos;
+        } catch (PDOException $e) {
+            error_log('Error al obtener aprobadores: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    
+    // Nuevo método para obtener DNI de usuarios con el rol de tesorería
+    public function getDnisByRol5() {
+        try {
+            $query = "SELECT dni FROM tb_usuarios WHERE rol = 5";
+            $stmt = $this->db->query($query);
+            $dnis = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            error_log("DNI de usuarios con rol tesorero: " . json_encode($dnis));
+            return $dnis;
+        } catch (PDOException $e) {
+            error_log('Error al obtener DNI de usuarios con rol tesorero: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    // Nuevo método para obtener DNI de usuarios con el rol de contrador
+    public function getDnisByRol4() {
+        try {
+            $query = "SELECT dni FROM tb_usuarios WHERE rol = 4";
+            $stmt = $this->db->query($query);
+            $dnis = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            error_log("DNI de usuarios con rol contador: " . json_encode($dnis));
+            return $dnis;
+        } catch (PDOException $e) {
+            error_log('Error al obtener DNI de usuarios con rol contrador: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getDniById($id){
+        try {
+            $query = "SELECT dni FROM tb_usuarios WHERE id = :id";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id' => $id]);
+            $result = $stmt->fetchColumn();
+            return $result ?: null;
+        } catch (PDOException $e) {
+            error_log('Error al obtener DNI de usuario con rol tesorero: ' . $e->getMessage());
+            return [];
         }
     }
 }

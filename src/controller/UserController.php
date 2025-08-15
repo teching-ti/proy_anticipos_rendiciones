@@ -20,10 +20,10 @@ class UserController {
 
     public function index(){
         $roles = $this->userModel->getAllRoles();
-        if ($_SESSION['rol'] != 1 && $_SESSION['rol'] != 4) {
-            header('Location: iniciar_sesion');
-            exit;
-        }
+        // if ($_SESSION['rol'] != 1 && $_SESSION['rol'] != 4) {
+        //     header('Location: iniciar_sesion');
+        //     exit;
+        // }
         $users_data = $this->userModel->getUsersData();
         require_once 'src/views/users.php';
     }
@@ -43,10 +43,10 @@ class UserController {
     // Mostrar el formulario de agregar usuario
     public function add() {
         // Solo permitir acceso a administradores (por ejemplo)
-        if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 1 && $_SESSION['rol'] != 4) { // 1 = Administrador
-            header('Location: iniciar_sesion');
-            exit;
-        }
+        // if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 1 && $_SESSION['rol'] != 4) { // 1 = Administrador
+        //     header('Location: iniciar_sesion');
+        //     exit;
+        // }
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $nombre_usuario = trim($_POST['user-nombre']);
@@ -58,7 +58,8 @@ class UserController {
 
             $dni = trim($_POST['doc-identidad']);
             $rol = (int)($_POST['user-rol']);
-            error_log("Datos de usuario a registrar: $nombre_usuario, $contrasena, $dni, $rol");
+            $n_cuenta = trim($_POST['user-cuenta']);
+            error_log("Datos de usuario a registrar: $nombre_usuario, $contrasena, $dni, $rol, $n_cuenta");
 
             // Validaciones
             if (empty($nombre_usuario) || empty($contrasena) || empty($dni)) {
@@ -69,16 +70,18 @@ class UserController {
                 // $error = 'El documento debe ser únicamente un número.';
                 // error_log($error);
                 $_SESSION['error'] = 'El documento debe ser únicamente un número';
-            } elseif ($this->userModel->dniExists($dni)) {
+            } elseif (!preg_match('/^\d+$/', $n_cuenta)) {
+                $_SESSION['error'] = 'El número de cuenta debe ser únicamente un número.';
+            }elseif ($this->userModel->dniExists($dni)) {
                 // $error = 'Un usuario con este número de DNI ya existe.';
                 // error_log($error);
                 $_SESSION['error'] = 'Ya existe un usuario registrado con este número de documento.';
             } else {
                 // Agregar usuario
-                if ($this->userModel->addUser($nombre_usuario, $contrasena, $dni, $rol)) {
+                if ($this->userModel->addUser($nombre_usuario, $contrasena, $dni, $rol, $n_cuenta)) {
                     // $success = 'Usuario registrado correctamente.';
                     // error_log($success);
-                    $_SESSION['success'] = "(Esta información no se mostrará en su etapa final). Usuario registrado correctamente:   $nombre_usuario, $contrasena";
+                    $_SESSION['success'] = "Usuario registrado correctamente:   $nombre_usuario, $contrasena";
                 } else {
                     // $error = 'Error al registrar el usuario.';
                     // error_log($error);
@@ -89,6 +92,26 @@ class UserController {
         }
         header('Location: usuarios');
         exit;
+    }
+
+    public function getNumCuenta(){
+        if (!isset($_GET['dni'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'DNI no proporcionado']);
+            return;
+        }
+
+        $dni = trim($_GET['dni']);
+        $n_cuenta = $this->userModel->getNumCuenta($dni);
+
+        if ($n_cuenta === null) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Número de cuenta no encontrado']);
+            return;
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode(['n_cuenta' => $n_cuenta]);
     }
 
     // Buscar trabajador por DNI (AJAX), se utiliza para completar los campos del formulario de crear usuario
@@ -104,12 +127,6 @@ class UserController {
         $dni = trim($_POST['doc-identidad'] ?? '');
         error_log('Buscando DNI en controlador: ' . $dni);
 
-        // if (!preg_match('/^[0-9]{8}$/', $dni)) {
-        //     echo json_encode(['success' => false, 'message' => 'El DNI debe tener 8 dígitos']);
-        //     exit;
-        // }
-
-        //error_log($dni);
         $trabajador = $this->trabajadorModel->findByDni($dni);
         if ($trabajador) {
             echo json_encode([

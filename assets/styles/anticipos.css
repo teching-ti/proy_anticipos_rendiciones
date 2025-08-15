@@ -170,20 +170,51 @@
 }
 
 /* Modal Content */
-.modal-content {
-  position: relative;
-  background-color: #fefefe;
-  border-radius: 1.2rem;
-  margin:12px auto;
-  border: 1px solid #888;
-  width: 70%;
-  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
-  -webkit-animation-name: animatetop;
-  -webkit-animation-duration: 0.4s;
-  animation-name: animatetop;
-  animation-duration: 0.4s;
-  overflow: auto;
+.modal-detalles-viaticos {
+    display: none;
+    position: fixed;
+    z-index: 99;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.9);
 }
+
+/* Modal Content */
+.modal-content {
+    position: relative;
+    background-color: #fefefe;
+    border-radius: 1.2rem;
+    margin:12px auto;
+    border: 1px solid #888;
+    width: 70%;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    -webkit-animation-name: animatetop;
+    -webkit-animation-duration: 0.4s;
+    animation-name: animatetop;
+    animation-duration: 0.4s;
+    overflow: auto;
+}
+
+/* Modal Content */
+.modal-content-detalles-viaticos {
+    position: relative;
+    background-color: #fefefe;
+    border-radius: 1.2rem;
+    margin:12px auto;
+    border: 1px solid #888;
+    width: 480px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    -webkit-animation-name: animatetop;
+    -webkit-animation-duration: 0.4s;
+    animation-name: animatetop;
+    animation-duration: 0.4s;
+    overflow: auto;
+}
+
 
 /* Add Animation */
 @-webkit-keyframes animatetop {
@@ -850,6 +881,152 @@ label {
     transform: scale(102%);
 }
 
+/*Reporte*/
+.modal-header-detalles-viaticos{
+    padding: 8px 16px;
+    color: #1a4fac;
+    display: flex;
+    justify-content: end;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.viaticos-report {
+    margin: 6px;
+}
+
+.title{
+    text-align: center;
+    /* font-size: 1.2rem; */
+    font-size: 1rem;
+    margin-bottom: .8rem;
+    font-weight: bolder;
+}
+
+.num-cuenta{
+    font-size: .9rem;
+    margin-bottom: .8rem;
+    font-weight: bolder;
+}
+
+.solicitante{
+    text-align: center;
+    font-size: .9rem;
+    margin-bottom: .8rem;
+    font-weight: bolder;
+}
+
+.resumen, .alimentacion, .total-title{
+    font-weight: bolder;
+    text-align: center;
+    margin-bottom: 1rem;
+    font-size: .9rem;
+}
+
+.viaticos-report table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.viaticos-report th, .viaticos-report td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    font-size: .7rem;
+}
+
+.viaticos-report th {
+    font-weight: bolder;
+    background-color: #f1f2f6;
+}
+
+.total{
+    font-size: .72rem;
+    font-weight: bolder;
+}
+
+.botones-detalles-viaticos{
+    display: flex;
+    justify-content: space-between;
+}
+
+.print-viaticos {
+    margin-top: 10px;
+    padding: 7.8px 10px;
+    background-color: #007bff;
+    color: white;
+    border: #007bff solid 1px;
+    border-radius: 5px;
+    cursor: pointer;
+    align-items: center;
+    gap: .4rem;
+    font-size: .7rem;
+}
+
+.print-viaticos:hover {
+    background-color: #0056b3;
+}
+
+
+/* ... (estilos existentes) ... */
+
+/* Ocultar encabezado y pie de página predeterminados del navegador al imprimir */
+@media print {
+    @page {
+        margin-top: 0;
+        margin-bottom: 0;
+        margin-left: 10mm;
+        margin-right: 10mm; /* Ajusta márgenes para que ocupe más ancho */
+    }
+    body {
+        margin: 0;
+    }
+    .title {
+        display: none !important; /* Ocultar la fecha y el título si están presentes */
+    }
+    .viaticos-report {
+        margin: 0;
+        padding: 20px;
+        width: 80% !important; /* Ocupar todo el ancho disponible */
+        max-width: 80% !important; /* Evitar límites de ancho */
+        box-shadow: none !important; /* Eliminar sombra si la hay */
+    }
+    .modal-content-detalles-viaticos {
+        width: 100% !important; /* Ocupar todo el ancho del contenedor */
+        border: none !important; /* Eliminar el borde */
+        box-shadow: none !important; /* Eliminar sombra */
+        margin: 0 !important; /* Eliminar márgenes */
+        padding: 0 !important; /* Ajustar padding si es necesario */
+    }
+    .viaticos-report table {
+        width: 80% !important; /* Asegurar que las tablas ocupen todo el ancho */
+        font-size: 12px;
+    }
+    .viaticos-report th, .viaticos-report td {
+        font-size: 10px;
+        padding: 5px;
+        border: 1px solid #ddd !important; /* Mantener bordes internos de la tabla */
+    }
+    .cerrar-detalles-viaticos, #print-viaticos {
+        display: none !important; /* Ocultar botones al imprimir */
+    }
+}
+
+/* Asegurar que el contenido sea visible y centrado al imprimir */
+@media print {
+    .viaticos-report {
+        width: 80%;
+        max-width: 80%;
+        margin: 0 auto;
+        box-shadow: none;
+        border: none;
+    }
+
+    .viaticos-report th, .viaticos-report td {
+        font-size: 10px;
+        padding: 5px;
+    }
+}
 
 /* Media query para tablets (≤800px) */
 @media (max-width: 800px) {
@@ -923,5 +1100,9 @@ label {
         flex-direction: column;
         align-items: normal;
         gap: .8rem;
+    }
+
+    .modal-content-detalles-viaticos {
+        width: 98%;
     }
 }

@@ -350,7 +350,9 @@ unset($_SESSION['success'], $_SESSION['error']);
                                 <input type="number" class="form-control" id="edit-monto-total" name="edit-monto-total" required readonly>
                             </div>
                             <!-- Boton para mostrar detalles de viaticos -->
-                            <div class="viaticos-detalles" title="Detalles de viáticos"><i class="fa-solid fa-circle-info fa-lg"></i> Detalles viáticos</div>
+                            <?php if($_SESSION['rol']==4 || $_SESSION['rol']==5): ?>
+                                <div class="viaticos-detalles" title="Detalles de viáticos"><i class="fa-solid fa-circle-info fa-lg"></i> Detalles viáticos</div>
+                            <?php endif;?>
                         </div>
                         <hr>
                         <div class="modal-footer">
@@ -377,6 +379,18 @@ unset($_SESSION['success'], $_SESSION['error']);
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal para Detalles de Viáticos -->
+    <div id="detalleViaticosModal" class="modal-detalles-viaticos" style="display: none;">
+        <div class="modal-content-detalles-viaticos viaticos-report-modal">
+            <div class="modal-header-detalles-viaticos">
+                <div class="btn-close-modal" id="btn-close-detalles-viaticos" data-modal="detalleViaticosModal"><i class="fa-solid fa-lg fa-xmark"></i></div>
+            </div>
+            <div class="modal-body" id="detalle-viaticos-content">
+                <!-- El contenido se cargará dinámicamente aquí -->
+            </div>
         </div>
     </div>
 

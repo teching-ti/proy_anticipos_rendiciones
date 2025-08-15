@@ -197,6 +197,9 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <hr>
                         <div class="modal-footer">
                             <div class="btn btn-default" onclick="prevStep()"><i class="fa-solid fa-caret-left"></i> Atrás</div>
+                            <?php if($_SESSION['rol']==3): ?>
+                                <div id="btn-corregir-rendicion" data-usuario="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Corregir</div> 
+                            <?php endif;?>
                             <?php if($_SESSION['rol']==2): ?>
                                 <div id="btn-aprobar-rendicion" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Autorizar</div> 
                             <?php endif;?>

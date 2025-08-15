@@ -47,8 +47,9 @@ body{
 }
 
 .title{
-    font-size: xx-large;
+    font-size: 48px;
     text-align: center;
+    user-select: none;
     /*Para los colores del texto*/
     font-weight: bold;
     background: rgb(25,91,171);
@@ -75,8 +76,8 @@ body{
 
 .form-login p{
     font-weight: bold;
-    font-size: 1.4rem;
-    margin: 1.4rem 0;
+    font-size: 1.2rem;
+    margin: .6rem 0 1.4rem 0;
 }
 
 .form-container{

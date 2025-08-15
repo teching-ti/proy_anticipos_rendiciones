@@ -151,80 +151,6 @@ class RendicionesModel {
         }
     }
 
-    public function getDetallesRendidosByRendicion($id_rendicion) {
-        try {
-            $query = "SELECT id, id_detalle_compra, monto_rendido, fecha, archivo_adjunto 
-                      FROM tb_detalles_compras_rendidos 
-                      WHERE id_rendicion = :id_rendicion";
-            $stmt = $this->db->prepare($query);
-            $stmt->execute([':id_rendicion' => $id_rendicion]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            error_log('Error al obtener detalles rendidos: ' . $e->getMessage());
-            return [];
-        }
-    }
-
-    public function guardarItemRendido($id_rendicion, $id_detalle_compra, $montoRendido, $fecha, $archivoNombre = null) {
-        try {
-            $this->db->beginTransaction();
-
-            // Consultar el registro existente para preservar archivo_adjunto si no se envía nuevo
-            $querySelect = "SELECT archivo_adjunto FROM tb_detalles_compras_rendidos 
-                        WHERE id_detalle_compra = :id_detalle_compra AND id_rendicion = :id_rendicion";
-            $stmtSelect = $this->db->prepare($querySelect);
-            $stmtSelect->execute([':id_detalle_compra' => $id_detalle_compra, ':id_rendicion' => $id_rendicion]);
-            $existingRecord = $stmtSelect->fetch(PDO::FETCH_ASSOC);
-            $archivoAdjuntoExistente = $existingRecord ? $existingRecord['archivo_adjunto'] : null;
-
-            // Determinar el archivo_adjunto a usar
-            $archivoAdjunto = $archivoNombre;
-            if (!$archivoNombre && isset($_POST['archivo_existente'])) {
-                $archivoAdjunto = $_POST['archivo_existente']; // Mantener el archivo existente si no se envía nuevo
-            } elseif (!$archivoNombre && $archivoAdjuntoExistente) {
-                $archivoAdjunto = $archivoAdjuntoExistente; // Usar el archivo existente de la base de datos
-            }
-
-            $query = "INSERT INTO tb_detalles_compras_rendidos (id_detalle_compra, id_rendicion, monto_rendido, fecha, archivo_adjunto, estado)
-                    VALUES (:id_detalle_compra, :id_rendicion, :monto_rendido, :fecha, :archivo_adjunto, 'rendido')
-                    ON DUPLICATE KEY UPDATE monto_rendido = :monto_rendido_update, fecha = :fecha_update, archivo_adjunto = :archivo_adjunto_update, estado = 'rendido'";
-            $stmt = $this->db->prepare($query);
-            $stmt->execute([
-                ':id_detalle_compra' => $id_detalle_compra,
-                ':id_rendicion' => $id_rendicion,
-                ':monto_rendido' => $montoRendido,
-                ':fecha' => $fecha,
-                ':archivo_adjunto' => $archivoAdjunto,
-                ':monto_rendido_update' => $montoRendido,
-                ':fecha_update' => $fecha,
-                ':archivo_adjunto_update' => $archivoAdjunto
-            ]);
-
-            if ($archivoNombre && isset($_FILES['archivo']['tmp_name']) && is_uploaded_file($_FILES['archivo']['tmp_name'])) {
-                $uploadDir = 'uploads/';
-                if (!file_exists($uploadDir)) mkdir($uploadDir, 0777, true);
-                if ($archivoAdjuntoExistente && file_exists($uploadDir . $archivoAdjuntoExistente)) {
-                    unlink($uploadDir . $archivoAdjuntoExistente); // Eliminar archivo anterior
-                }
-                move_uploaded_file($_FILES['archivo']['tmp_name'], $uploadDir . $archivoNombre);
-            }
-
-            $montoTotalRendido = $this->getMontoTotalRendidoByRendicion($id_rendicion);
-            // Actualizar tb_rendiciones
-            $queryUpdate = "UPDATE tb_rendiciones SET monto_rendido = :monto_rendido WHERE id = :id_rendicion";
-            $stmtUpdate = $this->db->prepare($queryUpdate);
-            $stmtUpdate->execute([':monto_rendido' => $montoTotalRendido, ':id_rendicion' => $id_rendicion]);
-
-
-            $this->db->commit();
-            return true;
-        } catch (PDOException $e) {
-            $this->db->rollBack();
-            error_log('Error al guardar ítem rendido: ' . $e->getMessage());
-            return false;
-        }
-    }
-
     /// ELEMENTOS PARA VIAJES Y TRANSPORTE
     // Nuevos métodos para viáticos
     public function getDetallesViajesByAnticipo($id_anticipo) {
@@ -246,77 +172,6 @@ class RendicionesModel {
         }
     }
 
-    public function getDetallesViajesRendidosByRendicion($id_rendicion) {
-        try {
-            $query = "SELECT id, id_detalle_viaje, monto_rendido, fecha, archivo_adjunto, estado
-                      FROM tb_detalles_viajes_rendidos
-                      WHERE id_rendicion = :id_rendicion";
-            $stmt = $this->db->prepare($query);
-            $stmt->execute([':id_rendicion' => $id_rendicion]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            error_log('Error al obtener detalles rendidos de viáticos: ' . $e->getMessage());
-            return [];
-        }
-    }
-
-    public function guardarItemViaje($id_rendicion, $id_detalle_viaje, $montoRendido, $fecha, $archivoNombre = null) {
-        try {
-            $this->db->beginTransaction();
-
-            $querySelect = "SELECT archivo_adjunto FROM tb_detalles_viajes_rendidos 
-                            WHERE id_detalle_viaje = :id_detalle_viaje AND id_rendicion = :id_rendicion";
-            $stmtSelect = $this->db->prepare($querySelect);
-            $stmtSelect->execute([':id_detalle_viaje' => $id_detalle_viaje, ':id_rendicion' => $id_rendicion]);
-            $existingRecord = $stmtSelect->fetch(PDO::FETCH_ASSOC);
-            $archivoAdjuntoExistente = $existingRecord ? $existingRecord['archivo_adjunto'] : null;
-
-            $archivoAdjunto = $archivoNombre;
-            if (!$archivoNombre && isset($_POST['archivo_existente'])) {
-                $archivoAdjunto = $_POST['archivo_existente'];
-            } elseif (!$archivoNombre && $archivoAdjuntoExistente) {
-                $archivoAdjunto = $archivoAdjuntoExistente;
-            }
-
-            $query = "INSERT INTO tb_detalles_viajes_rendidos (id_detalle_viaje, id_rendicion, monto_rendido, fecha, archivo_adjunto, estado)
-                      VALUES (:id_detalle_viaje, :id_rendicion, :monto_rendido, :fecha, :archivo_adjunto, 'rendido')
-                      ON DUPLICATE KEY UPDATE monto_rendido = :monto_rendido_update, fecha = :fecha_update, archivo_adjunto = :archivo_adjunto_update, estado = 'rendido'";
-            $stmt = $this->db->prepare($query);
-            $stmt->execute([
-                ':id_detalle_viaje' => $id_detalle_viaje,
-                ':id_rendicion' => $id_rendicion,
-                ':monto_rendido' => $montoRendido,
-                ':fecha' => $fecha,
-                ':archivo_adjunto' => $archivoAdjunto,
-                ':monto_rendido_update' => $montoRendido,
-                ':fecha_update' => $fecha,
-                ':archivo_adjunto_update' => $archivoAdjunto
-            ]);
-
-            if ($archivoNombre && isset($_FILES['archivo']['tmp_name']) && is_uploaded_file($_FILES['archivo']['tmp_name'])) {
-                $uploadDir = 'uploads/';
-                if (!file_exists($uploadDir)) mkdir($uploadDir, 0777, true);
-                if ($archivoAdjuntoExistente && file_exists($uploadDir . $archivoAdjuntoExistente)) {
-                    unlink($uploadDir . $archivoAdjuntoExistente);
-                }
-                move_uploaded_file($_FILES['archivo']['tmp_name'], $uploadDir . $archivoNombre);
-            }
-
-            $montoTotalRendido = $this->getMontoTotalRendidoByRendicion($id_rendicion);
-            // Actualizar tb_rendiciones
-            $queryUpdate = "UPDATE tb_rendiciones SET monto_rendido = :monto_rendido WHERE id = :id_rendicion";
-            $stmtUpdate = $this->db->prepare($queryUpdate);
-            $stmtUpdate->execute([':monto_rendido' => $montoTotalRendido, ':id_rendicion' => $id_rendicion]);
-
-            $this->db->commit();
-            return true;
-        } catch (PDOException $e) {
-            $this->db->rollBack();
-            error_log('Error al guardar ítem de viático: ' . $e->getMessage());
-            return false;
-        }
-    }
-
     // Nuevos métodos para transportes
     public function getDetallesTransportesByAnticipo($id_anticipo) {
         try {
@@ -335,77 +190,6 @@ class RendicionesModel {
         }
     }
 
-    public function getDetallesTransportesRendidosByRendicion($id_rendicion) {
-        try {
-            $query = "SELECT id, id_transporte_provincial, monto_rendido, fecha, archivo_adjunto, estado
-                      FROM tb_detalles_transportes_rendidos
-                      WHERE id_rendicion = :id_rendicion";
-            $stmt = $this->db->prepare($query);
-            $stmt->execute([':id_rendicion' => $id_rendicion]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            error_log('Error al obtener detalles rendidos de transportes: ' . $e->getMessage());
-            return [];
-        }
-    }
-
-    public function guardarItemTransporte($id_rendicion, $id_transporte_provincial, $montoRendido, $fecha, $archivoNombre = null) {
-        try {
-            $this->db->beginTransaction();
-
-            $querySelect = "SELECT archivo_adjunto FROM tb_detalles_transportes_rendidos 
-                            WHERE id_transporte_provincial = :id_transporte_provincial AND id_rendicion = :id_rendicion";
-            $stmtSelect = $this->db->prepare($querySelect);
-            $stmtSelect->execute([':id_transporte_provincial' => $id_transporte_provincial, ':id_rendicion' => $id_rendicion]);
-            $existingRecord = $stmtSelect->fetch(PDO::FETCH_ASSOC);
-            $archivoAdjuntoExistente = $existingRecord ? $existingRecord['archivo_adjunto'] : null;
-
-            $archivoAdjunto = $archivoNombre;
-            if (!$archivoNombre && isset($_POST['archivo_existente'])) {
-                $archivoAdjunto = $_POST['archivo_existente'];
-            } elseif (!$archivoNombre && $archivoAdjuntoExistente) {
-                $archivoAdjunto = $archivoAdjuntoExistente;
-            }
-
-            $query = "INSERT INTO tb_detalles_transportes_rendidos (id_transporte_provincial, id_rendicion, monto_rendido, fecha, archivo_adjunto, estado)
-                      VALUES (:id_transporte_provincial, :id_rendicion, :monto_rendido, :fecha, :archivo_adjunto, 'rendido')
-                      ON DUPLICATE KEY UPDATE monto_rendido = :monto_rendido_update, fecha = :fecha_update, archivo_adjunto = :archivo_adjunto_update, estado = 'rendido'";
-            $stmt = $this->db->prepare($query);
-            $stmt->execute([
-                ':id_transporte_provincial' => $id_transporte_provincial,
-                ':id_rendicion' => $id_rendicion,
-                ':monto_rendido' => $montoRendido,
-                ':fecha' => $fecha,
-                ':archivo_adjunto' => $archivoAdjunto,
-                ':monto_rendido_update' => $montoRendido,
-                ':fecha_update' => $fecha,
-                ':archivo_adjunto_update' => $archivoAdjunto
-            ]);
-
-            if ($archivoNombre && isset($_FILES['archivo']['tmp_name']) && is_uploaded_file($_FILES['archivo']['tmp_name'])) {
-                $uploadDir = 'uploads/';
-                if (!file_exists($uploadDir)) mkdir($uploadDir, 0777, true);
-                if ($archivoAdjuntoExistente && file_exists($uploadDir . $archivoAdjuntoExistente)) {
-                    unlink($uploadDir . $archivoAdjuntoExistente);
-                }
-                move_uploaded_file($_FILES['archivo']['tmp_name'], $uploadDir . $archivoNombre);
-            }
-
-            $montoTotalRendido = $this->getMontoTotalRendidoByRendicion($id_rendicion);
-            // Actualizar tb_rendiciones
-            $queryUpdate = "UPDATE tb_rendiciones SET monto_rendido = :monto_rendido WHERE id = :id_rendicion";
-            $stmtUpdate = $this->db->prepare($queryUpdate);
-            $stmtUpdate->execute([':monto_rendido' => $montoTotalRendido, ':id_rendicion' => $id_rendicion]);
-
-            $this->db->commit();
-            return true;
-        } catch (PDOException $e) {
-            $this->db->rollBack();
-            error_log('Error al guardar ítem de transporte: ' . $e->getMessage());
-            return false;
-        }
-    }
-
     public function getMontoSolicitadoByAnticipo($id_anticipo) {
         try {
             $query = "SELECT monto_total_solicitado FROM tb_anticipos WHERE id = :id_anticipo";
@@ -421,17 +205,18 @@ class RendicionesModel {
 
     public function getMontoTotalRendidoByRendicion($id_rendicion) {
         try {
-            $query = "SELECT SUM(monto_rendido) as total_rendido FROM (
-                SELECT monto_rendido FROM tb_detalles_compras_rendidos WHERE id_rendicion = :id_rendicion1
-                UNION ALL
-                SELECT monto_rendido FROM tb_detalles_viajes_rendidos WHERE id_rendicion = :id_rendicion2
-                UNION ALL
-                SELECT monto_rendido FROM tb_detalles_transportes_rendidos WHERE id_rendicion = :id_rendicion3
-            ) AS combined";
+            $query = "SELECT COALESCE(SUM(importe_total), 0) as monto_total 
+                    FROM (
+                        SELECT importe_total FROM tb_comprobantes_compras WHERE id_rendicion = :id_rendicion1
+                        UNION ALL
+                        SELECT importe_total FROM tb_comprobantes_viaticos WHERE id_rendicion = :id_rendicion2
+                        UNION ALL
+                        SELECT importe_total FROM tb_comprobantes_transportes WHERE id_rendicion = :id_rendicion3
+                    ) AS combined";
             $stmt = $this->db->prepare($query);
             $stmt->execute([':id_rendicion1' => $id_rendicion, ':id_rendicion2' => $id_rendicion, ':id_rendicion3' => $id_rendicion]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $result['total_rendido'] ? floatval($result['total_rendido']) : 0.00;
+            return $result['monto_total'] ?? 0.00;
         } catch (PDOException $e) {
             error_log('Error al obtener monto total rendido: ' . $e->getMessage());
             return 0.00;
@@ -454,6 +239,8 @@ class RendicionesModel {
     public function aprobarRendicion($id_rendicion, $id_usuario) {
         try {
             $this->db->beginTransaction();
+            error_log("Rendicion: $id_rendicion");
+            error_log("Usuario: $id_usuario");
 
             // Calcular monto_rendido (asumiendo que existe un método)
             $montoRendido = $this->getMontoTotalRendidoByRendicion($id_rendicion);
@@ -498,6 +285,26 @@ class RendicionesModel {
         }
     }
 
+    public function corregirRendicion($id_rendicion, $id_usuario, $comentario) {
+        try {
+            $this->db->beginTransaction();
+            $query = "INSERT INTO tb_historial_rendiciones (id_rendicion, estado, fecha, id_usuario, comentario) 
+                    VALUES (:id_rendicion, 'Nuevo', NOW(), :id_usuario, :comentario)";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                ':id_rendicion' => $id_rendicion,
+                ':id_usuario' => $id_usuario,
+                ':comentario' => $comentario
+            ]);
+            $this->db->commit();
+            return true;
+        } catch (PDOException $e) {
+            $this->db->rollBack();
+            error_log('Error al corregir rendición: ' . $e->getMessage());
+            return false;
+        }
+    }
+
     public function cerrarRendicion($id_rendicion, $id_usuario, $comentario, $id_anticipo) {
         try {
             $this->db->beginTransaction();
@@ -528,4 +335,18 @@ class RendicionesModel {
         }
     }
 
+    // Nuevo método para obtener el id_usuario del último autorizador
+    public function getLastAuthorizerId($idRendicion) {
+        try {
+            $query = "SELECT id_usuario FROM tb_historial_rendiciones WHERE id_rendicion = :id AND estado = 'Autorizado' ORDER BY fecha DESC LIMIT 1";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id' => $idRendicion]);
+            $idAutorizador = $stmt->fetchColumn();
+            //error_log("ID del último autorizador para anticipo $idAnticipo: " . ($idAutorizador ?: 'No encontrado'));
+            return $idAutorizador ?: null;
+        } catch (PDOException $e) {
+            error_log('Error al obtener el último autorizador: ' . $e->getMessage());
+            return null;
+        }
+    }
 }

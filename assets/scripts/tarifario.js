@@ -5,18 +5,6 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(response => response.json())
         .then(data => {
             categorias = data;
-            // Llenar formulario de agregar cargo (opcional, si lo necesitas)
-            //const addMontosContainer = document.getElementById('add-montos-container');
-
-            // categorias.forEach(categoria => {
-            //     const div = document.createElement('div');
-            //     div.className = 'modal-element';
-            //     div.innerHTML = `
-            //         <span class="placeholder">${(categoria.nombre)}</span>
-            //         <input type="number" class="form-control" id="monto-${categoria.id}" name="montos[${categoria.id}]" value="0.00" step="0.01" required>
-            //     `;
-            //     addMontosContainer.appendChild(div);
-            // });
         })
         .catch(error => {
             console.error('Error al cargar categorías:', error);

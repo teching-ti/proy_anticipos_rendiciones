@@ -1,15 +1,20 @@
 <?php
 require_once 'src/config/Database.php';
+require_once 'src/models/TrabajadorModel.php';
 require_once 'src/models/AnticipoModel.php';
+require_once 'src/config/EmailConfig.php';
 
 class AnticipoController {
     private $db;
     private $anticipoModel;
+    private $emailConfig;
 
     public function __construct() {
         $database = new Database();
         $this->db = $database->connect();
         $this->anticipoModel = new AnticipoModel();
+        $this->trabajadorModel = new TrabajadorModel();
+        $this->emailConfig = new EmailConfig();
     }
 
     public function index() {
@@ -68,6 +73,7 @@ class AnticipoController {
 
     }
 
+    // Funcionalidad para agregar un anticipo
     public function add() {
 
         if (!isset($_SESSION['id'])) {
@@ -98,7 +104,7 @@ class AnticipoController {
 
             $concepto = trim($_POST['concepto'] ?? 'compras-menores');
             // arreglo en donde se encuentran los detalles de compras menores o gastos
-            $detalles_gastos = isset($_POST['detalles_gastos']) ? $_POST['detalles_gastos'] : [];//here
+            $detalles_gastos = isset($_POST['detalles_gastos']) ? $_POST['detalles_gastos'] : [];
             $detalles_viajes = [];
 
             // Procesar datos de viajes
@@ -227,6 +233,9 @@ class AnticipoController {
                 }
 
                 if ($response['message'] === '') {
+                    //url usada en el correo
+                    $url_plataforma = 'http://192.168.1.193/proy_anticipos_rendiciones/anticipos';
+
                     if ($this->anticipoModel->anticipoPendiente($id_usuario)) {
                     $response['message'] = 'El solicitante aún tiene pendiente un anticipo por rendir.';
                     error_log($response['message']);
@@ -240,9 +249,54 @@ class AnticipoController {
                             $response['message'] = "No se registró el anticipo. El monto solicitado ($monto_total_solicitado) excede el saldo disponible ($saldo_disponible) para el sub-subcentro.";
                             error_log($response['message']);
                         } else {
-                            if ($this->anticipoModel->addAnticipo($id_usuario, $solicitante, $solicitante_nombres, $dni_solicitante, $departamento, $departamento_nombre, $codigo_sscc, $cargo, $nombre_proyecto, $fecha_solicitud, $motivo_anticipo, $monto_total_solicitado, $id_cat_documento, $detalles_gastos, $detalles_viajes)) {
+
+                            $numero_anticipo = $this->anticipoModel->addAnticipo($id_usuario, $solicitante, $solicitante_nombres, $dni_solicitante, $departamento, $departamento_nombre, $codigo_sscc, $cargo, $nombre_proyecto, $fecha_solicitud, $motivo_anticipo, $monto_total_solicitado, $id_cat_documento, $detalles_gastos, $detalles_viajes);
+
+                            if ($numero_anticipo) {
                                 $response['success'] = true;
                                 $response['message'] = 'Anticipo registrado con éxito';
+
+                                $solicitante = $this->trabajadorModel->getTrabajadorByDni($dni_solicitante);
+
+                                if ($solicitante && isset($solicitante['correo'])) {
+                                    // formatear
+                                    $fecha_correo = date("d-m-Y", strtotime($fecha_solicitud));
+                                    $monto_correo = number_format($monto_total_solicitado, 2, ',', '.');
+
+                                    $to = $solicitante['correo'];
+                                    $subject = "SIAR - TECHING - Anticipo Número $numero_anticipo ha sido creado";
+
+                                    $aprobadores = $this->trabajadorModel->getAprobadoresByDepartamento($departamento);
+
+                                    $body = "
+                                        <h2>Notificación de Anticipo</h2>
+                                        <p>Estimado/a, {$solicitante['nombres']} {$solicitante['apellidos']},</p>
+                                        <p>Se ha creado un nuevo anticipo con los siguientes detalles:</p>
+                                        <ul>
+                                            <li><strong>Número de Anticipo:</strong> $numero_anticipo</li>
+                                            <li><strong>Motivo:</strong> $motivo_anticipo</li>
+                                            <li><strong>DNI Solicitante:</strong> $dni_solicitante</li>
+                                            <li><strong>Sub sub-centro de costo:</strong> $codigo_sscc</li>
+                                            <li><strong>Nombre del Proyecto:</strong> $nombre_proyecto</li>
+                                            <li><strong>Fecha:</strong> $fecha_correo</li>
+                                            <li><strong>Monto:</strong> $monto_correo</li>
+                                        </ul>
+                                        <p>Recuerde que este anticipo deberá ser autorizado para que se pueda continuar con el flujo del anticipo.</p>
+                                        <hr>
+                                        <br>
+                                        <p>No es necesario responder a este mensaje. Deberá ingresar a la plataforma SIAR para obtener más detalles del anticipo.</p>
+                                        <a href='{$url_plataforma}'>SIAR - TECHING</a>
+                                    ";
+
+                                    if ($this->emailConfig->sendSiarNotification($to, $subject, $body, $aprobadores)) {
+                                        error_log("Anticipo creado y notificación enviada");
+                                    } else {
+                                        error_log("No se pudo enviar la notificación");
+                                    }
+                                } else {
+                                    error_log("No se envió el correo, no se encontró el correo del solicitante");
+                                }
+
                                 error_log($response['message']);
                             } else {
                                 $response['message'] = 'Error al registrar el anticipo.';
@@ -259,7 +313,7 @@ class AnticipoController {
         require_once 'src/views/anticipos.php';
     }
 
-    public function update() {
+    public function update() {// here, este es el evento que de edición. Se deberá notificar de igual manera y colocar como nuevo tras editar uno observado.
         header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = [
@@ -378,8 +432,74 @@ class AnticipoController {
 
             $result = $this->anticipoModel->updateAnticipo($data);
             error_log(print_r($result, true));
+
             if (!empty($result['success'])) {
+                $id_anticipo = $data['id_anticipo'];
+
+                // obtener el estado actual del anticipo
+                $latestEstado = $this->anticipoModel->getLatestAnticipoEstado($id_anticipo);
+
+                if (in_array($latestEstado, ['Observado'])) {
+                    $motivo = $data['motivo_anticipo'];
+                    $sscc = $data['codigo_sscc'];
+                    $nombreProyecto = $data['nombre_proyecto'];
+                    $montoTotal = $data['monto_total_solicitado'];
+                    $dniSolicitante = $_SESSION['dni'];
+                    $solicitanteNombre = $_SESSION['trabajador']['nombres'] . " " . $_SESSION['trabajador']['apellidos'];
+
+
+                    // Esta notificación deberá darse siempre y cuando el estado actual o anterior sea "obsevado"
+                    if ($this->anticipoModel->updateAnticipoEstado($id_anticipo, 'Nuevo', $_SESSION['id'], 'Anticipo actualizado tras observacioón')) {
+
+                        $aprobadores = $this->trabajadorModel->getAprobadoresByDepartamento($_SESSION['trabajador']['departamento']);
+                        //url usada en el correo
+                        $url_plataforma = 'http://192.168.1.193/proy_anticipos_rendiciones/anticipos';
+
+                        $solicitante = $this->trabajadorModel->getTrabajadorByDni($_SESSION['dni']);
+                        $correo_solicitante = $solicitante['correo'];
+
+
+                        if ($correo_solicitante) {
+
+                            $to = $correo_solicitante;
+                            $subject = "SIAR - TECHING - Anticipo N° $id_anticipo ha sido actualizado";
+
+                            $body = "
+                                <h2>Notificación de Anticipo</h2>
+                                <p>El anticipo ha sido actualizado tras haber sido marcado como observado. Información del anticipo:</p>
+                                <ul>
+                                    <li><strong>N° de Anticipo:</strong> $id_anticipo</li>
+                                    <li><strong>Motivo:</strong> $motivo</li>
+                                    <li><strong>DNI Solicitante:</strong> $dniSolicitante</li>
+                                    <li><strong>Nombre Solicitante: $solicitanteNombre</strong></li>
+                                    <li><strong>Sub sub-centro de costo:</strong> $sscc</li>
+                                    <li><strong>Nombre del Proyecto:</strong> $nombreProyecto</li>
+                                    <li><strong>Monto:</strong> $montoTotal</li>
+                                </ul>
+                                <p>Recuerde que el anticipo deberá ser autorizado por el área de <b>contabilidad</b> para continuar con la atención de su solicitud.</p>
+                                <hr>
+                                <br>
+                                <p>No es necesario responder a este mensaje. Deberá ingresar a la plataforma SIAR para obtener más detalles del anticipo.</p>
+                                <a href='{$url_plataforma}'>SIAR - TECHING</a>
+                            ";
+
+                            error_log("Correo del solciitante" .$correo_solicitante);
+
+                            if ($this->emailConfig->sendSiarNotification($to, $subject, $body, $aprobadores)) {
+                                error_log("Anticipo actualizado y notificación enviada");
+                            } else {
+                                error_log("No se pudo enviar la notificación");
+                            }
+
+
+                        } else {
+                            error_log("No se envió el correo, no se encontró el correo del solicitante");
+                        }
+                    }
+                }
+
                 echo json_encode(['success' => true]);
+                // Aquí se debería de agregar un nuevo estado al historial del anticipo
             } else {
                 echo json_encode(['error' => $result['error'] ?? 'Error desconocido']);
             }
@@ -388,6 +508,7 @@ class AnticipoController {
         }
     }
 
+    // Funcionalidad para autorizar un anticipo
     public function autorizar() {
         if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 2) {
             $_SESSION['error'] = 'No tienes permiso para autorizar anticipos.';
@@ -398,6 +519,14 @@ class AnticipoController {
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id'])) {
             $id = (int)$_POST['id'];
+            
+            // Elementos enviados para la notificación por correo
+            $dniSolicitante = $_POST['dniSolicitante'];
+            $solicitanteNombre = $_POST['solicitanteNombre'];
+            $sscc = $_POST['sscc'];
+            $nombreProyecto = $_POST['nombreProyecto'];
+            $motivoAnticipo = $_POST['motivoAnticipo'];
+            $montoTotal = $_POST['montoTotal'];
 
             $latestEstado = $this->anticipoModel->getLatestAnticipoEstado($id);
             if ($latestEstado === null) {
@@ -415,6 +544,99 @@ class AnticipoController {
 
             if ($this->anticipoModel->updateAnticipoEstado($id, 'Autorizado', $_SESSION['id'], 'Autorizado')) {
                 // $_SESSION['success'] = 'Anticipo aprobado correctamente.';
+
+                // error_log($_SESSION['trabajador']['correo']);
+                $correo_aprobador = $_SESSION['trabajador']['correo'];
+
+                //url usada en el correo
+                $url_plataforma = 'http://192.168.1.193/proy_anticipos_rendiciones/anticipos';
+
+                $solicitante = $this->trabajadorModel->getTrabajadorByDni($dniSolicitante);
+                $correo_solicitante = $solicitante['correo'];
+
+                $correos_cc = [$correo_solicitante];
+
+                if ($correo_solicitante) {
+
+                    $to = $correo_aprobador;
+                    $subject = "SIAR - TECHING - Anticipo N° $id ha sido autorizado";
+
+                    // obteniendo información de los tesoreros
+                    $dnisRol5 = $this->trabajadorModel->getDnisByRol5();
+                    $rol5Correos = [];
+                    if (!empty($dnisRol5)) {
+                        // Buscar correos en tb_trabajadores (base externa) para los DNI con rol 5
+                        foreach ($dnisRol5 as $dni) {
+                            $trabajador = $this->trabajadorModel->getTrabajadorByDni($dni);
+                            if ($trabajador && isset($trabajador['correo'])) {
+                                $rol5Correos[] = $trabajador['correo'];
+                            }
+                        }
+                    }
+
+                    $body = "
+                        <h2>Notificación de Anticipo</h2>
+                        <p>Se realizó la primera autorización del anticipo correctamente. Información del anticipo:</p>
+                        <ul>
+                            <li><strong>N° de Anticipo:</strong> $id</li>
+                            <li><strong>Motivo:</strong> $motivoAnticipo</li>
+                            <li><strong>DNI Solicitante:</strong> $dniSolicitante</li>
+                            <li><strong>Nombre Solicitante: $solicitanteNombre</strong></li>
+                            <li><strong>Sub sub-centro de costo:</strong> $sscc</li>
+                            <li><strong>Nombre del Proyecto:</strong> $nombreProyecto</li>
+                            <li><strong>Monto:</strong> $montoTotal</li>
+                        </ul>
+                        <p>Recuerde que el anticipo deberá ser autorizado por el área de <b>contabilidad</b> para continuar con la atención de su solicitud.</p>
+                        <hr>
+                        <br>
+                        <p>No es necesario responder a este mensaje. Deberá ingresar a la plataforma SIAR para obtener más detalles del anticipo.</p>
+                        <a href='{$url_plataforma}'>SIAR - TECHING</a>
+                    ";
+
+                    error_log("Correo del solciitante" .$correo_solicitante);
+
+                    if ($this->emailConfig->sendSiarNotification($to, $subject, $body, $correos_cc)) {
+                        error_log("Anticipo creado y notificación enviada");
+                    } else {
+                        error_log("No se pudo enviar la notificación");
+                    }
+
+                    // Enviar correo a usuarios con rol 5
+                    if (!empty($rol5Correos)) {
+                        $bodyTesoreria = "
+                            <h2>Notificación de Anticipo</h2>
+                            <p>El usuario aprobador realizó la primera autorización correctamente. Información del anticipo:</p>
+                            <ul>
+                                <li><strong>N° de Anticipo:</strong> $id</li>
+                                <li><strong>Motivo:</strong> $motivoAnticipo</li>
+                                <li><strong>DNI Solicitante:</strong> $dniSolicitante</li>
+                                <li><strong>Nombre Solicitante: $solicitanteNombre</strong></li>
+                                <li><strong>Sub sub-centro de costo:</strong> $sscc</li>
+                                <li><strong>Nombre del Proyecto:</strong> $nombreProyecto</li>
+                                <li><strong>Monto:</strong> $montoTotal</li>
+                            </ul>
+                            <p>Deberá revisar en la plataforma SIAR el anticipo respectivo para poder realizar la segunda autorización o marcarlo como observado en caso exista un dato incorrecto.</p>
+                            <hr>
+                            <br>
+                            <p>No es necesario responder a este mensaje. Deberá ingresar a la plataforma SIAR para obtener más detalles del anticipo.</p>
+                            <a href='{$url_plataforma}'>SIAR - TECHING</a>
+                        ";
+                        foreach ($rol5Correos as $rol5Correo) {
+                            if ($this->emailConfig->sendSiarNotification($rol5Correo, $subject, $bodyTesoreria, [])) {
+                                error_log("Notificación enviada al usuario con rol 5: $rol5Correo");
+                            } else {
+                                error_log("No se pudo enviar la notificación al usuario con rol 5: $rol5Correo");
+                            }
+                        }
+                    } else {
+                        error_log("No se encontraron correos de usuarios con rol 5");
+                    }
+                } else {
+                    error_log("No se envió el correo, no se encontró el correo del solicitante");
+                }
+            
+
+
                 header('Content-Type: application/json');
                 echo json_encode(['success' => 'Anticipo autorizado correctamente.']);
                 exit;
@@ -429,7 +651,7 @@ class AnticipoController {
         exit;
     }
 
-    //Autorizar totalmente un anticipo - funcionalidad de personal contador
+    //Funcionalidad para autorizar totalmente un anticipo y enviar notificación
     public function autorizarTotalmente() {
         if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 5) {
             error_log( 'No tiene permisos para realizar este tipo de aprobación');
@@ -441,6 +663,14 @@ class AnticipoController {
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id'])) {
             $id = (int)$_POST['id'];
 
+            // Elementos enviados para la notificación por correo
+            $dniSolicitante = $_POST['dniSolicitante'];
+            $solicitanteNombre = $_POST['solicitanteNombre'];
+            $sscc = $_POST['sscc'];
+            $nombreProyecto = $_POST['nombreProyecto'];
+            $motivoAnticipo = $_POST['motivoAnticipo'];
+            $montoTotal = $_POST['montoTotal'];
+
             $latestEstado = $this->anticipoModel->getLatestAnticipoEstado($id);
             if ($latestEstado === null) {
                 header('Content-Type: application/json');
@@ -448,15 +678,93 @@ class AnticipoController {
                 exit;
             }
 
-            // Validar que el estado sea "Nuevo" u "Observado"
+            // Validar que el estado sea "autorizado"
             if (!in_array($latestEstado, ['Autorizado'])) {
                 header('Content-Type: application/json');
-                echo json_encode(['error' => 'El anticipo no puede ser autorizado. Solo se pueden autorizar anticipos en estado "Nuevo" u "Observado".']);
+                echo json_encode(['error' => 'El anticipo no puede ser autorizado. Solo se pueden autorizar totalmente anticipos en estado "Autorizado".']);
                 exit;
             }
 
             if ($this->anticipoModel->updateAnticipoEstado($id, 'Autorizado Totalmente', $_SESSION['id'], 'Autorizado Totalmente')) {
                 // $_SESSION['success'] = 'Anticipo aprobado correctamente.';
+
+                $correo_tesorero = $_SESSION['trabajador']['correo'];
+
+                //url usada en el correo
+                $url_plataforma = 'http://192.168.1.193/proy_anticipos_rendiciones/anticipos';
+
+                $solicitante = $this->trabajadorModel->getTrabajadorByDni($dniSolicitante);
+                $correo_solicitante = $solicitante['correo'];
+
+                $correos_cc = [$correo_solicitante];
+
+                if ($correo_solicitante) {
+
+                    $to = $correo_tesorero;
+                    $subject = "SIAR - TECHING - Anticipo N° $id ha sido autorizado totalmente";
+
+                    $body = "
+                        <h2>Notificación de Anticipo</h2>
+                        <p>Se realizó la segunda autorización del anticipo correctamente. Información del anticipo:</p>
+                        <ul>
+                            <li><strong>N° de Anticipo:</strong> $id</li>
+                            <li><strong>Motivo:</strong> $motivoAnticipo</li>
+                            <li><strong>DNI Solicitante:</strong> $dniSolicitante</li>
+                            <li><strong>Nombre Solicitante: $solicitanteNombre</strong></li>
+                            <li><strong>Sub sub-centro de costo:</strong> $sscc</li>
+                            <li><strong>Nombre del Proyecto:</strong> $nombreProyecto</li>
+                            <li><strong>Monto:</strong> $montoTotal</li>
+                        </ul>
+                        <p>Por este medio, recibirá una notificación de cuando su anticipo se encuentre abonado.</p>
+                        <hr>
+                        <br>
+                        <p>No es necesario responder a este mensaje. Deberá ingresar a la plataforma SIAR para obtener más detalles del anticipo.</p>
+                        <a href='{$url_plataforma}'>SIAR - TECHING</a>
+                    ";
+
+                    error_log("Correo del solciitante" .$correo_solicitante);
+
+                    if ($this->emailConfig->sendSiarNotification($to, $subject, $body, $correos_cc)) {
+                        error_log("Anticipo creado y notificación enviada");
+                    } else {
+                        error_log("No se pudo enviar la notificación");
+                    }
+
+                    // Enviar correo a usuarios con rol 5
+                    if (!empty($rol5Correos)) {
+                        $bodyTesoreria = "
+                            <h2>Notificación de Anticipo</h2>
+                            <p>El usuario aprobador realizó la primera autorización correctamente. Información del anticipo:</p>
+                            <ul>
+                                <li><strong>N° de Anticipo:</strong> $id</li>
+                                <li><strong>Motivo:</strong> $motivoAnticipo</li>
+                                <li><strong>DNI Solicitante:</strong> $dniSolicitante</li>
+                                <li><strong>Nombre Solicitante: $solicitanteNombre</strong></li>
+                                <li><strong>Sub sub-centro de costo:</strong> $sscc</li>
+                                <li><strong>Nombre del Proyecto:</strong> $nombreProyecto</li>
+                                <li><strong>Monto:</strong> $montoTotal</li>
+                            </ul>
+                            <p>Deberá revisar en la plataforma SIAR el anticipo respectivo para poder realizar la segunda autorización o marcarlo como observado en caso exista un dato incorrecto.</p>
+                            <hr>
+                            <br>
+                            <p>No es necesario responder a este mensaje. Deberá ingresar a la plataforma SIAR para obtener más detalles del anticipo.</p>
+                            <a href='{$url_plataforma}'>SIAR - TECHING</a>
+                        ";
+                        foreach ($rol5Correos as $rol5Correo) {
+                            if ($this->emailConfig->sendSiarNotification($rol5Correo, $subject, $bodyTesoreria, [])) {
+                                error_log("Notificación enviada al usuario con rol 5: $rol5Correo");
+                            } else {
+                                error_log("No se pudo enviar la notificación al usuario con rol 5: $rol5Correo");
+                            }
+                        }
+                    } else {
+                        error_log("No se encontraron correos de usuarios con rol 5");
+                    }
+                } else {
+                    error_log("No se envió el correo, no se encontró el correo del solicitante");
+                }
+                
+    
                 header('Content-Type: application/json');
                 echo json_encode(['success' => 'Anticipo autorizado totalmente.']);
                 exit;
@@ -471,7 +779,7 @@ class AnticipoController {
         exit;
     }
 
-    //  Funcionalidad para marcar como observado un anticipo
+    //  Funcionalidad para marcar como observado un anticipo y enviar notificación
     public function observarAnticipo() {
         if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 5) {
             error_log( 'No tiene permisos para realizar este tipo de actividad');
@@ -479,12 +787,25 @@ class AnticipoController {
             echo json_encode(['error' => 'No tiene permisos para realizar este tipo de actividad']);
             exit;
         }
-
+        
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
             $id = (int)$_POST['id'];
+
+            // Elementos enviados para la notificación por correo
+            $dniSolicitante = $_POST['dniSolicitante'];
+            $solicitanteNombre = $_POST['solicitanteNombre'];
+            $sscc = $_POST['sscc'];
+            $nombreProyecto = $_POST['nombreProyecto'];
+            $motivoAnticipo = $_POST['motivoAnticipo'];
+            $montoTotal = $_POST['montoTotal'];
+
             $comentario = trim($_POST['comentario'] ?? 'Anticipo Observado');
 
             $latestEstado = $this->anticipoModel->getLatestAnticipoEstado($id);
+            error_log("Resultado de latestEstado:");
+            error_log($latestEstado);
+            // $ultimoAutorizador = $latestEstado['id_usuario'];
+
             if ($latestEstado === null) {
                 header('Content-Type: application/json');
                 echo json_encode(['error' => 'No se pudo verificar el estado del anticipo']);
@@ -494,11 +815,73 @@ class AnticipoController {
             // Validar que el estado actual sea autorizado
             if (!in_array($latestEstado, ['Autorizado'])) {
                 header('Content-Type: application/json');
-                echo json_encode(['error' => 'El anticipo no pudo ser marcado como observado. Solo se pueden observar anticipos en estado "Aprobado".']);
+                echo json_encode(['error' => 'El anticipo no pudo ser marcado como observado. Solo se pueden observar anticipos en estado "Autorizado".']);
                 exit;
             }
 
             if ($this->anticipoModel->updateAnticipoEstado($id, 'Observado', $_SESSION['id'], $comentario)) {
+
+                $idAutorizador = $this->anticipoModel->getLastAuthorizerId($id);
+                error_log("Id del autorizador: ".$idAutorizador);
+
+                $dniAutorizador = $this->trabajadorModel->getDniById($idAutorizador);
+                error_log("DNI del autorizador: ".$dniAutorizador);
+
+                // Obtener el correo del autorizador
+                $autorizador = $idAutorizador ? $this->trabajadorModel->getTrabajadorByDni($dniAutorizador) : null;
+                $correo_autorizador = $autorizador && isset($autorizador['correo']) ? $autorizador['correo'] : null;
+                error_log("Correo del autorizador". $correo_autorizador);
+                
+                // Se obtiene el correo del tesorero para la notificación
+                $correo_tesorero = $_SESSION['trabajador']['correo'];
+
+                //url usada en el correo
+                $url_plataforma = 'http://192.168.1.193/proy_anticipos_rendiciones/anticipos';
+
+                $solicitante = $this->trabajadorModel->getTrabajadorByDni($dniSolicitante);
+                $correo_solicitante = $solicitante['correo'];
+
+                $correos_cc = [$correo_solicitante];
+                if ($correo_autorizador) {
+                    $correos_cc[] = $correo_autorizador; // Añadir el correo del autorizador a CC
+                }
+
+                if ($correo_solicitante) {
+
+                    $to = $correo_tesorero;
+                    $subject = "SIAR - TECHING - Anticipo N° $id ha sido marcado como observado";
+
+                    $body = "
+                        <h2>Notificación de Anticipo</h2>
+                        <p>El anticipo fue marcado como observado, favor de revisar las observaciones para que puedan ser corregidas. Información del anticipo:</p>
+                        <ul>
+                            <li><strong>N° de Anticipo:</strong> $id</li>
+                            <li><strong>Motivo:</strong> $motivoAnticipo</li>
+                            <li><strong>DNI Solicitante:</strong> $dniSolicitante</li>
+                            <li><strong>Nombre Solicitante: $solicitanteNombre</strong></li>
+                            <li><strong>Sub sub-centro de costo:</strong> $sscc</li>
+                            <li><strong>Nombre del Proyecto:</strong> $nombreProyecto</li>
+                            <li><strong>Monto:</strong> $montoTotal</li>
+                            <p><strong>Observación:</strong> $comentario</p>
+                        </ul>
+                        <hr>
+                        <br>
+                        <p>No es necesario responder a este mensaje. Deberá ingresar a la plataforma SIAR para obtener más detalles del anticipo.</p>
+                        <a href='{$url_plataforma}'>SIAR - TECHING</a>
+                    ";
+
+                    error_log("Correo del solciitante" .$correo_solicitante);
+
+                    if ($this->emailConfig->sendSiarNotification($to, $subject, $body, $correos_cc)) {
+                        error_log("Anticipo marcado como observado y con notificación enviada");
+                        } else {
+                            error_log("No se pudo enviar la notificación");
+                        }
+
+                    } else {
+                        error_log("No se envió el correo, no se encontró el correo del solicitante");
+                    }
+
                 header('Content-Type: application/json');
                 echo json_encode(['success' => 'Anticipo marcado como observado.']);
                 exit;
@@ -522,6 +905,14 @@ class AnticipoController {
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
             $id = (int)$_POST['id'];
+
+            // Elementos enviados para la notificación por correo
+            $dniSolicitante = $_POST['dniSolicitante'];
+            $solicitanteNombre = $_POST['solicitanteNombre'];
+            $sscc = $_POST['sscc'];
+            $nombreProyecto = $_POST['nombreProyecto'];
+            $motivoAnticipo = $_POST['motivoAnticipo'];
+            $montoTotal = $_POST['montoTotal'];
             $comentario = trim($_POST['comentario'] ?? 'Anticipo Abonado');
 
             $latestEstado = $this->anticipoModel->getLatestAnticipoEstado($id);
@@ -539,6 +930,83 @@ class AnticipoController {
             }
 
             if ($this->anticipoModel->abonarAnticipo($id, $_SESSION['id'], $comentario)) {
+
+                $correo_tesorero = $_SESSION['trabajador']['correo'];
+
+                //url usada en el correo
+                $url_plataforma = 'http://192.168.1.193/proy_anticipos_rendiciones/anticipos';
+
+                $solicitante = $this->trabajadorModel->getTrabajadorByDni($dniSolicitante);
+                $correo_solicitante = $solicitante['correo'];
+
+                $correos_cc = [$correo_solicitante];
+
+                if ($correo_solicitante) {
+
+                    $to = $correo_tesorero;
+                    $subject = "SIAR - TECHING - Anticipo N° $id abonado";
+
+                    $body = "
+                        <h2>Notificación de Anticipo</h2>
+                        <p>Se procedió a realizar el abono del anticipo.</p>
+                        <ul>
+                            <li><strong>N° de Anticipo:</strong> $id</li>
+                            <li><strong>Motivo:</strong> $motivoAnticipo</li>
+                            <li><strong>DNI Solicitante:</strong> $dniSolicitante</li>
+                            <li><strong>Nombre Solicitante: $solicitanteNombre</strong></li>
+                            <li><strong>Sub sub-centro de costo:</strong> $sscc</li>
+                            <li><strong>Nombre del Proyecto:</strong> $nombreProyecto</li>
+                            <li><strong>Monto:</strong> $montoTotal</li>
+                        </ul>
+                        <p>Recuerde que deberá rendir este anticipo en el panel de 'Rendiciones' dentro de la plataforma SIAR, antes de la fecha de rendición estimada.</p>
+                        <hr>
+                        <br>
+                        <p>No es necesario responder a este mensaje. Deberá ingresar a la plataforma SIAR para obtener más detalles del anticipo.</p>
+                        <a href='{$url_plataforma}'>SIAR - TECHING</a>
+                    ";
+
+                    error_log("Correo del solciitante" .$correo_solicitante);
+
+                    if ($this->emailConfig->sendSiarNotification($to, $subject, $body, $correos_cc)) {
+                        error_log("Anticipo creado y notificación enviada");
+                    } else {
+                        error_log("No se pudo enviar la notificación");
+                    }
+
+                    // Enviar correo a usuarios con rol 5
+                    if (!empty($rol5Correos)) {
+                        $bodyTesoreria = "
+                            <h2>Notificación de Anticipo</h2>
+                            <p>El usuario aprobador realizó la primera autorización correctamente. Información del anticipo:</p>
+                            <ul>
+                                <li><strong>N° de Anticipo:</strong> $id</li>
+                                <li><strong>Motivo:</strong> $motivoAnticipo</li>
+                                <li><strong>DNI Solicitante:</strong> $dniSolicitante</li>
+                                <li><strong>Nombre Solicitante: $solicitanteNombre</strong></li>
+                                <li><strong>Sub sub-centro de costo:</strong> $sscc</li>
+                                <li><strong>Nombre del Proyecto:</strong> $nombreProyecto</li>
+                                <li><strong>Monto:</strong> $montoTotal</li>
+                            </ul>
+                            <p>Deberá revisar en la plataforma SIAR el anticipo respectivo para poder realizar la segunda autorización o marcarlo como observado en caso exista un dato incorrecto.</p>
+                            <hr>
+                            <br>
+                            <p>No es necesario responder a este mensaje. Deberá ingresar a la plataforma SIAR para obtener más detalles del anticipo.</p>
+                            <a href='{$url_plataforma}'>SIAR - TECHING</a>
+                        ";
+                        foreach ($rol5Correos as $rol5Correo) {
+                            if ($this->emailConfig->sendSiarNotification($rol5Correo, $subject, $bodyTesoreria, [])) {
+                                error_log("Notificación enviada al usuario con rol 5: $rol5Correo");
+                            } else {
+                                error_log("No se pudo enviar la notificación al usuario con rol 5: $rol5Correo");
+                            }
+                        }
+                    } else {
+                        error_log("No se encontraron correos de usuarios con rol 5");
+                    }
+                } else {
+                    error_log("No se envió el correo, no se encontró el correo del solicitante");
+                }
+
                 header('Content-Type: application/json');
                 echo json_encode(['success' => 'Anticipo abonado exitosamente.']);
                 exit;
@@ -554,7 +1022,7 @@ class AnticipoController {
         exit;
     }
 
-    /*Cargar anticipos here*/
+    /* Cargar anticipos */
     // Endpoint para obtener detalles de un anticipo
     public function getAnticipoDetails() {
         header('Content-Type: application/json');

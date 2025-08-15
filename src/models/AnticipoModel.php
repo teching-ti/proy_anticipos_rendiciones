@@ -301,7 +301,7 @@ class AnticipoModel {
 
             $this->db->commit();
             error_log('Anticipo y movimiento registrados con éxito, saldo actualizado');
-            return true;
+            return $id_anticipo;
         } catch (PDOException $e) {
             $this->db->rollBack();
             error_log('Error al agregar anticipo: ' . $e->getMessage());
@@ -1061,6 +1061,29 @@ class AnticipoModel {
         $stmt_personas->execute([':id_anticipo' => $id_anticipo]);
         $personas = $stmt_personas->fetchAll(PDO::FETCH_ASSOC);
 
+        // Obtener n_cuenta para el solicitante y las personas asociadas
+        $dnis = array_merge([$anticipo['dni_solicitante']], array_column($personas, 'doc_identidad'));
+        $dnis = array_filter($dnis); // Eliminar valores nulos o vacíos
+        $n_cuentas = [];
+        if (!empty($dnis)) {
+            $placeholders = implode(',', array_fill(0, count($dnis), '?'));
+            $query_n_cuentas = "SELECT dni, n_cuenta FROM tb_usuarios WHERE dni IN ($placeholders)";
+            $stmt_n_cuentas = $this->db->prepare($query_n_cuentas);
+            $stmt_n_cuentas->execute($dnis);
+            $n_cuentas = $stmt_n_cuentas->fetchAll(PDO::FETCH_KEY_PAIR); // dni => n_cuenta
+        }
+
+        // Añadir n_cuenta al solicitante
+        if ($anticipo && isset($anticipo['dni_solicitante'])) {
+            $anticipo['n_cuenta_solicitante'] = $n_cuentas[$anticipo['dni_solicitante']] ?? null;
+        }
+
+        // Añadir n_cuenta a las personas asociadas
+        foreach ($personas as &$persona) {
+            $persona['n_cuenta'] = $n_cuentas[$persona['doc_identidad']] ?? null;
+        }
+        unset($persona);
+
         // Detalles de transporte
         $query_transporte = "SELECT id AS transporte_id, id_viaje_persona, tipo_transporte, ciudad_origen, ciudad_destino, fecha, monto AS monto_transporte, moneda AS moneda_transporte, valido AS valido_transporte 
                             FROM tb_transporte_provincial 
@@ -1086,6 +1109,19 @@ class AnticipoModel {
         ];
     }
 
-    
+    // Nuevo método para obtener el id_usuario del último autorizador
+    public function getLastAuthorizerId($idAnticipo) {
+        try {
+            $query = "SELECT id_usuario FROM tb_historial_anticipos WHERE id_anticipo = :id AND estado = 'Autorizado' ORDER BY fecha DESC LIMIT 1";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id' => $idAnticipo]);
+            $idAutorizador = $stmt->fetchColumn();
+            //error_log("ID del último autorizador para anticipo $idAnticipo: " . ($idAutorizador ?: 'No encontrado'));
+            return $idAutorizador ?: null;
+        } catch (PDOException $e) {
+            error_log('Error al obtener el último autorizador: ' . $e->getMessage());
+            return null;
+        }
+    }
 }
 ?>

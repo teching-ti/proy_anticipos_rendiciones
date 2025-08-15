@@ -37,7 +37,7 @@ include "base.php";
                     </span>
                     <p class="fast-access-text">Nuevo Anticipo</p>
                 </a>
-                <a class="fast-access-card" id="nueva-rendicion">
+                <a class="fast-access-card" id="nueva-rendicion" style="display: none;">
                     <span class="card-icon">
                     <i class="fa-solid fa-circle-dollar-to-slot"></i>
                     </span>

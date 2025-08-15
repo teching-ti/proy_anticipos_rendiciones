@@ -83,16 +83,18 @@ class UserModel {
     }
 
     // Agregar un nuevo usuario
-    public function addUser($nombre_usuario, $contrasena, $dni, $rol) {
+    public function addUser($nombre_usuario, $contrasena, $dni, $rol,$n_cuenta) {
+
         try {
-            $query = "INSERT INTO tb_usuarios (nombre_usuario, contrasena, dni, rol)
-                      VALUES (:nombre_usuario, :contrasena, :dni, :rol)";
+            $query = "INSERT INTO tb_usuarios (nombre_usuario, contrasena, dni, rol, n_cuenta)
+                      VALUES (:nombre_usuario, :contrasena, :dni, :rol, :n_cuenta)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 'nombre_usuario' => $nombre_usuario,
                 'contrasena' => password_hash($contrasena, PASSWORD_DEFAULT),
                 'dni' => $dni,
-                'rol' => $rol
+                'rol' => $rol,
+                'n_cuenta' => $n_cuenta
             ]);
             return true;
         } catch (PDOException $e) {
@@ -104,7 +106,7 @@ class UserModel {
     public function getUsersData() {
         try {
             // Obtener usuarios de tb_usuarios con el nombre del rol
-            $query = "SELECT u.id, u.nombre_usuario, u.dni, u.rol, r.nombre AS rol_nombre
+            $query = "SELECT u.id, u.nombre_usuario, u.dni, u.rol, u.n_cuenta, r.nombre AS rol_nombre
                       FROM tb_usuarios u
                       JOIN tb_roles r ON u.rol = r.id";
             $stmt = $this->db->prepare($query);
@@ -115,12 +117,13 @@ class UserModel {
             foreach ($users as &$user) {
                 $user['estado'] = 'Sin datos'; // Valor por defecto
                 if ($this->db_trabajadores) {
-                    $query = "SELECT activo FROM tb_trabajadores WHERE id = :id";
+                    $query = "SELECT activo, nombres, apellidos FROM tb_trabajadores WHERE id = :id";
                     $stmt = $this->db_trabajadores->prepare($query);
                     $stmt->execute(['id' => $user['dni']]);
                     $trabajador = $stmt->fetch(PDO::FETCH_ASSOC);
                     if ($trabajador) {
                         $user['estado'] = $trabajador['activo'] == 1 ? 'Apto' : 'Cesado';
+                        $user['nombres-completos'] = $trabajador['nombres'] . " " . $trabajador['apellidos'];
                     }
                 }
             }
@@ -132,4 +135,17 @@ class UserModel {
             return [];
         }
     }
+
+    public function getNumCuenta($dni){
+        try {
+            $query = "SELECT n_cuenta FROM tb_usuarios WHERE dni = :dni";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':dni' => $dni]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? $result['n_cuenta'] : null;
+        } catch (PDOException $e) {
+            error_log('Error al obtener número de cuenta: ' . $e->getMessage());
+            return null;
+        }
+    }    
 }

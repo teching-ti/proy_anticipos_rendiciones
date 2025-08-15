@@ -1,14 +1,17 @@
 <?php
 require_once 'src/config/Database.php';
+require_once 'src/models/UserModel.php';
 require_once 'src/models/TarifarioModel.php';
 
 class TarifarioController {
     private $db;
+    private $userModel;
     private $tarifarioModel;
 
     public function __construct() {
         $database = new Database();
         $this->db = $database->connect();
+        $this->userModel = new UserModel();
         $this->tarifarioModel = new TarifarioModel();
     }
 
@@ -17,6 +20,10 @@ class TarifarioController {
         $allCargos = $this->tarifarioModel->getAllCargosTarifario();
         $categorias = $this->tarifarioModel->getCategoriasTarifario();
         $tarifario = $this->tarifarioModel->getTarifario();
+        if ($_SESSION['rol'] != 1 && $_SESSION['rol'] != 4) {
+            header('Location: iniciar_sesion');
+            exit;
+        }
         require_once 'src/views/tarifario.php';
     }
 
@@ -123,58 +130,6 @@ class TarifarioController {
         header('Content-Type: application/json');
         echo json_encode($response);
     }
-
-    // public function actualizarMontos() {
-    // if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    //     http_response_code(405);
-    //     echo json_encode(['error' => 'Método no permitido']);
-    //     return;
-    // }
-
-    // $cargoId = $_POST['cargo_id'] ?? null;
-    // $montos = $_POST['montos'] ?? '';
-    // $activo = isset($_POST['activo']) ? filter_var($_POST['activo'], FILTER_VALIDATE_BOOLEAN) : null;
-
-    // error_log('Datos recibidos (crudos): cargo_id=' . $cargoId . ', montos=' . $montos . ', activo=' . $activo); // Depuración
-
-    // if (!$cargoId || empty($montos) || $activo === null) {
-    //     http_response_code(400);
-    //     echo json_encode(['error' => 'Datos incompletos']);
-    //     return;
-    // }
-
-    // // Decodificar los montos asegurando que sea un array
-    // $montosArray = json_decode($montos, true);
-    //     if (json_last_error() !== JSON_ERROR_NONE) {
-    //         error_log('Error al decodificar montos: ' . json_last_error_msg() . ', valor recibido: ' . $montos);
-    //         http_response_code(400);
-    //         echo json_encode(['error' => 'Formato de montos inválido: ' . json_last_error_msg()]);
-    //         return;
-    //     }
-
-    //     if (!is_array($montosArray)) {
-    //         error_log('Montos decodificados no es un array: ' . print_r($montosArray, true));
-    //         http_response_code(400);
-    //         echo json_encode(['error' => 'Montos no es un array válido']);
-    //         return;
-    //     }
-
-    //     try {
-    //         if ($this->tarifarioModel->updateTarifario($cargoId, $montosArray)) {
-    //             if ($this->tarifarioModel->updateCargoEstado($cargoId, $activo)) {
-    //                 $_SESSION['success'] = 'Montos y estado actualizados exitosamente';
-    //                 echo json_encode(['success' => true]);
-    //             } else {
-    //                 throw new Exception('Error al actualizar el estado del cargo');
-    //             }
-    //         } else {
-    //             throw new Exception('Error al actualizar los montos');
-    //         }
-    //     } catch (Exception $e) {
-    //         http_response_code(500);
-    //         echo json_encode(['error' => 'Error al actualizar: ' . $e->getMessage()]);
-    //     }
-    // }
 
     public function obtenerCategorias() {
         $categorias = $this->tarifarioModel->getCategoriasTarifario();

@@ -41,9 +41,10 @@ $routes = [
     'cost_center/edit_cc' => ['controller' => 'costcenter', 'action' => 'edit_cc'],
     'cost_center/edit_scc' => ['controller' => 'costcenter', 'action' => 'edit_scc'],
     'cost_center/edit_sscc' => ['controller' => 'costcenter', 'action' => 'edit_sscc'],
-    'usuarios' => ['controller' => 'user', 'action'=> 'index'],
-    'usuarios/searchByDni' => ['controller' => 'user', 'action'=> 'searchByDni'],
-    'usuarios/anticipoBuscarDni' => ['controller' => 'user', 'action'=> 'anticipoBuscarDni'],
+    'usuarios' => ['controller' => 'user', 'action' => 'index'],
+    'usuarios/searchByDni' => ['controller' => 'user', 'action' => 'searchByDni'],
+    'usuarios/anticipoBuscarDni' => ['controller' => 'user', 'action' => 'anticipoBuscarDni'],
+    'usuarios/getNumCuenta' => ['controller'=> 'user', 'action' => 'getNumCuenta'],
     'anticipos' => ['controller' => 'anticipo', 'action' => 'index'],
     'anticipos/add' => ['controller' => 'anticipo', 'action' => 'add'],
     'anticipos/update' => ['controller' => 'anticipo', 'action' => 'update'],
@@ -86,7 +87,16 @@ $routes = [
     'rendiciones/getLatestEstadoRendicion' => ['controller' => 'rendiciones', 'action' => 'getLatestEstadoRendicion'],
     'rendiciones/aprobarRendicion' => ['controller' => 'rendiciones', 'action' => 'aprobarRendicion'],
     'rendiciones/observarRendicion' => ['controller' => 'rendiciones', 'action' => 'observarRendicion'],
-    'rendiciones/cerrarRendicion' => ['controller' => 'rendiciones', 'action' => 'cerrarRendicion']
+    'rendiciones/cerrarRendicion' => ['controller' => 'rendiciones', 'action' => 'cerrarRendicion'],
+    'rendiciones/corregirRendicion' => ['controller' => 'rendiciones', 'action' => 'corregirRendicion'],
+    'rendiciones/getComprobantesByDetalle' => ['controller' => 'rendiciones', 'action' => 'getComprobantesByDetalle'],
+    'rendiciones/guardarComprobante_compra' => ['controller' => 'rendiciones', 'action' => 'guardarComprobante_compra'],
+    'rendiciones/guardarComprobante_viatico' => ['controller' => 'rendiciones', 'action' => 'guardarComprobante_viatico'],
+    'rendiciones/guardarComprobante_transporte' => ['controller' => 'rendiciones', 'action' => 'guardarComprobante_transporte'],
+    'rendiciones/getMontoTotalRendidoByDetalle' => ['controller' => 'rendiciones', 'action' => 'getMontoTotalRendidoByDetalle'],
+    'rendiciones/updateComprobante_compra' => ['controller' => 'rendiciones', 'action' => 'updateComprobante_compra'],
+    'rendiciones/updateComprobante_viatico' => ['controller' => 'rendiciones', 'action' => 'updateComprobante_viatico'],
+    'rendiciones/updateComprobante_transporte' => ['controller' => 'rendiciones', 'action' => 'updateComprobante_transporte']
 ];
 
 // Buscar la ruta en el arreglo de rutas

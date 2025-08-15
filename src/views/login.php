@@ -15,7 +15,7 @@
         <img src="assets/img/logo_color_teching.png" alt="Logo Teching" class="logo-teching">
         
         <form class="form-login" action="/proy_anticipos_rendiciones/login" method="POST">
-        <h1 class="title">Sistema de Anticipos y Rendiciones</h1>    
+        <h1 class="title">SIAR</h1>    
         <p>Iniciar Sesión</p>
             <div class="form-container">
                 <label for="form-usuario">Nombre de usuario</label>

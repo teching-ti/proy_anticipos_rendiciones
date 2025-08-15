@@ -32,11 +32,6 @@ document.addEventListener("DOMContentLoaded", function(){
             closeModal(modalId);
         });
     });
-
-    // Función para mostrar el cargado de la búsqueda
-    // document.querySelector(".lupa").addEventListener("click", function(){
-    //     alert("Buscando trabajador... (En proceso de implementación)");
-    // });
     
     document.querySelector(".btn-guardar-usuario").addEventListener("click", function(e){
         //e.preventDefault();
@@ -121,4 +116,42 @@ document.addEventListener("DOMContentLoaded", function(){
         //alert();
         limpiarCasillas();
     });
+
+    // Manejar clic en botón "Editar"
+    document.querySelectorAll('.btn-edit').forEach(button => {
+        button.addEventListener('click', function() {
+            const dni = this.getAttribute('data-dni');
+            console.log('Editar usuario con DNI:', dni);
+            showAlert({
+                title: 'Función en desarrollo',
+                message: 'La edición de usuarios está en desarrollo.',
+                type: 'info'
+            });
+        });
+    });
+
+    // Manejar clic en botón "Ver"
+    document.querySelectorAll('.btn-view').forEach(button => {
+        button.addEventListener('click', function() {
+            const dni = this.getAttribute('data-dni');
+            const modal = document.getElementById('viewNCuentaModal');
+            const viewNCuenta = document.getElementById('view-n-cuenta');
+
+            fetch(`usuarios/getNumCuenta?dni=${encodeURIComponent(dni)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showAlert({ title: 'Error', message: data.error, type: 'error' });
+                    } else {
+                        viewNCuenta.value = data.n_cuenta;
+                        modal.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    showAlert({ title: 'Error', message: 'Error al cargar el número de cuenta', type: 'error' });
+                    console.error('Error en fetch:', error);
+                });
+        });
+    });
+
 });
