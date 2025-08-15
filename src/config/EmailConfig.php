@@ -12,13 +12,13 @@ class EmailConfig {
     public function __construct() {
         $this->mail = new PHPMailer(true);
         $this->mail->isSMTP();
-        $this->mail->Host = 'mail.teching.com.pe'; // host según proveedor - editable
+        $this->mail->Host = ''; // host según proveedor - editable
         $this->mail->SMTPAuth = true;
-        $this->mail->Username = 'siar@teching.com.pe'; // correo - editable
-        $this->mail->Password = 'siar@4dm1n_'; // contraseña - editable
+        $this->mail->Username = ''; // correo - editable
+        $this->mail->Password = ''; // contraseña - editable
         $this->mail->SMTPSecure = 'ssl';
         $this->mail->Port = 465;
-        $this->mail->setFrom('siar@teching.com.pe', 'SIAR - TECHING');
+        $this->mail->setFrom('', 'SIAR - TECHING');
         $this->mail->CharSet = 'UTF-8';
         $this->mail->isHTML(true); // Habilitar HTML en el cuerpo
     }
