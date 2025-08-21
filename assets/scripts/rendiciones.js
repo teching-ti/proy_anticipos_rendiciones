@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function(){
             </div>
             <div class="modal-element">
                 <span class="placeholder">${item.type === 'compra' ? 'Motivo' : item.type === 'transporte' ? 'Motivo de viaje' : 'Motivo de viaje'}</span>
-                <input type="text" class="rendicion-element" value="${item.motivo || ''}" readonly>
+                <input type="text" class="rendicion-element" value="${item.motivo || ''}" title="${item.motivo || ''}" readonly>
             </div>
             ${item.type === 'viatico' ? `
                 <div class="modal-element">
@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", function(){
             </div>
         </div>
         <div class="compras-elementos-dos">
-            <div class="btn btn-default open-list"><i class="fa-solid fa-list"></i></div>
+            <div class="btn btn-default open-list"><i class="fa-solid fa-list"></i> Comprobantes</div>
         </div>
     `;
     container.appendChild(itemContainer);
@@ -101,7 +101,7 @@ function openComprobanteModal(item, idRendicion) {
             <div class="modal-body-2">
                 <div class="modal-sections-2">
                     <div class="left-panel">
-                        <button id="addComprobanteBtn" class="btn-2">Agregar Comprobante</button>
+                        <button id="addComprobanteBtn" class="btn-2">Nuevo Comprobante</button>
                         <ul id="comprobanteList" class="comprobante-list"></ul>
                     </div>
                     <div class="right-panel" id="formContainer"></div>
@@ -380,7 +380,13 @@ function updateComprobante(id, comprobante) {
         // console.log("Cerrando el modal");
         // console.log(modal);
         // document.body.removeChild(modal);
+
+        // variable que será utilizada para actualizar el monto total que se estaría rindiendo
         const idRendicion = modal.querySelector('.modal-header-2 h2').textContent.match(/Rendicion #(\d+)/)[1];
+
+        // variable que estará siendo utilizada para actualizar el monto rendido del item seleccionado
+        const idDetalle = item.id;
+
         fetch(`rendiciones/getMontoTotalRendidoByRendicion?id_rendicion=${encodeURIComponent(idRendicion)}`)
             .then(res => res.json())
             .then(data => {
@@ -392,6 +398,19 @@ function updateComprobante(id, comprobante) {
                 }
             })
             .catch(error => console.error('Error al actualizar monto rendido:', error));
+
+        // Actualizar el monto rendido del detalle específico
+        fetch(`rendiciones/getMontoTotalRendidoByDetalle?id_rendicion=${encodeURIComponent(idRendicion)}&id_detalle=${encodeURIComponent(idDetalle)}&tipo=${item.type}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const montoRendidoField = document.querySelector(`#monto-rendido-${idDetalle}`);
+                    if (montoRendidoField) {
+                        montoRendidoField.value = parseFloat(data.monto_total).toFixed(2);
+                    }
+                }
+            })
+            .catch(error => console.error('Error al actualizar monto rendido del detalle:', error));
 
         // Cerrar el modal
         document.body.removeChild(modal);
@@ -436,6 +455,7 @@ function updateComprobante(id, comprobante) {
 
         const acceptButton = document.getElementById('custom-alert-btn-aceptar');
         const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+        const modal = document.getElementById('custom-alert-modal');
 
         acceptButton.onclick = async function() {
             // valores necesarios para poder aprobar una rendición
@@ -451,13 +471,12 @@ function updateComprobante(id, comprobante) {
             const montoRendidoActual = document.getElementById("calculo-monto-rendido").value;
             const estadoData = await resEstado.json();
             const latestEstado = estadoData.estado || 'Nuevo';
-            if (!['Nuevo', 'Observado'].includes(latestEstado)) {
+            if (!['Completado'].includes(latestEstado)) {
                 showAlert({
                     title: 'Error',
                     message: 'No se puede aprobar una rendición que no está en estado Nuevo u Observado.',
                     type: 'error'
                 });
-                const modal = document.getElementById('custom-alert-modal');
                 modal.style.display = 'none';
                 return;
             }
@@ -486,12 +505,16 @@ function updateComprobante(id, comprobante) {
             formData.append('monto_solicitado', montoSolicitado);
             formData.append('monto_rendido_actualmente', montoRendidoActual);
 
-            fetch('rendiciones/aprobarRendicion', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
+            // Mostrar el modal de carga
+            const loadingModal = document.getElementById('loadingModal');
+            loadingModal.style.display = 'flex';
+
+            try{
+                const response = await  fetch('rendiciones/aprobarRendicion', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
                 if (data.success) {
                     showAlert({
                         title: 'Acción Completada',
@@ -507,22 +530,20 @@ function updateComprobante(id, comprobante) {
                         type: 'error'
                     });
                 }
-            })
-            .catch(error => {
+            } catch (error){
                 console.error('Error al autorizar rendición: ', error);
                 showAlert({
                     title: 'Error',
                     message: 'Error al autorizar la rendición.',
                     type: 'error'
                 });
-            });
-
-            const modal = document.getElementById('custom-alert-modal');
-            modal.style.display = 'none';
+            } finally {
+                loadingModal.style.display = 'none';
+                modal.style.display = 'none';
+            }  
         };
 
         cancelButton.onclick = function() {
-            const modal = document.getElementById('custom-alert-modal');
             modal.style.display = 'none';
         };
     }
@@ -563,12 +584,16 @@ function updateComprobante(id, comprobante) {
             formData.append('codigo_sscc', codigoSscc);
             formData.append('monto_rendido_actual', montoRendidoActual);
 
-            fetch('rendiciones/cerrarRendicion', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
+            // Mostrar el modal de carga
+            const loadingModal = document.getElementById('loadingModal');
+            loadingModal.style.display = 'flex';
+
+            try {
+                const response = await fetch('rendiciones/cerrarRendicion', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
                 if (data.success) {
                     showAlert({
                         title: 'Acción Completada',
@@ -584,17 +609,17 @@ function updateComprobante(id, comprobante) {
                         type: 'error'
                     });
                 }
-            })
-            .catch(error => {
+            } catch (error){
                 console.error('Error al finalizar rendición: ', error);
                 showAlert({
                     title: 'Error',
                     message: 'Error al finalizar la rendición.',
                     type: 'error'
                 });
-            });
-
-            modal.style.display = 'none';
+            } finally {
+                loadingModal.style.display = 'none';
+                modal.style.display = 'none';
+            }
         };
 
         cancelButton.onclick = function() {
@@ -602,7 +627,7 @@ function updateComprobante(id, comprobante) {
         };
     }
 
-    // Función de ejemplo para observar rendición (ajusta según tu backend)
+    // Función de ejemplo para observar rendición
     function handleObservarRendicion(idRendicion) {
         showAlert({
             title: 'Confirmación',
@@ -627,7 +652,7 @@ function updateComprobante(id, comprobante) {
             const montoRendidoActual = document.getElementById("calculo-monto-rendido").value;
 
             // Validación: al menos 5 letras si hay comentario
-            if (comentario !== 'Sin comentario' && comentario.length < 5) {
+            if (comentario !== 'Sin comentario' && comentario.length < 6) {
                 showAlert({
                     title: 'Error',
                     message: 'Por favor, escriba la obeservación correspondiente.',
@@ -648,12 +673,16 @@ function updateComprobante(id, comprobante) {
             formData.append('codigo_sscc', codigoSscc);
             formData.append('monto_rendido_actual', montoRendidoActual);
 
-            fetch('rendiciones/observarRendicion', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
+            // Mostrar el modal de carga
+            const loadingModal = document.getElementById('loadingModal');
+            loadingModal.style.display = 'flex';
+
+            try{
+                const response = await  fetch('rendiciones/observarRendicion', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
                 if (data.success) {
                     showAlert({
                         title: 'Acción Completada',
@@ -669,22 +698,41 @@ function updateComprobante(id, comprobante) {
                         type: 'error'
                     });
                 }
-            })
-            .catch(error => {
+            } catch (error){
                 console.error('Error al observar rendición: ', error);
                 showAlert({
                     title: 'Error',
                     message: 'Error al marcar como observada.',
                     type: 'error'
                 });
-            });
-
-            modal.style.display = 'none';
+            } finally {
+                loadingModal.style.display = 'none';
+                modal.style.display = 'none';
+            }
         };
 
         cancelButton.onclick = function() {
             modal.style.display = 'none';
         };
+
+        // 🔹 Deshabilitar el botón por defecto
+        acceptButton.disabled = true;
+        acceptButton.style.opacity = "0.5"; // efecto visual
+        acceptButton.style.cursor = "not-allowed";
+
+        // 🔹 Activar/desactivar según la longitud del comentario
+        const comentarioInput = document.getElementById('custom-alert-comentario');
+        comentarioInput.addEventListener("input", function() {
+            if (this.value.trim().length >= 6) {
+                acceptButton.disabled = false;
+                acceptButton.style.opacity = "1";
+                acceptButton.style.cursor = "pointer";
+            } else {
+                acceptButton.disabled = true;
+                acceptButton.style.opacity = "0.5";
+                acceptButton.style.cursor = "not-allowed";
+            }
+        });
     }
 
     // Función de ejemplo para cerrar rendición (ajusta según tu backend)
@@ -702,7 +750,7 @@ function updateComprobante(id, comprobante) {
 
         acceptButton.onclick = async function() {
             const idUsuarioCierre = document.getElementById("btn-corregir-rendicion").getAttribute("data-usuario");
-            const comentario = 'Rendición corregida'; // Comentario fijo o vacío si no lo requiere
+            const comentario = 'Rendición corregida';
             const idAnticipo = document.getElementById("id-anticipo").value;
             const dniSolicitante = document.getElementById("dni-responsable").value;
             const motivoAnticipo = document.getElementById("motivo-anticipo").value;
@@ -723,12 +771,16 @@ function updateComprobante(id, comprobante) {
             formData.append('codigo_sscc', codigoSscc);
             formData.append('monto_rendido_actual', montoRendidoActual);
 
-            fetch('rendiciones/corregirRendicion', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
+            // Mostrar el modal de carga
+            const loadingModal = document.getElementById('loadingModal');
+            loadingModal.style.display = 'flex';
+
+            try{
+                const response = await fetch('rendiciones/corregirRendicion', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
                 if (data.success) {
                     showAlert({
                         title: 'Acción Completada',
@@ -744,17 +796,96 @@ function updateComprobante(id, comprobante) {
                         type: 'error'
                     });
                 }
-            })
-            .catch(error => {
+            } catch (error){
                 console.error('Error al actualizar rendición: ', error);
                 showAlert({
                     title: 'Error',
                     message: 'Error al actualizar la rendición.',
                     type: 'error'
                 });
-            });
+            } finally {
+                loadingModal.style.display = 'none';
+                modal.style.display = 'none';
+            }
+        };
 
+        cancelButton.onclick = function() {
             modal.style.display = 'none';
+        };
+    }
+
+    // Función de ejemplo para cerrar rendición (ajusta según tu backend)
+    function handleCompletarRendicion(idRendicion) {
+        showAlert({
+            title: 'Confirmación',
+            message: `¿Está seguro de marcar su rendición como completada #${idRendicion}?`,
+            type: 'confirm',
+            event: 'confirm'
+        });
+        
+        const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+        const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+        const modal = document.getElementById('custom-alert-modal');
+
+        acceptButton.onclick = async function() {
+            const idUsuarioCompletando = document.getElementById("btn-completar-rendicion").getAttribute("data-usuario");
+            const comentario = 'Rendición completada por el usuario';
+            const idAnticipo = document.getElementById("id-anticipo").value;
+            const dniSolicitante = document.getElementById("dni-responsable").value;
+            const motivoAnticipo = document.getElementById("motivo-anticipo").value;
+            const nombreResponsable = document.getElementById("rendicion-responsable").value;
+            const montoSolicitado = document.getElementById("calculo-monto-solicitado").value;
+            const codigoSscc = document.getElementById("cod-sscc").value;
+            const montoRendidoActual = document.getElementById("calculo-monto-rendido").value;
+
+            const formData = new FormData();
+            formData.append('id_rendicion', idRendicion);
+            formData.append('id_usuario', idUsuarioCompletando);
+            formData.append('comentario', comentario);
+            formData.append('id_anticipo', idAnticipo);
+            formData.append('dni_responsable', dniSolicitante);
+            formData.append('motivo_anticipo', motivoAnticipo);
+            formData.append('nombre_responsable', nombreResponsable);
+            formData.append('monto_solicitado', montoSolicitado);
+            formData.append('codigo_sscc', codigoSscc);
+            formData.append('monto_rendido_actual', montoRendidoActual);
+
+            // Mostrar el modal de carga
+            const loadingModal = document.getElementById('loadingModal');
+            loadingModal.style.display = 'flex';
+
+            try{
+                const response = await fetch('rendiciones/completarRendicion', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showAlert({
+                        title: 'Acción Completada',
+                        message: 'Rendición ha sido marcada como completada correctamente.',
+                        type: 'success',
+                        event: 'envio'
+                    });
+                    //showRendicionDetails({ id: idRendicion });
+                } else {
+                    showAlert({
+                        title: 'Error',
+                        message: 'Error al actualizar la rendición: ' + (data.error || 'Intente de nuevo'),
+                        type: 'error'
+                    });
+                }
+            } catch (error){
+                console.error('Error al actualizar rendición: ', error);
+                showAlert({
+                    title: 'Error',
+                    message: 'Error al actualizar la rendición.',
+                    type: 'error'
+                });
+            } finally {
+                loadingModal.style.display = 'none';
+                modal.style.display = 'none';
+            }
         };
 
         cancelButton.onclick = function() {
@@ -848,7 +979,7 @@ function updateComprobante(id, comprobante) {
         // Controlar visibilidad del botón "Aprobar"
         const btnAprobar = document.getElementById('btn-aprobar-rendicion');
         if (btnAprobar) {
-            const isEditable = ['Nuevo', 'Observado'].includes(latestEstado);
+            const isEditable = ['Completado', 'Observado'].includes(latestEstado);
             btnAprobar.style.display = isEditable ? 'inline-block' : 'none';
             btnAprobar.style.opacity = isEditable ? '1' : '0';
             btnAprobar.onclick = isEditable ? () => handleAprobarRendicion(data.id) : null;
@@ -869,13 +1000,21 @@ function updateComprobante(id, comprobante) {
 
         // Botones "corregir"
         const btnCorregir = document.getElementById("btn-corregir-rendicion");
-        console.log(btnCorregir);
         if (btnCorregir) {
             const isEditable = ['Observado'].includes(latestEstado);
             console.log(isEditable);
             btnCorregir.style.display = isEditable ? 'block' : 'none';
             btnCorregir.style.opacity = isEditable ? '1' : '0';
             btnCorregir.onclick = isEditable ? () => handleCorregirRendicion(data.id) : null;
+        }
+
+        // Botones "completar"
+        const btnCompletado = document.getElementById("btn-completar-rendicion");
+        if (btnCompletado){
+            const isEditable = ['Nuevo'].includes(latestEstado);
+            btnCompletado.style.display = isEditable ? 'inline-block' : 'none';
+            btnCompletado.style.opacity = isEditable ? '1' : '0';
+            btnCompletado.onclick = isEditable ? () => handleCompletarRendicion(data.id) : null;
         }
 
         // Renderizar detalles

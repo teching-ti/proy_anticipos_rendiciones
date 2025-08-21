@@ -1,12 +1,10 @@
 .cost-center-content {
     padding: 2rem;
-    /* background: #edf4fe; */
 }
 
 .cost-center-content h2 {
     color: #153f65;
-    font-family: 'Quicksand', sans-serif;
-    font-weight: 700;
+    font-size: 24px;
     margin-bottom: 1rem;
 }
 
@@ -20,7 +18,6 @@
 }
 
 .table {
-    /* width: 100%; */
     width: 100%;
     border-collapse: collapse;
     background: #fff;
@@ -60,15 +57,70 @@ background: #7FAFE6;
     margin-bottom: 15px;
 }
 
-.btn-edit-cc, .btn-edit-scc, .btn-edit-sscc{
-    border: solid 2px #1f58a8;
-    background: none;
-    color: #1f58a8;
+.btn-add-cc:hover, .btn-add-scc:hover, .btn-add-sscc:hover{
+    /* transform: translateY(2px); */
+    transform: scale(1.05);
 }
 
-.section-table{
+.btn-edit-cc, .btn-edit-scc, .btn-edit-sscc{
+    background-color: #2771d8;
+    color: white;
+}
+
+.btn-edit-cc:hover, .btn-edit-scc:hover, .btn-edit-sscc:hover{
+    transform: translateY(2px);
+}
+
+/* .section-table{
     margin-bottom: 3rem;
     animation: animation-charge-table 1s;
+} */
+
+.tab-container {
+    width: 100%;
+}
+
+.tab-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #f0f0f0;
+    font-weight: bolder;
+    color: #1f58a8;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    border: solid 1px #dbdbdb;
+}
+
+.tab-button.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.tab-button:hover:not(.active) {
+    background-color: #e0e0e0;
+}
+
+.tab-content {
+    width: 100%;
+}
+
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+.section-table {
+    margin-bottom: 30px;
 }
 
 @keyframes animation-charge-table{
@@ -80,11 +132,11 @@ background: #7FAFE6;
     }
 }
 
-.td-action{
+/* .td-action{
     display: flex;
     align-items: center;
     justify-content: center;
-}
+} */
 
 /* Estilos para el modal */
 .modal {

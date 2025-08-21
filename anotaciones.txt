@@ -1,3 +1,6 @@
+20082025
+Las ediciones de anticipos funcionan correctamente. Se espera que el sistema cuente con la eliminación automática para estos anticipos. "Revisar el tema del radio button" para transporte provincial, configuración de botn de eliminar y que replique en los demás
+
 15082025
 El sistema hasta el punto en donde puede registrar anticipos-rendiciones, enviar notificaciones y guardar comprobantes de pago para realizar calculos
 

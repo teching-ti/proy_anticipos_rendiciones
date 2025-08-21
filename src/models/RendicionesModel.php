@@ -289,7 +289,7 @@ class RendicionesModel {
         try {
             $this->db->beginTransaction();
             $query = "INSERT INTO tb_historial_rendiciones (id_rendicion, estado, fecha, id_usuario, comentario) 
-                    VALUES (:id_rendicion, 'Nuevo', NOW(), :id_usuario, :comentario)";
+                    VALUES (:id_rendicion, 'Completado', NOW(), :id_usuario, :comentario)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 ':id_rendicion' => $id_rendicion,
@@ -301,6 +301,26 @@ class RendicionesModel {
         } catch (PDOException $e) {
             $this->db->rollBack();
             error_log('Error al corregir rendición: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function completarRendicion($id_rendicion, $id_usuario, $comentario) {
+        try {
+            $this->db->beginTransaction();
+            $query = "INSERT INTO tb_historial_rendiciones (id_rendicion, estado, fecha, id_usuario, comentario) 
+                    VALUES (:id_rendicion, 'Completado', NOW(), :id_usuario, :comentario)";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                ':id_rendicion' => $id_rendicion,
+                ':id_usuario' => $id_usuario,
+                ':comentario' => $comentario
+            ]);
+            $this->db->commit();
+            return true;
+        } catch (PDOException $e) {
+            $this->db->rollBack();
+            error_log('Error al completar rendición: ' . $e->getMessage());
             return false;
         }
     }

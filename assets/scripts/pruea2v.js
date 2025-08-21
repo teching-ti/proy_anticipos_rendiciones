@@ -1863,140 +1863,50 @@ async function showAnticipoDetails(data) {
 
         // importnate para editar transporte provincial
         // Asegurar sincronización al añadir transporte provincial
-        // Delegación para añadir transporte provincial dinámicamente por persona (edit mode)
         editTabsBody.addEventListener("click", function(e) {
             if (e.target.classList.contains("edit-adding-transp-provincial")) {
                 const persona = e.target.dataset.persona;
                 const container = document.getElementById(`edit-transp-prov-list-${persona}`);
                 const index = container.children.length;
-
                 const grupo = document.createElement("div");
                 grupo.classList.add("transp-prov-element");
                 grupo.innerHTML = `
                     <input type="hidden" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][valido]" value="1">
                     <div class="edit-remove-transporte-btn"><i class="fa-regular fa-trash-can"></i></div>
                     <div class="med-transporte">
-                        <div ${persona === "1" ? '' : 'style="display: none;"'}>
+                        <div>
                             <input type="radio" name="edit-tipo-transporte-${persona}-${index + 1}" id="edit-terrestre-${persona}-${index + 1}" value="terrestre" checked>
                             <label for="edit-terrestre-${persona}-${index + 1}">Terrestre</label>
                         </div>
-                        <div ${persona === "1" ? '' : 'style="display: none;"'}>
+                        <div>
                             <input type="radio" name="edit-tipo-transporte-${persona}-${index + 1}" id="edit-aereo-${persona}-${index + 1}" value="aereo">
                             <label for="edit-aereo-${persona}-${index + 1}">Aéreo</label>
                         </div>
                     </div>
                     <div class="modal-element">
                         <span class="placeholder">Ciudad Origen</span>
-                        <input type="text" class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][ciudad_origen]" ${persona === "1" ? '' : 'readonly'}>
+                        <input type="text" class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][ciudad_origen]">
                     </div>
                     <div class="modal-element">
                         <span class="placeholder">Ciudad Destino</span>
-                        <input type="text" class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][ciudad_destino]" ${persona === "1" ? '' : 'readonly'}>
+                        <input type="text" class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][ciudad_destino]">
                     </div>
                     <div class="modal-element">
                         <span class="placeholder">Fecha</span>
-                        <input type="date" class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][fecha]" required ${persona === "1" ? '' : 'readonly'}>
+                        <input type="date" class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][fecha]" required>
                     </div>
                     <div class="modal-element">
                         <span class="placeholder">Gasto</span>
-                        <input type="number" class="form-control gasto-viaje" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][monto]" required ${persona === "1" ? '' : 'readonly'}>
+                        <input type="number" class="form-control gasto-viaje" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][monto]" required>
                     </div>
                     <div class="modal-element">
                         <span class="placeholder">Moneda</span>
-                        <select class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][moneda]" ${persona === "1" ? '' : 'disabled'}>
+                        <select class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][moneda]">
                             <option value="PEN" selected>PEN</option>
                         </select>
                     </div>
                 `;
                 container.appendChild(grupo);
-
-                
-                // Sync with other persons when adding/editing from Person 1
-                if (persona === "1") {
-                    editpersonaIndices.forEach(idx => {
-                        if (idx !== 1) {
-                            const otherContainer = document.getElementById(`edit-transp-prov-list-${idx}`);
-                            if (otherContainer) {
-                                const otherGrupo = document.createElement("div");
-                                otherGrupo.classList.add("transp-prov-element");
-                                otherGrupo.innerHTML = `
-                                    <input type="hidden" name="edit-detalles_viajes[${idx - 1}][transporte][${index}][valido]" value="1">
-                                    <div class="edit-remove-transporte-btn"><i class="fa-regular fa-trash-can"></i></div>
-                                    <div class="med-transporte">
-                                        <div>
-                                            <input type="radio" name="edit-tipo-transporte-${idx}-${index + 1}" id="edit-terrestre-${idx}-${index + 1}" value="terrestre" checked readonly>
-                                            <label for="edit-terrestre-${idx}-${index + 1}">Terrestre</label>
-                                        </div>
-                                        <div>
-                                            <input type="radio" name="edit-tipo-transporte-${idx}-${index + 1}" id="edit-aereo-${idx}-${index + 1}" value="aereo" readonly>
-                                            <label for="edit-aereo-${idx}-${index + 1}">Aéreo</label>
-                                        </div>
-                                    </div>
-                                    <div class="modal-element">
-                                        <span class="placeholder">Ciudad Origen</span>
-                                        <input type="text" class="form-control" name="edit-detalles_viajes[${idx - 1}][transporte][${index}][ciudad_origen]" readonly>
-                                    </div>
-                                    <div class="modal-element">
-                                        <span class="placeholder">Ciudad Destino</span>
-                                        <input type="text" class="form-control" name="edit-detalles_viajes[${idx - 1}][transporte][${index}][ciudad_destino]" readonly>
-                                    </div>
-                                    <div class="modal-element">
-                                        <span class="placeholder">Fecha</span>
-                                        <input type="date" class="form-control" name="edit-detalles_viajes[${idx - 1}][transporte][${index}][fecha]" required readonly>
-                                    </div>
-                                    <div class="modal-element">
-                                        <span class="placeholder">Gasto</span>
-                                        <input type="number" class="form-control gasto-viaje" name="edit-detalles_viajes[${idx - 1}][transporte][${index}][monto]" required readonly>
-                                    </div>
-                                    <div class="modal-element">
-                                        <span class="placeholder">Moneda</span>
-                                        <select class="form-control" name="edit-detalles_viajes[${idx - 1}][transporte][${index}][moneda]" disabled>
-                                            <option value="PEN" selected>PEN</option>
-                                        </select>
-                                    </div>
-                                `;
-                                otherContainer.appendChild(otherGrupo);
-                            }
-                        }
-                    });
-                }
-
-                // Sync changes from Person 1
-                if (persona === "1") {
-                    const newInputs = {
-                        ciudadOrigen: grupo.querySelector(`[name*='[ciudad_origen]']`),
-                        ciudadDestino: grupo.querySelector(`[name*='[ciudad_destino]']`),
-                        fecha: grupo.querySelector(`[name*='[fecha]']`),
-                        monto: grupo.querySelector(`[name*='[monto]']`),
-                        tipoTransporte: grupo.querySelector(`input[name="edit-tipo-transporte-${persona}-${index + 1}"]:checked`)
-                    };
-                    Object.values(newInputs).forEach(input => {
-                        if (input) {
-                            input.addEventListener("input" || "change", () => {
-                                const values = {
-                                    tipoTransporte: newInputs.tipoTransporte?.value || 'terrestre',
-                                    ciudadOrigen: newInputs.ciudadOrigen?.value || '',
-                                    ciudadDestino: newInputs.ciudadDestino?.value || '',
-                                    fecha: newInputs.fecha?.value || '',
-                                    monto: newInputs.monto?.value || ''
-                                };
-                                editpersonaIndices.forEach(idx => {
-                                    if (idx !== 1) {
-                                        const otherItem = document.querySelector(`#edit-transp-prov-list-${idx} .transp-prov-element:nth-child(${index + 1})`);
-                                        if (otherItem) {
-                                            otherItem.querySelector(`input[name="edit-tipo-transporte-${idx}-${index + 1}"][value="${values.tipoTransporte}"]`)?.setAttribute('checked', true);
-                                            otherItem.querySelector(`[name*='[ciudad_origen]']`).value = values.ciudadOrigen;
-                                            otherItem.querySelector(`[name*='[ciudad_destino]']`).value = values.ciudadDestino;
-                                            otherItem.querySelector(`[name*='[fecha]']`).value = values.fecha;
-                                            otherItem.querySelector(`[name*='[monto]']`).value = values.monto;
-                                        }
-                                    }
-                                });
-                                actualizarTotalGastosEdit('edit-');
-                            });
-                        }
-                    });
-                }
 
                 if (persona === "1") {
                     ['ciudad_origen', 'ciudad_destino', 'fecha', 'monto'].forEach(field => {
@@ -2020,15 +1930,6 @@ async function showAnticipoDetails(data) {
                 });
             }
         });
-
-        // Ensure edit-adding-transp-provincial is visible only for Person 1
-    editTabsBody.addEventListener("click", function(e) {
-        const addButton = e.target.closest(".edit-adding-transp-provincial");
-        if (addButton) {
-            const persona = addButton.dataset.persona;
-            addButton.style.display = persona === "1" ? "block" : "none";
-        }
-    });
 
         // Actualizar el total después de cargar todos los datos
         actualizarTotalGastosEdit('edit-');
@@ -2133,7 +2034,7 @@ editAddTabBtn.addEventListener('click', async function() {
                 <div class="med-transporte">
                     <div>
                         <input type="radio" name="edit-tipo-transporte-${newIndex}-${itemIndex}" id="edit-terrestre-${newIndex}-${itemIndex}" value="terrestre" ${tipoTransporte === 'terrestre' ? 'checked' : ''} ${newIndex === 1 ? '' : 'readonly'}>
-                        <label for="edit-terrestre-${newIndex}-${itemIndex}">Terrestre</label>
+                        <label for="edit-terrestre-${newIndex-1}-${itemIndex}">Terrestre</label>
                     </div>
                     <div>
                         <input type="radio" name="edit-tipo-transporte-${newIndex}-${itemIndex}" id="edit-aereo-${newIndex}-${itemIndex}" value="aereo" ${tipoTransporte === 'aereo' ? 'checked' : ''} ${newIndex === 1 ? '' : 'readonly'}>

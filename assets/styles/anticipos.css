@@ -190,7 +190,7 @@
     border-radius: 1.2rem;
     margin:12px auto;
     border: 1px solid #888;
-    width: 70%;
+    width: 80%;
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
     -webkit-animation-name: animatetop;
     -webkit-animation-duration: 0.4s;
@@ -366,8 +366,8 @@
 
 .remove-gasto-btn {
     position: absolute;
-    top: 5px;
-    right: 10px;
+    top: 4px;
+    right: 6px;
     background: transparent;
     border: none;
     color: #d9534f;
@@ -384,7 +384,7 @@
 .compras-menores-container{
     display: grid;
     place-content: center;
-    grid-template-columns: 29% 29% 15% 15%;
+    grid-template-columns: 26% 40% 15% 15%;
     padding: 2rem 0 0 0;
     position: relative;
     border: 1px solid #ccc;
@@ -967,6 +967,41 @@ label {
     background-color: #0056b3;
 }
 
+/*MODAL DE CARGA*/
+.loading-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-content {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
 /* ... (estilos existentes) ... */
 
@@ -1025,6 +1060,12 @@ label {
     .viaticos-report th, .viaticos-report td {
         font-size: 10px;
         padding: 5px;
+    }
+}
+
+@media (max-width: 1550px) {
+    .modal-content {
+        width: 94%;
     }
 }
 
@@ -1104,5 +1145,31 @@ label {
 
     .modal-content-detalles-viaticos {
         width: 98%;
+    }
+
+    .compras-menores-container .modal-element:nth-child(4),
+    .compras-menores-container .modal-element:nth-child(5) {
+        grid-column: 1 / -1; /* que abarquen toda la fila */
+    }
+
+    /* Moneda e Importe al 50% */
+    .compras-menores-container .modal-element:nth-child(6),
+    .compras-menores-container .modal-element:nth-child(7) {
+        grid-column: span 1; 
+        width: 100%;
+    }
+
+    .compras-menores-container {
+        place-content: center;
+        padding: 2rem .8rem 0 .8rem;
+        grid-template-columns: 1fr 1fr; /* dos columnas solo para moneda e importe */
+        gap: .6rem;
+    }
+
+    .compras-menores-container .modal-element input,
+    .compras-menores-container .modal-element select,
+    .compras-menores-container .modal-element textarea {
+        width: 100%;
+        box-sizing: border-box; /* para que respete padding/border */
     }
 }

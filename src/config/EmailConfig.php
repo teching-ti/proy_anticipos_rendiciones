@@ -10,17 +10,7 @@ class EmailConfig {
     private $mail;
 
     public function __construct() {
-        $this->mail = new PHPMailer(true);
-        $this->mail->isSMTP();
-        $this->mail->Host = ''; // host según proveedor - editable
-        $this->mail->SMTPAuth = true;
-        $this->mail->Username = ''; // correo - editable
-        $this->mail->Password = ''; // contraseña - editable
-        $this->mail->SMTPSecure = 'ssl';
-        $this->mail->Port = 465;
-        $this->mail->setFrom('', 'SIAR - TECHING');
-        $this->mail->CharSet = 'UTF-8';
-        $this->mail->isHTML(true); // Habilitar HTML en el cuerpo
+
     }
 
     public function sendSiarNotification($to, $subject, $body, $cc = []) {

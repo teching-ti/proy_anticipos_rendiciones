@@ -140,5 +140,20 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     });
-    
+
+    const tabButtons = document.querySelectorAll(".tab-button");
+    const tabPanels = document.querySelectorAll(".tab-panel");
+
+    tabButtons.forEach(button => {
+        button.addEventListener("click", function() {
+            // Remover clase active de todos los botones y paneles
+            tabButtons.forEach(btn => btn.classList.remove("active"));
+            tabPanels.forEach(panel => panel.classList.remove("active"));
+
+            // Agregar clase active al botón y panel seleccionados
+            const tabId = this.getAttribute("data-tab");
+            this.classList.add("active");
+            document.getElementById(tabId).classList.add("active");
+        });
+    });
 });

@@ -53,6 +53,97 @@ class AnticipoModel {
         }
     }
 
+    // Estos métodos funcionan principalmente para el dashboard
+    // Este método se encarga de mostrar la cantidad total de anticipos para una cuenta de usuario, o anticipos asociados a su cuenta
+    public function getCountAllAnticiposById($id){
+        $query = "SELECT COUNT(*) AS cantidad_solicitudes FROM tb_anticipos WHERE id_usuario = :id_usuario";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute(['id_usuario' => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Este método se encarga de mostrar la cantidad total de anticipos. Esta cantidad total es útil para el rol tesorero y contrador
+    public function getCountAllAnticipos(){
+        $query = "SELECT COUNT(*) AS cantidad_solicitudes FROM tb_anticipos";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Este método se encarga de mostrar la cantidad total de anticipos por departamento, será mostrada en el panel principal del aprobador
+    public function getCountAllAnticiposByDept($dep){
+        $query = "SELECT COUNT(*) AS cantidad_solicitudes FROM tb_anticipos where departamento = :departamento";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute(['departamento' => $dep]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Método para calcular a cantididad de anticipos según un estado y por rol de usuario
+    public function getCountAnticiposByState($id, $estado) {
+        $query = "
+            SELECT COUNT(*) AS cantidad
+            FROM tb_anticipos a
+            WHERE a.id_usuario = :id_usuario
+            AND a.id IN (
+                SELECT id_anticipo
+                FROM tb_historial_anticipos h
+                WHERE h.id = (
+                    SELECT MAX(id)
+                    FROM tb_historial_anticipos
+                    WHERE id_anticipo = h.id_anticipo
+                )
+                AND h.estado = :estado
+            )";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute(['id_usuario' => $id, 'estado' => $estado]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Método para calcular a cantididad de anticipos según un estado para tesorero y contador, se deberá agregar para que estos roles puedan visualizar de forma completa
+    // la información correspondiente en el dashboard
+    public function getCountAllAnticiposByState($estado) {
+        $query = "
+            SELECT COUNT(*) AS cantidad
+            FROM tb_anticipos a
+            WHERE a.id IN (
+                SELECT id_anticipo
+                FROM tb_historial_anticipos h
+                WHERE h.id = (
+                    SELECT MAX(id)
+                    FROM tb_historial_anticipos
+                    WHERE id_anticipo = h.id_anticipo
+                )
+                AND h.estado = :estado
+            )";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute(['estado' => $estado]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Método para calcular a cantididad de anticipos según un estado y departamento, método para el aprobador
+    public function getCountAllAnticiposByStateAndDept($estado, $departamento) {
+        $query = "
+            SELECT COUNT(*) AS cantidad
+            FROM tb_anticipos a
+            WHERE a.departamento = :departamento
+            AND a.id IN (
+                SELECT id_anticipo
+                FROM tb_historial_anticipos h
+                WHERE h.id = (
+                    SELECT MAX(id)
+                    FROM tb_historial_anticipos
+                    WHERE id_anticipo = h.id_anticipo
+                )
+                AND h.estado = :estado
+            )";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute([
+            'estado' => $estado,
+            'departamento' => $departamento
+        ]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     // Obtener sub-centros de costo para el formulario
     public function getAllScc() {
         try {
@@ -905,34 +996,6 @@ class AnticipoModel {
             error_log("Concepto '$normalizedNombre' no encontrado en tb_categorias_tarifario.");
         }
         return $conceptoId ?: null;
-    }
-
-    // Métodos para el dashboard
-    public function getCountAllAnticiposById($id){
-        $query = "SELECT COUNT(*) AS cantidad_solicitudes FROM tb_anticipos WHERE id_usuario = :id_usuario";
-        $stmt = $this->db->prepare($query);
-        $stmt->execute(['id_usuario' => $id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-    // Métodos para el dashboard
-    public function getCountAnticiposByState($id, $estado) {
-        $query = "
-            SELECT COUNT(*) AS cantidad
-            FROM tb_anticipos a
-            WHERE a.id_usuario = :id_usuario
-            AND a.id IN (
-                SELECT id_anticipo
-                FROM tb_historial_anticipos h
-                WHERE h.id = (
-                    SELECT MAX(id)
-                    FROM tb_historial_anticipos
-                    WHERE id_anticipo = h.id_anticipo
-                )
-                AND h.estado = :estado
-            )";
-        $stmt = $this->db->prepare($query);
-        $stmt->execute(['id_usuario' => $id, 'estado' => $estado]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     public function abonarAnticipo($id_anticipo, $id_usuario, $comentario) {

@@ -42,7 +42,7 @@ unset($_SESSION['success'], $_SESSION['error']);
             </div>
             <div class="help-panel-buttons">
                 <div class="btn btn-add-anticipo"><i class="fa-solid fa-circle-plus fa-lg"></i> Agregar Anticipo</div>
-                <div id="btn-refresh" class="btn btn-refresh">
+                <div id="btn-refresh" class="btn btn-refresh" title="Actualizar interfaz">
                     <i class="fa-solid fa-arrows-rotate"></i>
                 </div>
             </div>
@@ -137,7 +137,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <div class="datos-solicitantes-container">
                             <div class="modal-element">
                                 <span class="placeholder">Sub centro de costo</span>
-                                <select class="form-control" id="codigo_scc" name="codigo_scc" required>
+                                <select class="form-control anticipo-select" id="codigo_scc" name="codigo_scc" required>
                                     <option value="">Seleccione</option>
                                     <?php foreach ($sccs as $scc): ?>
                                         <option value="<?php echo htmlspecialchars($scc['codigo'], ENT_QUOTES, 'UTF-8'); ?>">
@@ -148,7 +148,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                             </div>
                             <div class="modal-element">
                                 <span class="placeholder">Sub-subcentro de Costo</span>
-                                <select class="form-control" id="codigo_sscc" name="codigo_sscc" required>
+                                <select class="form-control anticipo-select" id="codigo_sscc" name="codigo_sscc" required>
                                     <option value="">Seleccione</option>
                                     
                                 </select>
@@ -199,7 +199,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <div class="panel-viajes" id="panel-viajes">
                             <div id="viajes-tabs">
                                 <div class="tabs-header" id="tabs-header">
-                                    <div class="tab-button add-tab" id="add-tab">+</div>
+                                    <div class="tab-button add-tab" id="add-tab" title="Agregar Persona">+</div>
                                 </div>
                                 <div class="tabs-body" id="tabs-body">
                                     <!--here -->
@@ -394,5 +394,17 @@ unset($_SESSION['success'], $_SESSION['error']);
         </div>
     </div>
 
+    <!-- Modal de carga -->
+    <div id="loadingModal" class="loading-modal" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Cargando...</p>
+        </div>
+    </div>
+
+    <!-- Botón que llama al script exportar.php -->
+    <a href="exportar.php" target="_blank">
+        <button type="button">📥 Descargar anticipos</button>
+    </a>
 </section>
 <?php include "footer.php"; ?>

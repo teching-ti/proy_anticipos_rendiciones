@@ -89,6 +89,7 @@ $routes = [
     'rendiciones/observarRendicion' => ['controller' => 'rendiciones', 'action' => 'observarRendicion'],
     'rendiciones/cerrarRendicion' => ['controller' => 'rendiciones', 'action' => 'cerrarRendicion'],
     'rendiciones/corregirRendicion' => ['controller' => 'rendiciones', 'action' => 'corregirRendicion'],
+    'rendiciones/completarRendicion' => ['controller' => 'rendiciones', 'action' => 'completarRendicion'],
     'rendiciones/getComprobantesByDetalle' => ['controller' => 'rendiciones', 'action' => 'getComprobantesByDetalle'],
     'rendiciones/guardarComprobante_compra' => ['controller' => 'rendiciones', 'action' => 'guardarComprobante_compra'],
     'rendiciones/guardarComprobante_viatico' => ['controller' => 'rendiciones', 'action' => 'guardarComprobante_viatico'],

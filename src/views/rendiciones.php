@@ -20,7 +20,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                 <input type="text" class="form-control" id="input-buscar-rendicion" name="input-buscar-rendicion">
             </div>
             <div class="help-panel-buttons">
-                <div id="btn-refresh" class="btn btn-refresh">
+                <div id="btn-refresh" class="btn btn-refresh" title="Actualizar interfaz">
                     <i class="fa-solid fa-arrows-rotate"></i>
                 </div>
             </div>
@@ -198,7 +198,8 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <div class="modal-footer">
                             <div class="btn btn-default" onclick="prevStep()"><i class="fa-solid fa-caret-left"></i> Atrás</div>
                             <?php if($_SESSION['rol']==3): ?>
-                                <div id="btn-corregir-rendicion" data-usuario="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Corregir</div> 
+                                <div id="btn-corregir-rendicion" data-usuario="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Corregir</div>
+                                <div id="btn-completar-rendicion" data-usuario="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Completado</div> 
                             <?php endif;?>
                             <?php if($_SESSION['rol']==2): ?>
                                 <div id="btn-aprobar-rendicion" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Autorizar</div> 
@@ -213,8 +214,13 @@ unset($_SESSION['success'], $_SESSION['error']);
             </form>
         </div>
     </div>
-    <!-- 
-    Pendiente el agregar los cambios de estados relacionados al contador, posterior a ello, se deberá de integrar las nuevas tablas que servirán para cargar los detalles de facturas
-    -->
+    
+    <!-- Modal de carga -->
+    <div id="loadingModal" class="loading-modal" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Cargando...</p>
+        </div>
+    </div>
 </section>
 <?php include "footer.php"; ?>
