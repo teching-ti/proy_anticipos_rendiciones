@@ -1645,7 +1645,7 @@ async function showAnticipoDetails(data) {
                             </div>
                         `).join('')}
                     </div>
-                    <div class="btn edit-adding-transp-provincial" data-persona="${index + 1}">Añadir</div>
+                    <div class="btn edit-adding-transp-provincial" data-persona="${index + 1}" ${index !==0 ? 'style="display: none"' : ''}>Añadir</div>
                 </div>
                 <h4 class="viaje-sub-title">Hospedaje
                     <div class="icon-container toggle-icon" data-target=".section-hospedaje-${index + 1}">
@@ -1658,11 +1658,11 @@ async function showAnticipoDetails(data) {
                     <input type="hidden" name="edit-detalles_viajes[${index}][viaticos][hospedaje][id]" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'hospedaje')?.id || ''}">
                     <div class="modal-element">
                         <span class="placeholder">Días</span>
-                        <input type="number" class="form-control" name="edit-dias-hospedaje-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'hospedaje')?.dias || 0}">
+                        <input type="number" class="form-control" name="edit-dias-hospedaje-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'hospedaje')?.dias || 0}" ${index != 0 ? 'readonly' : ''} >
                     </div>
                     <div class="modal-element">
                         <span class="placeholder">Monto</span>
-                        <input type="number" class="form-control monto-hospedaje" name="edit-monto-hospedaje-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'hospedaje')?.monto || 0}">
+                        <input type="number" class="form-control monto-hospedaje" name="edit-monto-hospedaje-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'hospedaje')?.monto || 0}" readonly>
                     </div>
                 </div>
                 <h4 class="viaje-sub-title">Movilidad
@@ -1676,11 +1676,11 @@ async function showAnticipoDetails(data) {
                     <input type="hidden" name="edit-detalles_viajes[${index}][viaticos][movilidad][id]" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'movilidad')?.id || ''}">
                     <div class="modal-element">
                         <span class="placeholder">Días</span>
-                        <input type="number" class="form-control" name="edit-dias-movilidad-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'movilidad')?.dias || 0}">
+                        <input type="number" class="form-control" name="edit-dias-movilidad-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'movilidad')?.dias || 0}" ${index != 0 ? 'readonly' : ''}>
                     </div>
                     <div class="modal-element">
                         <span class="placeholder">Monto</span>
-                        <input type="number" class="form-control monto-movilidad" name="edit-monto-movilidad-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'movilidad')?.monto || 0}">
+                        <input type="number" class="form-control monto-movilidad" name="edit-monto-movilidad-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'movilidad')?.monto || 0}" readonly>
                     </div>
                 </div>
                 <h4 class="viaje-sub-title">Alimentación
@@ -1694,11 +1694,11 @@ async function showAnticipoDetails(data) {
                     <input type="hidden" name="edit-detalles_viajes[${index}][viaticos][alimentacion][id]" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'alimentacion')?.id || ''}">
                     <div class="modal-element">
                         <span class="placeholder">Días</span>
-                        <input type="number" class="form-control" name="edit-dias-alimentacion-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'alimentacion')?.dias || 0}">
+                        <input type="number" class="form-control" name="edit-dias-alimentacion-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'alimentacion')?.dias || 0}" ${index != 0 ? 'readonly' : ''}>
                     </div>
                     <div class="modal-element">
                         <span class="placeholder">Monto</span>
-                        <input type="number" class="form-control monto-alimentacion" name="edit-monto-alimentacion-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'alimentacion')?.monto || 0}">
+                        <input type="number" class="form-control monto-alimentacion" name="edit-monto-alimentacion-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'alimentacion')?.monto || 0}" readonly>
                     </div>
                 </div>
                 <div class='container-remove-persona'>
@@ -1744,7 +1744,7 @@ async function showAnticipoDetails(data) {
 
                 ['alimentacion', 'hospedaje', 'movilidad'].forEach(tipo => {
                     const diasInput = document.querySelector(`[name='edit-dias-${tipo}-${idx}']`);
-                    diasInput.removeAttribute('readonly');
+                    //diasInput.removeAttribute('readonly');
                     calcularMontoEdit(idx, tipo);
                 });
             });
@@ -1874,15 +1874,15 @@ async function showAnticipoDetails(data) {
                 grupo.classList.add("transp-prov-element");
                 grupo.innerHTML = `
                     <input type="hidden" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][valido]" value="1">
-                    <div class="edit-remove-transporte-btn"><i class="fa-regular fa-trash-can"></i></div>
+                    ${persona === "1" ? '<div class="edit-remove-transporte-btn"><i class="fa-regular fa-trash-can"></i></div>' : ''}
                     <div class="med-transporte">
                         <div ${persona === "1" ? '' : 'style="display: none;"'}>
-                            <input type="radio" name="edit-tipo-transporte-${persona}-${index + 1}" id="edit-terrestre-${persona}-${index + 1}" value="terrestre" checked>
-                            <label for="edit-terrestre-${persona}-${index + 1}">Terrestre</label>
+                            <input type="radio" name="edit-tipo-transporte-${persona}-${index}" id="edit-terrestre-${persona}-${index}" value="terrestre" checked>
+                            <label for="edit-terrestre-${persona}-${index}">Terrestre</label>
                         </div>
                         <div ${persona === "1" ? '' : 'style="display: none;"'}>
-                            <input type="radio" name="edit-tipo-transporte-${persona}-${index + 1}" id="edit-aereo-${persona}-${index + 1}" value="aereo">
-                            <label for="edit-aereo-${persona}-${index + 1}">Aéreo</label>
+                            <input type="radio" name="edit-tipo-transporte-${persona}-${index}" id="edit-aereo-${persona}-${index}" value="aereo">
+                            <label for="edit-aereo-${persona}-${index}">Aéreo</label>
                         </div>
                     </div>
                     <div class="modal-element">
@@ -1903,7 +1903,7 @@ async function showAnticipoDetails(data) {
                     </div>
                     <div class="modal-element">
                         <span class="placeholder">Moneda</span>
-                        <select class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][moneda]" ${persona === "1" ? '' : 'disabled'}>
+                        <select class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][moneda]" ${persona === "1" ? '' : 'readonly'}>
                             <option value="PEN" selected>PEN</option>
                         </select>
                     </div>
@@ -1911,7 +1911,7 @@ async function showAnticipoDetails(data) {
                 container.appendChild(grupo);
 
                 
-                // Sync with other persons when adding/editing from Person 1
+                // Sincronizar para otras personas cuando se edita o se añade información desde persona 1
                 if (persona === "1") {
                     editpersonaIndices.forEach(idx => {
                         if (idx !== 1) {
@@ -1921,15 +1921,15 @@ async function showAnticipoDetails(data) {
                                 otherGrupo.classList.add("transp-prov-element");
                                 otherGrupo.innerHTML = `
                                     <input type="hidden" name="edit-detalles_viajes[${idx - 1}][transporte][${index}][valido]" value="1">
-                                    <div class="edit-remove-transporte-btn"><i class="fa-regular fa-trash-can"></i></div>
+                         
                                     <div class="med-transporte">
                                         <div>
-                                            <input type="radio" name="edit-tipo-transporte-${idx}-${index + 1}" id="edit-terrestre-${idx}-${index + 1}" value="terrestre" checked readonly>
-                                            <label for="edit-terrestre-${idx}-${index + 1}">Terrestre</label>
+                                            <input type="radio" name="edit-tipo-transporte-${idx}-${index}" id="edit-terrestre-${idx}-${index}" value="terrestre" checked readonly>
+                                            <label for="edit-terrestre-${idx}-${index}">Terrestre</label>
                                         </div>
                                         <div>
-                                            <input type="radio" name="edit-tipo-transporte-${idx}-${index + 1}" id="edit-aereo-${idx}-${index + 1}" value="aereo" readonly>
-                                            <label for="edit-aereo-${idx}-${index + 1}">Aéreo</label>
+                                            <input type="radio" name="edit-tipo-transporte-${idx}-${index}" id="edit-aereo-${idx}-${index}" value="aereo" readonly>
+                                            <label for="edit-aereo-${idx}-${index}">Aéreo</label>
                                         </div>
                                     </div>
                                     <div class="modal-element">
@@ -1950,7 +1950,7 @@ async function showAnticipoDetails(data) {
                                     </div>
                                     <div class="modal-element">
                                         <span class="placeholder">Moneda</span>
-                                        <select class="form-control" name="edit-detalles_viajes[${idx - 1}][transporte][${index}][moneda]" disabled>
+                                        <select class="form-control" name="edit-detalles_viajes[${idx - 1}][transporte][${index}][moneda]">
                                             <option value="PEN" selected>PEN</option>
                                         </select>
                                     </div>
@@ -1961,7 +1961,7 @@ async function showAnticipoDetails(data) {
                     });
                 }
 
-                // Sync changes from Person 1
+                // Sincronizar cambos para persona 1
                 if (persona === "1") {
                     const newInputs = {
                         ciudadOrigen: grupo.querySelector(`[name*='[ciudad_origen]']`),
@@ -2289,7 +2289,7 @@ editAddTabBtn.addEventListener('click', async function() {
 
         ['alimentacion', 'hospedaje', 'movilidad'].forEach(tipo => {
             const diasInput = document.querySelector(`[name='edit-dias-${tipo}-${idx}']`);
-            diasInput.removeAttribute('readonly');
+            //diasInput.removeAttribute('readonly');
             calcularMontoEdit(idx, tipo);
         });
     });
@@ -2429,44 +2429,111 @@ editTabsBody.addEventListener("click", function(e) {
 });
 
 // Función para alternar entre modo Ver y Editar
+// function toggleEditMode(isEditMode) {
+//     const isEditable = ['Nuevo', 'Observado'].includes(editForm.querySelector("#edit-estado-anticipo").value);
+//     const inputs = editForm.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), select');
+
+//     inputs.forEach(input => {
+//         if (['edit-solicitante', 'edit-dni-solicitante', 'edit-departamento', 'edit-cargo', 'edit-fecha-solicitud', 'edit-nombre-proyecto', 'edit-monto-total'].includes(input.id)) {
+//             input.readOnly = true;
+//             // input.disabled = true;
+//         } else if (input.name.includes('edit-detalles_gastos') || input.name.includes('edit-detalles_viajes')) {
+//             // Habilitar todos los campos de detalles_gastos y detalles_viajes en modo edición
+//             input.readOnly = !isEditMode;
+//             input.disabled = !isEditMode;
+//         } else {
+//             input.readOnly = !isEditMode;
+//             input.disabled = !isEditMode;
+//         }
+//     });
+
+//     // Selección de elementos que se encontrarán desactivados o deshabilitados mientras no se coloque el anticipo en el modo de editar
+//     editSubmitButton.disabled = !isEditMode || !isEditable;
+//     editSubmitButton.style.display = isEditMode && isEditable ? 'block' : 'none';
+//     editAddGastoBtn.style.display = isEditMode && isEditable ? 'block' : 'none';
+//     editAddTabBtn.style.display = isEditMode && isEditable ? 'block' : 'none';
+
+//     document.querySelectorAll(".edit-remove-gasto-btn").forEach(e => {
+//         e.style.display = isEditMode && isEditable ? 'block' : 'none';
+//     })
+//     document.querySelectorAll(".edit-remove-transporte-btn").forEach(e=>{
+//         e.style.display = isEditMode && isEditable ? 'block' : 'none';
+//     })
+    
+//     document.querySelectorAll(".container-remove-persona").forEach(e=>{
+//         e.style.display = isEditMode && isEditable ? 'flex' : 'none';
+//     })
+
+//     document.querySelectorAll(".edit-adding-transp-provincial").forEach(e=>{
+//         e.style.display = isEditMode && isEditable ? 'block' : 'none';
+//     })
+
+//     document.querySelectorAll(".edit-adding-transp-provincial").forEach(e => {
+//         e.style.display = (isEditMode && isEditable && e.dataset.persona === '1') ? 'block' : 'none';
+//     });
+
+// }
+
 function toggleEditMode(isEditMode) {
     const isEditable = ['Nuevo', 'Observado'].includes(editForm.querySelector("#edit-estado-anticipo").value);
     const inputs = editForm.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), select');
 
     inputs.forEach(input => {
+        // Campos siempre de solo lectura
         if (['edit-solicitante', 'edit-dni-solicitante', 'edit-departamento', 'edit-cargo', 'edit-fecha-solicitud', 'edit-nombre-proyecto', 'edit-monto-total'].includes(input.id)) {
             input.readOnly = true;
-            // input.disabled = true;
-        } else if (input.name.includes('edit-detalles_gastos') || input.name.includes('edit-detalles_viajes')) {
-            // Habilitar todos los campos de detalles_gastos y detalles_viajes en modo edición
-            input.readOnly = !isEditMode;
-            input.disabled = !isEditMode;
-        } else {
-            input.readOnly = !isEditMode;
-            input.disabled = !isEditMode;
-        }
+        } 
+        // Campos de detalles_gastos y detalles_viajes
+        else if (input.name.includes('edit-detalles_gastos') || input.name.includes('edit-detalles_viajes')) {
+            // Por defecto, todos en readonly
+            input.readOnly = true;
+
+            if (isEditMode && isEditable) {
+                // Persona 1 (índice 0) puede editar todo
+                const match = input.name.match(/edit-detalles_viajes\[(\d+)\]/);
+                if (match && parseInt(match[1]) === 0) {
+                    input.readOnly = false;
+                } 
+                // Otras personas (índices > 0) solo editan doc_identidad, nombre_persona, id_cargo
+                else if (match) {
+                    const index = parseInt(match[1]);
+                    const fieldMatch = input.name.match(/edit-detalles_viajes\[\d+\]\[(doc_identidad|nombre_persona|id_cargo)\]/);
+
+                    if (fieldMatch && index > 0) {
+                        input.readOnly = false;
+                    }
+                    // Transporte, hospedaje, movilidad y alimentación readonly para otras personas
+                    if (index > 0 && (input.name.includes('edit-dias-hospedaje') || input.name.includes('edit-monto-hospedaje'))) {
+                        input.readOnly = true;
+                    }
+                }
+            }
+        } 
+        // Otros campos genéricos
+        // else {
+        //     input.readOnly = !isEditMode || !isEditable;
+        // }
     });
 
-    // Selección de elementos que se encontrarán desactivados o deshabilitados mientras no se coloque el anticipo en el modo de editar
+    // Controles de edición
     editSubmitButton.disabled = !isEditMode || !isEditable;
     editSubmitButton.style.display = isEditMode && isEditable ? 'block' : 'none';
     editAddGastoBtn.style.display = isEditMode && isEditable ? 'block' : 'none';
     editAddTabBtn.style.display = isEditMode && isEditable ? 'block' : 'none';
 
+    // Mostrar/Ocultar botones de eliminación y añadir transporte solo para Persona 1
     document.querySelectorAll(".edit-remove-gasto-btn").forEach(e => {
         e.style.display = isEditMode && isEditable ? 'block' : 'none';
-    })
-    document.querySelectorAll(".edit-remove-transporte-btn").forEach(e=>{
-        e.style.display = isEditMode && isEditable ? 'block' : 'none';
-    })
-    document.querySelectorAll(".container-remove-persona").forEach(e=>{
+    });
+    document.querySelectorAll(".edit-remove-transporte-btn").forEach(e => {
+        e.style.display = (isEditMode && isEditable && e.closest('#edit-transp-prov-list-1')) ? 'block' : 'none';
+    });
+    document.querySelectorAll(".container-remove-persona").forEach(e => {
         e.style.display = isEditMode && isEditable ? 'flex' : 'none';
-    })
-
-    document.querySelectorAll(".edit-adding-transp-provincial").forEach(e=>{
-        e.style.display = isEditMode && isEditable ? 'block' : 'none';
-    })
-    //document.querySelector(".edit-adding-transp-provincial").style.display = isEditMode && isEditable ? 'block' : 'none';
+    });
+    document.querySelectorAll(".edit-adding-transp-provincial").forEach(e => {
+        e.style.display = (isEditMode && isEditable && e.dataset.persona === '1') ? 'block' : 'none';
+    });
 }
 
 // Manejar el interruptor de modo, si existe
