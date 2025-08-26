@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll('.btn-edit').forEach(button => {
         button.addEventListener('click', function() {
             const tarifarioId = this.getAttribute('data-id');
-            console.log(tarifarioId );
+            //console.log(tarifarioId);
             fetch(`tarifario/obtenerDetallesTarifario?tarifario_id=${tarifarioId}`)
                 .then(response => response.json())
                 .then(data => {
@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const cargo = document.getElementById('edit-cargo-monto').value;
         const categoria = document.getElementById('edit-categoria-monto').value;
         const monto = document.getElementById('edit-monto').value;
-        console.log('Monto a enviar:', monto);
+        //console.log('Monto a enviar:', monto);
 
         // Mostrar modal de confirmación
         showAlert({
@@ -77,11 +77,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 body: `tarifario_id=${encodeURIComponent(idMontoTarifario)}&monto=${encodeURIComponent(monto)}`
             })
             .then(response => {
-                console.log('Respuesta del servidor:', response);
+                //console.log('Respuesta del servidor:', response);
                 return response.json();
             })
             .then(data => {
-                console.log('Datos recibidos:', data);
+                //console.log('Datos recibidos:', data);
                 if (data.success) {
                     showAlert({
                         title: 'Éxito',

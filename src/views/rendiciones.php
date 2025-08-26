@@ -37,7 +37,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <th>SSCC</th>
                         <th>Motivo&nbsp;del&nbsp;Anticipo</th>
                         <th title="Fecha de cuando se registró la rendición automáticamente, tras haber registrado el abono">Inicio</th>
-                        <th title="Fecha en la que el usuario debería de haber terminado de rendir el anticipo correspondiente. (3 días tras haberse generado el abono)">Rendición estimada</th>
+                        <th title="Fecha máxima en la que el usuario debería de haber terminado de rendir el anticipo correspondiente.">Fecha máx. Rendición</th>
                         <th>Monto anticipo</th>
                         <th>Monto rendido</th>
                         <th>Estado</th>

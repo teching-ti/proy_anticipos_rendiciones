@@ -1,7 +1,7 @@
 <?php
 class Database {
     private $host = 'localhost';
-    private $db_name = 'db_ant_rend';
+    private $db_name = 'db_ant_rend_test';
     private $username = 'root';
     private $password = '';
     private $conn;

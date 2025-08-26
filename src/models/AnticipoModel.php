@@ -560,7 +560,7 @@ class AnticipoModel {
                 // Obtener transporte
                 $query_transporte = "SELECT id, tipo_transporte, ciudad_origen, ciudad_destino, fecha, monto, moneda, valido
                                      FROM tb_transporte_provincial
-                                     WHERE id_viaje_persona = :id_viaje_persona";
+                                     WHERE id_viaje_persona = :id_viaje_persona AND valido = 1";
                 $stmt_transporte = $this->db->prepare($query_transporte);
                 $stmt_transporte->execute(['id_viaje_persona' => $id_viaje_persona]);
                 $persona_data['transporte'] = $stmt_transporte->fetchAll(PDO::FETCH_ASSOC);
@@ -1184,6 +1184,54 @@ class AnticipoModel {
         } catch (PDOException $e) {
             error_log('Error al obtener el último autorizador: ' . $e->getMessage());
             return null;
+        }
+    }
+
+    public function getComprasMenoresByAnticipoId($anticipoId) {
+        try {
+            $query = "SELECT descripcion, motivo, importe 
+                      FROM tb_detalles_compras_menores 
+                      WHERE id_anticipo = :anticipo_id AND valido = 1";
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':anticipo_id', $anticipoId, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log('Error al obtener compras menores: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getViaticosByAnticipoId($anticipoId) {
+        try {
+            $query = "SELECT vp.doc_identidad, vp.nombre_persona, ct.nombre AS concepto, dv.dias, dv.monto, dv.moneda 
+                      FROM tb_viajes_personas vp 
+                      JOIN tb_detalles_viajes dv ON vp.id = dv.id_viaje_persona 
+                      JOIN tb_categorias_tarifario ct ON dv.id_concepto = ct.id 
+                      WHERE vp.id_anticipo = :anticipo_id AND vp.valido = 1 AND ct.activo = 1";
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':anticipo_id', $anticipoId, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log('Error al obtener viáticos: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getTransporteProvincialByAnticipoId($anticipoId) {
+        try {
+            $query = "SELECT tp.tipo_transporte, tp.ciudad_origen, tp.ciudad_destino, tp.fecha, tp.monto, tp.moneda, vp.nombre_persona 
+                      FROM tb_transporte_provincial tp 
+                      JOIN tb_viajes_personas vp ON tp.id_viaje_persona = vp.id 
+                      WHERE vp.id_anticipo = :anticipo_id AND tp.valido = 1 AND vp.valido = 1";
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':anticipo_id', $anticipoId, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log('Error al obtener transporte provincial: ' . $e->getMessage());
+            return [];
         }
     }
 }

@@ -175,11 +175,11 @@ class RendicionesModel {
     // Nuevos métodos para transportes
     public function getDetallesTransportesByAnticipo($id_anticipo) {
         try {
-            $query = "SELECT tp.id, tp.tipo_transporte AS descripcion, a.motivo_anticipo AS motivo, tp.moneda, tp.monto AS importe, tp.fecha, tp.ciudad_origen, tp.ciudad_destino
+            $query = "SELECT tp.id, tp.tipo_transporte AS descripcion, a.motivo_anticipo AS motivo, tp.moneda, tp.monto AS importe, tp.fecha, tp.ciudad_origen, tp.ciudad_destino, vp.nombre_persona
                   FROM tb_transporte_provincial tp
                   JOIN tb_viajes_personas vp ON tp.id_viaje_persona = vp.id
                   JOIN tb_anticipos a ON vp.id_anticipo = a.id
-                  WHERE vp.id_anticipo = :id_anticipo AND vp.valido = 1 AND tp.monto > 0
+                  WHERE vp.id_anticipo = :id_anticipo AND vp.valido = 1 AND tp.valido = 1
                   AND UPPER(tp.moneda) = 'PEN'";
             $stmt = $this->db->prepare($query);
             $stmt->execute([':id_anticipo' => $id_anticipo]);

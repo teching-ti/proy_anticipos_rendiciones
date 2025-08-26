@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function(){
     
     document.querySelector(".btn-guardar-usuario").addEventListener("click", function(e){
         //e.preventDefault();
-        console.log("btn guardar usuario");
+        console.log(" ");
     })
 
     // Autocompletar el login de usuarios
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function(){
     if (searchButton) {
         searchButton.addEventListener('click', () => {
             const dni = dniInput.value.trim();
-            console.log('Buscando DNI:', dni);
+            //console.log('Buscando DNI:', dni);
 
             // if (!/^[0-9]{8}$/.test(dni)) {
             //     alert('El DNI debe tener 8 dígitos.');
@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function(){
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Respuesta:', data);
+                //console.log('Respuesta:', data);
                 if (data.success) {
                     nombresInput.value = data.data.nombres+" "+data.data.apellidos;
                     cargoInput.value = data.data.cargo;
@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", function(){
     document.querySelectorAll('.btn-edit').forEach(button => {
         button.addEventListener('click', function() {
             const dni = this.getAttribute('data-dni');
-            console.log('Editar usuario con DNI:', dni);
+            //console.log('Editar usuario con DNI:', dni);
             showAlert({
                 title: 'Función en desarrollo',
                 message: 'La edición de usuarios está en desarrollo.',

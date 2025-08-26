@@ -31,7 +31,7 @@ unset($_SESSION['success'], $_SESSION['error']);
             });
         </script>
     <?php endif; ?>
-
+    
     <!-- Tabla de anticipos -->
     <section class="section-table">
         <h2>Listado de Anticipos</h2>
@@ -160,6 +160,14 @@ unset($_SESSION['success'], $_SESSION['error']);
                             <div class="modal-element">
                                 <span class="placeholder">Motivo del Anticipo</span>
                                 <input type="text" class="form-control" id="motivo-anticipo" name="motivo-anticipo" required>
+                            </div>
+                            <div class="modal-element">
+                                <span class="placeholder">Fecha de Ejecución</span>
+                                <input type="date" class="form-control" id="fecha_ejecucion" name="fecha_ejecucion" required>
+                            </div>
+                            <div class="modal-element">
+                                <span class="placeholder">Fecha de Finalización</span>
+                                <input type="date" class="form-control" id="fecha_finalizacion" name="fecha_finalizacion" required>
                             </div>
                         </div>
 
@@ -299,7 +307,15 @@ unset($_SESSION['success'], $_SESSION['error']);
                             </div>
                             <div class="modal-element">
                                 <span class="placeholder">Motivo del Anticipo</span>
-                                <input type="text" class="form-control" id="edit-motivo-anticipo" name="edit-motivo-anticipo" required>
+                                <input type="text" class="form-control" id="edit-motivo-anticipo" name="edit-motivo-anticipo" required readonly>
+                            </div>
+                            <div class="modal-element">
+                                <span class="placeholder">Fecha de Ejecución</span>
+                                <input type="date" class="form-control" id="edit-fecha-ejecucion" name="edit-fecha-ejecucion" required>
+                            </div>
+                            <div class="modal-element">
+                                <span class="placeholder">Fecha de Finalización</span>
+                                <input type="date" class="form-control" id="edit-fecha-finalizacion" name="edit-fecha-finalizacion" required>
                             </div>
                         </div>
 
@@ -375,6 +391,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                                     </div>
                                 <?php endif;?>
                             </div>
+                            <div id="container-descarga"></div>
                         </div>
                     </div>
                 </div>
@@ -402,9 +419,7 @@ unset($_SESSION['success'], $_SESSION['error']);
         </div>
     </div>
 
-    <!-- Botón que llama al script exportar.php -->
-    <a href="exportar.php" target="_blank">
-        <button type="button">📥 Descargar anticipos</button>
-    </a>
 </section>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
 <?php include "footer.php"; ?>

@@ -16,7 +16,7 @@ document.getElementById('btnCrearPresupuesto').addEventListener('click', functio
             data.forEach(cc => {
                 const option = document.createElement('option');
                 option.value = cc.codigo;
-                option.textContent = cc.nombre;
+                option.textContent = `${cc.codigo} - ${cc.nombre}`;
                 selectCC.appendChild(option);
             });
             selectCC.disabled = false;
@@ -35,7 +35,7 @@ document.getElementById('cc_codigo').addEventListener('change', function() {
                 data.forEach(scc => {
                     const option = document.createElement('option');
                     option.value = scc.codigo;
-                    option.textContent = scc.nombre;
+                    option.textContent = `${scc.codigo} - ${scc.nombre}`;
                     selectSCC.appendChild(option);
                 });
                 selectSCC.disabled = false;
@@ -61,7 +61,7 @@ document.getElementById('scc_codigo').addEventListener('change', function() {
                     data.forEach(sscc => {
                         const option = document.createElement('option');
                         option.value = sscc.codigo;
-                        option.textContent = sscc.nombre;
+                        option.textContent = `${sscc.codigo} - ${sscc.nombre}`;
                         selectSSCC.appendChild(option);
                     });
                     selectSSCC.disabled = false;
@@ -157,7 +157,7 @@ document.querySelectorAll('.btn-add-fondos').forEach(button => {
     button.addEventListener('click', function() {
         const presupuestoId = this.getAttribute('data-id');
         const row = this.closest('tr');
-        const saldoDisponible = parseFloat(row.cells[4].textContent); // Columna Saldo Disponible
+        const saldoDisponible = parseFloat(row.cells[5].textContent); // Columna Saldo Disponible
 
         document.getElementById('presupuestoId').value = presupuestoId;
         document.getElementById('saldoDisponible').value = saldoDisponible.toFixed(2);

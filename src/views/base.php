@@ -17,7 +17,8 @@
     <meta http-equiv="Expires" content="0"> -->
 
     
-
+    <!-- FavIcon -->
+    <link rel="shortcut icon" href="assets/img/favicon.ico" type="image/x-icon">
     <!-- Page tiitle -->
     <title><?= htmlspecialchars($titulo)?></title>
     <!-- Estilos -->

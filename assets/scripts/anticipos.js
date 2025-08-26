@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Agregar Nombre del proyecto
     document.getElementById("codigo_sscc").addEventListener("change", function(){
-        console.log("Cambiando");
+        //console.log("Cambiando");
         const selectedOption = this.options[this.selectedIndex];
         const text = selectedOption.text.split(':');// antes aquí había un -
         const txtNombreProyecto = text[1].trim();
@@ -203,7 +203,6 @@ async function agregarNuevaPersona() {
     const persona1DiasMovilidad = document.querySelector('[name="dias-movilidad-1"]')?.value || '';
     const persona1DiasHospedaje = document.querySelector('[name="dias-hospedaje-1"]')?.value || '';
 
-    //here
     // Obtener ítems de Transporte Provincial de Persona 1
     const persona1TranspProvList = document.getElementById('transp-prov-list-1');
     let transpProvContent = '';
@@ -211,7 +210,7 @@ async function agregarNuevaPersona() {
         const items = persona1TranspProvList.querySelectorAll('.transp-prov-element');
         items.forEach((item, itemIndex) => {
             const oldIndex = 1; // Índice de Persona 1
-            const newItemIndex = itemIndex + 1; // Mantener el orden de los ítems
+            const newItemIndex = itemIndex + 1; // mantener el orden de los ítems
 
             // Obtener valores de Persona 1
             const tipoTransporte = item.querySelector('input[name="tipo-transporte-1-' + newItemIndex + '"]:checked')?.value || 'terrestre';
@@ -650,7 +649,7 @@ document.addEventListener("click", function (e) {
             });
         }
 
-        // Escuchar cambios en los nuevos inputs
+        // Escucha cambios en los nuevos inputs
         if (persona == 1) {
             const newInputs = {
                 ciudadOrigen: grupo.querySelector(`[name='ciudad-origen-${persona}-${index}']`),
@@ -893,7 +892,7 @@ async function actualizarTotalGastos() {
             event: 'error'
         });
     }else{
-        console.log("Todo en orden");
+        //console.log("Todo en orden");
         montoTotal.style.outline = "";
     }
 }
@@ -1069,7 +1068,7 @@ async function actualizarTotalGastosEdit(formPrefix = '') {
 
             if (total > saldoDisponible) {
                 montoTotalInput.style.border = '2px solid red';
-                console.log(`No se podrá actualizar este anticipo. El monto total ${total.toFixed(2)} supera el saldo disponible ${saldoDisponible.toFixed(2)}.`);
+                //console.log(`No se podrá actualizar este anticipo. El monto total ${total.toFixed(2)} supera el saldo disponible ${saldoDisponible.toFixed(2)}.`);
             } else {
                 montoTotalInput.style.border = '';
                 //console.log('Monto total dentro del saldo disponible.');
@@ -1081,12 +1080,6 @@ async function actualizarTotalGastosEdit(formPrefix = '') {
     } else {
         montoTotalInput.style.border = '';
     }
-
-    // Depuración
-    // console.log('Montos gastos menores:', Array.from(montosGastos).map(input => input.value));
-    // console.log('Montos viáticos:', Array.from(montosViaticos).map(input => input.value));
-    // console.log('Montos transporte:', Array.from(montosTransporte).map(input => input.value));
-    // console.log('Total calculado:', total.toFixed(2));
 }
 
 
@@ -1273,7 +1266,7 @@ document.querySelectorAll('.table.table-hover tbody tr').forEach((e) => {
             await showAnticipoDetails(data);
         } catch (error) {
             console.error('Error al cargar detalles del anticipo:', error);
-            alert('No se pudieron cargar los detalles del anticipo.');
+            //alert('No se pudieron cargar los detalles del anticipo.');
         }
     });
 });
@@ -1347,7 +1340,7 @@ async function showAnticipoDetails(data) {
     let idActualUser = document.getElementById("user-first-info").getAttribute("data-user");
 
     if(editForm.querySelector("#edit-estado-anticipo").value != 'Nuevo' && editForm.querySelector("#edit-estado-anticipo").value != 'Observado'){
-        console.log(editForm.querySelector("#edit-estado-anticipo").value);
+        //console.log(editForm.querySelector("#edit-estado-anticipo").value);
         document.querySelector(".switch").style.display = "none";
     }else{
         //console.log(idActualUser);
@@ -1773,18 +1766,142 @@ async function showAnticipoDetails(data) {
                     });
                 }
             });
-
-            tabContent.querySelectorAll(".edit-remove-transporte-btn").forEach(btn => {
+            
+            tabContent.querySelectorAll(".edit-remove-transporte-btn").forEach((btn, tIndex) => {
                 btn.addEventListener("click", () => {
                     const transporteElement = btn.closest(".transp-prov-element");
                     const validoInput = transporteElement.querySelector(`input[name*='[valido]']`);
-                    if (validoInput) {
-                        validoInput.value = '0';
-                        transporteElement.style.display = 'none';
-                    } else {
-                        transporteElement.remove();
-                    }
-                    actualizarTotalGastosEdit('edit-');
+                    const personIndex = parseInt(tabContent.id.match(/\d+/)[0]); // Extract person index (e.g., 1 for Person 1)
+
+                    // Show confirmation modal
+                    showAlert({
+                        title: 'Confirmación',
+                        message: '¿Estás seguro de que desea eliminar este item? Esta acción no se puede deshacer.',
+                        type: 'confirm',
+                        event: 'confirm'
+                    });
+
+                    const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+                    const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+
+                    acceptButton.onclick = async () => {
+
+                        if (validoInput) {
+                            validoInput.value = '0';
+                            transporteElement.style.display = 'none';
+
+                            // Synchronize deletion across all other persons
+                            if (personIndex === 1) {
+                                editpersonaIndices.forEach(idx => {
+                                    if (idx !== 1) {
+                                        const otherContainer = document.getElementById(`edit-transp-prov-list-${idx}`);
+                                        if (otherContainer) {
+                                            const otherElement = otherContainer.querySelector(`.transp-prov-element:nth-child(${tIndex + 1})`);
+                                            if (otherElement) {
+                                                const otherValidoInput = otherElement.querySelector(`input[name*='[valido]']`);
+                                                if (otherValidoInput) {
+                                                    otherValidoInput.value = '0';
+                                                    otherElement.style.display = 'none';
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+
+                            actualizarTotalGastosEdit('edit-');
+
+                            // Submit the form to save the changes
+                            const formData = new FormData(editForm);
+
+                            // Show loading modal
+                            const loadingModal = document.getElementById('loadingModal');
+                            loadingModal.style.display = 'flex';
+
+                            try {
+                                const response = await fetch('anticipos/update', {
+                                    method: 'POST',
+                                    body: formData
+                                });
+                                const result = await response.json();
+                                console.log(result);// here actual
+                                if (result.success) {
+                                    console.log("Se eliminó el elemento de transporte");
+                                    showAlert({
+                                        title: 'Completado',
+                                        message: `El anticipo fue actualizado correctamente.`,
+                                        type: 'success',
+                                        event: 'envio'
+                                    });
+                                } else {
+                                    console.log("No se pudo actualizar");
+                                    showAlert({
+                                        title: 'Error',
+                                        message: `El anticipo no pudo ser actualizado. "${result.error}".`,
+                                        type: 'error',
+                                        event: 'envio'
+                                    });
+                                    // Revert changes if update fails
+                                    validoInput.value = '1';
+                                    transporteElement.style.display = 'block';
+                                    if (personIndex === 1) {
+                                        editpersonaIndices.forEach(idx => {
+                                            if (idx !== 1) {
+                                                const otherContainer = document.getElementById(`edit-transp-prov-list-${idx}`);
+                                                if (otherContainer) {
+                                                    const otherElement = otherContainer.querySelector(`.transp-prov-element:nth-child(${tIndex + 1})`);
+                                                    if (otherElement) {
+                                                        const otherValidoInput = otherElement.querySelector(`input[name*='[valido]']`);
+                                                        if (otherValidoInput) {
+                                                            otherValidoInput.value = '1';
+                                                            otherElement.style.display = 'block';
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+                            } catch (error) {
+                                showAlert({
+                                    title: 'Error',
+                                    message: `No se pudo enviar la información del anticipo.`,
+                                    type: 'error',
+                                    event: 'envio'
+                                });
+                                // Revert changes on error
+                                validoInput.value = '1';
+                                transporteElement.style.display = 'block';
+                                if (personIndex === 1) {
+                                    editpersonaIndices.forEach(idx => {
+                                        if (idx !== 1) {
+                                            const otherContainer = document.getElementById(`edit-transp-prov-list-${idx}`);
+                                            if (otherContainer) {
+                                                const otherElement = otherContainer.querySelector(`.transp-prov-element:nth-child(${tIndex + 1})`);
+                                                if (otherElement) {
+                                                    const otherValidoInput = otherElement.querySelector(`input[name*='[valido]']`);
+                                                    if (otherValidoInput) {
+                                                        otherValidoInput.value = '1';
+                                                        otherElement.style.display = 'block';
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                            } finally {
+                                loadingModal.style.display = 'none';
+                            }
+                        }
+                        //const modal = document.getElementById('custom-alert-modal');
+                        //modal.style.display = 'none';
+                        actualizarTotalGastosEdit('edit-');
+                    };
+
+                    cancelButton.onclick = () => {
+                        const modal = document.getElementById('custom-alert-modal');
+                        modal.style.display = 'none';
+                    };
                 });
             });
 
@@ -2009,6 +2126,7 @@ async function showAnticipoDetails(data) {
 
                 grupo.querySelector(".gasto-viaje").addEventListener("input", () => actualizarTotalGastosEdit('edit-'));
                 grupo.querySelector(".edit-remove-transporte-btn").addEventListener("click", () => {
+                    console.log("a");
                     const validoInput = grupo.querySelector(`input[name*='[valido]']`);
                     if (validoInput) {
                         validoInput.value = '0';
@@ -2034,7 +2152,7 @@ async function showAnticipoDetails(data) {
         actualizarTotalGastosEdit('edit-');
     }else{
         // Se mostrará el botón de detalles de viáticos, únicamene si hay información al respecto
-        console.log("No hay detalles de viaticos");
+        //console.log("No hay detalles de viaticos");
         if(btnDetallesViaticos){
             btnDetallesViaticos.style.display = "none";
         }
@@ -2069,7 +2187,7 @@ async function showAnticipoDetails(data) {
             document.querySelector(".btn-observar-anticipo").style.display='block';
             document.querySelector(".btn-aprobar-totalmente").style.display='block';
         }else if(estadoAnticipo=='Autorizado Totalmente'){
-            console.log("El anticipo se encuentra autorizado totalmente")
+            //console.log("El anticipo se encuentra autorizado totalmente")
             document.querySelector(".btn-abonar-anticipo").style.display='block';
         }else{
             containerCambioEstado.style.display = 'none';
@@ -2077,6 +2195,125 @@ async function showAnticipoDetails(data) {
     }else{
         containerCambioEstado.style.display = 'none';
     }
+
+    // Se añade boton de descarga
+
+    const modalFooter = document.getElementById('container-descarga');
+    if (modalFooter) {
+        modalFooter.innerHTML = `
+            <button type="button" class="btn btn-default descargar-anticipo" data-id="${data.id}" data-user="${data.solicitante_nombres.replace(/ /g, '_')}" title="Descargar detalles de anticipo.">
+                <i class="fa-solid fa-download"></i>
+            </button>
+        `;
+    }
+
+    document.querySelector('.descargar-anticipo')?.addEventListener('click', async () => {
+        if (!window.XLSX) {
+            //alert('Error: The download feature is not available. Please contact support.');
+            //console.error('SheetJS not found. Ensure the CDN is included: <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>');
+            console.error('No se pudo descargar el documento excel.');
+            return;
+        }
+
+        const anticipoId = data.id;
+        const userName = data.solicitante_nombres.replace(/ /g, '_');
+        const now = new Date();
+        const dateStr = `${now.getDate().toString().padStart(2, '0')}${String(now.getMonth() + 1).padStart(2, '0')}${now.getFullYear()}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+        const fileName = `${anticipoId}-${userName}-${dateStr}.xlsx`;
+
+        // Prepare anticipo data
+        const anticipoData = {
+            id_Anticipo: data.id,
+            id_Usuario: data.id_usuario,
+            Solicitante: data.solicitante_nombres,
+            DocIdentidad_Solicitante: data.dni_solicitante,
+            Departamento: data.departamento_nombre,
+            Codigo_SSCC: data.codigo_sscc,
+            Cargo: data.cargo,
+            Nombre_de_Proyecto: data.nombre_proyecto,
+            Fecha_de_Solicitud: data.fecha_solicitud,
+            Motivo_del_Anticipo: data.motivo_anticipo,
+            Monto_Total_Solicitado: parseFloat(data.monto_total_solicitado).toFixed(2)
+        };
+
+        // Fetch all related data
+        let comprasMenoresData = [], viaticosData = [], transporteData = [];
+        try {
+            // Compras Menores
+            const comprasResponse = await fetch(`anticipos/getComprasMenores?anticipo_id=${anticipoId}`);
+            const comprasMenores = await comprasResponse.json();
+            if (comprasMenores && Array.isArray(comprasMenores.data)) {
+                comprasMenoresData = comprasMenores.data.map(item => ({
+                    descripcion: item.descripcion,
+                    motivo: item.motivo,
+                    importe: parseFloat(item.importe).toFixed(2)
+                }));
+            }
+
+            // Viáticos
+            const viaticosResponse = await fetch(`anticipos/getViaticos?anticipo_id=${anticipoId}`);
+            const viaticos = await viaticosResponse.json();
+            if (viaticos && Array.isArray(viaticos.data)) {
+                viaticosData = viaticos.data.map(item => ({
+                    doc_identidad: item.doc_identidad,
+                    nombre_persona: item.nombre_persona,
+                    concepto: item.concepto,
+                    dias: parseInt(item.dias),
+                    monto: parseFloat(item.monto).toFixed(2),
+                    moneda: item.moneda
+                }));
+            }
+
+            // Transporte Provincial
+            const transporteResponse = await fetch(`anticipos/getTransporteProvincial?anticipo_id=${anticipoId}`);
+            const transporte = await transporteResponse.json();
+            if (transporte && Array.isArray(transporte.data)) {
+                transporteData = transporte.data.map(item => ({
+                    tipo_transporte: item.tipo_transporte,
+                    ciudad_origen: item.ciudad_origen,
+                    ciudad_destino: item.ciudad_destino,
+                    fecha: item.fecha,
+                    monto: parseFloat(item.monto).toFixed(2),
+                    moneda: item.moneda,
+                    nombre_persona: item.nombre_persona // Added here
+                }));
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            alert('Warning: Some data could not be loaded. The file may be incomplete.');
+        }
+
+        // Generate Excel using SheetJS
+        const { utils, writeFile } = window.XLSX;
+        const wb = utils.book_new();
+
+        // Sheet 1: Anticipo Detalles
+        const anticipoWs = utils.json_to_sheet([anticipoData], { header: Object.keys(anticipoData) });
+        utils.book_append_sheet(wb, anticipoWs, 'Anticipo Detalles');
+
+        // Sheet 2: Compras Menores
+        if (comprasMenoresData.length > 0) {
+            const comprasMenoresWs = utils.json_to_sheet(comprasMenoresData, { header: ['descripcion', 'motivo', 'importe'] });
+            utils.book_append_sheet(wb, comprasMenoresWs, 'Compras Menores');
+        }
+
+        // Sheet 3: Viáticos
+        if (viaticosData.length > 0) {
+            const viaticosWs = utils.json_to_sheet(viaticosData, { header: ['doc_identidad', 'nombre_persona', 'concepto', 'dias', 'monto', 'moneda'] });
+            utils.book_append_sheet(wb, viaticosWs, 'Viáticos');
+        }
+
+        // Sheet 4: Transporte Provincial
+        if (transporteData.length > 0) {
+            const transporteWs = utils.json_to_sheet(transporteData, { header: ['tipo_transporte', 'ciudad_origen', 'ciudad_destino', 'fecha', 'monto', 'moneda', 'nombre_persona'] });
+            utils.book_append_sheet(wb, transporteWs, 'Transporte Provincial');
+        }
+
+        // Write and trigger download
+        writeFile(wb, fileName);
+    });
+
+    
 }
 
 // Agregar nueva persona en modo edición
@@ -2320,6 +2557,7 @@ editAddTabBtn.addEventListener('click', async function() {
     });
 
     newTabContent.querySelectorAll(".edit-remove-transporte-btn").forEach(btn => {
+        console.log("a");
         btn.addEventListener("click", () => {
             const transporteElement = btn.closest(".transp-prov-element");
             const validoInput = transporteElement.querySelector(`input[name*='[valido]']`);
@@ -2428,52 +2666,6 @@ editTabsBody.addEventListener("click", function(e) {
     }
 });
 
-// Función para alternar entre modo Ver y Editar
-// function toggleEditMode(isEditMode) {
-//     const isEditable = ['Nuevo', 'Observado'].includes(editForm.querySelector("#edit-estado-anticipo").value);
-//     const inputs = editForm.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), select');
-
-//     inputs.forEach(input => {
-//         if (['edit-solicitante', 'edit-dni-solicitante', 'edit-departamento', 'edit-cargo', 'edit-fecha-solicitud', 'edit-nombre-proyecto', 'edit-monto-total'].includes(input.id)) {
-//             input.readOnly = true;
-//             // input.disabled = true;
-//         } else if (input.name.includes('edit-detalles_gastos') || input.name.includes('edit-detalles_viajes')) {
-//             // Habilitar todos los campos de detalles_gastos y detalles_viajes en modo edición
-//             input.readOnly = !isEditMode;
-//             input.disabled = !isEditMode;
-//         } else {
-//             input.readOnly = !isEditMode;
-//             input.disabled = !isEditMode;
-//         }
-//     });
-
-//     // Selección de elementos que se encontrarán desactivados o deshabilitados mientras no se coloque el anticipo en el modo de editar
-//     editSubmitButton.disabled = !isEditMode || !isEditable;
-//     editSubmitButton.style.display = isEditMode && isEditable ? 'block' : 'none';
-//     editAddGastoBtn.style.display = isEditMode && isEditable ? 'block' : 'none';
-//     editAddTabBtn.style.display = isEditMode && isEditable ? 'block' : 'none';
-
-//     document.querySelectorAll(".edit-remove-gasto-btn").forEach(e => {
-//         e.style.display = isEditMode && isEditable ? 'block' : 'none';
-//     })
-//     document.querySelectorAll(".edit-remove-transporte-btn").forEach(e=>{
-//         e.style.display = isEditMode && isEditable ? 'block' : 'none';
-//     })
-    
-//     document.querySelectorAll(".container-remove-persona").forEach(e=>{
-//         e.style.display = isEditMode && isEditable ? 'flex' : 'none';
-//     })
-
-//     document.querySelectorAll(".edit-adding-transp-provincial").forEach(e=>{
-//         e.style.display = isEditMode && isEditable ? 'block' : 'none';
-//     })
-
-//     document.querySelectorAll(".edit-adding-transp-provincial").forEach(e => {
-//         e.style.display = (isEditMode && isEditable && e.dataset.persona === '1') ? 'block' : 'none';
-//     });
-
-// }
-
 function toggleEditMode(isEditMode) {
     const isEditable = ['Nuevo', 'Observado'].includes(editForm.querySelector("#edit-estado-anticipo").value);
     const inputs = editForm.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), select');
@@ -2508,11 +2700,7 @@ function toggleEditMode(isEditMode) {
                     }
                 }
             }
-        } 
-        // Otros campos genéricos
-        // else {
-        //     input.readOnly = !isEditMode || !isEditable;
-        // }
+        }
     });
 
     // Controles de edición
@@ -2679,7 +2867,7 @@ if(btnAutorizarAprobador){
             acceptButton.disabled = true;
             cancelButton.disabled = true;
 
-            formData.append("id", idAnticipo);//here here here here
+            formData.append("id", idAnticipo);
             formData.append("dniSolicitante", dniSolicitante);
             formData.append("comentario", 'Anticipo Aprobado');
             formData.append("sscc", sscc);
@@ -3080,7 +3268,7 @@ if(btnAnticipoViaticosDetalles){
 document.querySelectorAll(".btn-close-modal").forEach(button => {
     button.addEventListener("click", function() {
         const modalId = this.getAttribute("data-modal");
-        console.log(modalId);
+        //console.log(modalId);
         document.getElementById(modalId).style.display = "none";
     });
 });

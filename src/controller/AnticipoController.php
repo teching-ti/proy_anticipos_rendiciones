@@ -1057,5 +1057,46 @@ class AnticipoController {
         $info_anticipo = $this->anticipoModel->getDetallesViaticosByAnticipo($id_anticipo);
         require_once 'src/views/anticipos_detalles_viaticos.php';
     }
+
+    public function getComprasMenores() {
+        header('Content-Type: application/json');
+
+        if (!isset($_GET['anticipo_id'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Anticipo ID is required']);
+            exit;
+        }
+
+        $anticipoId = $_GET['anticipo_id'];
+        $comprasMenores = $this->anticipoModel->getComprasMenoresByAnticipoId($anticipoId);
+        echo json_encode(['success' => true, 'data' => $comprasMenores]);
+        exit;
+    }
+
+    public function getViaticos() {
+        header('Content-Type: application/json');
+        if (!isset($_GET['anticipo_id'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Anticipo ID is required']);
+            exit;
+        }
+        $anticipoId = $_GET['anticipo_id'];
+        $viaticos = $this->anticipoModel->getViaticosByAnticipoId($anticipoId);
+        echo json_encode(['success' => true, 'data' => $viaticos]);
+        exit;
+    }
+
+    public function getTransporteProvincial() {
+        header('Content-Type: application/json');
+        if (!isset($_GET['anticipo_id'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Anticipo ID is required']);
+            exit;
+        }
+        $anticipoId = $_GET['anticipo_id'];
+        $transporte = $this->anticipoModel->getTransporteProvincialByAnticipoId($anticipoId);
+        echo json_encode(['success' => true, 'data' => $transporte]);
+        exit;
+    }
 }
 ?>

@@ -28,67 +28,77 @@ document.addEventListener("DOMContentLoaded", function(){
     }
 
     function renderItem(item, rendido, container, idRendicion, latestEstado) {
-    const isRendido = !!rendido;
-    const itemContainer = document.createElement('div');
-    itemContainer.className = 'container-detalle';
-    itemContainer.innerHTML = `
-        <div class="compras-elementos-uno">
-            <div class="modal-element">
-                <span class="placeholder">Tipo</span>
-                <input type="text" class="rendicion-element" value="${item.type}" readonly>
-            </div>
-            <div class="modal-element">
-                <span class="placeholder">${item.type === 'compra' ? 'Descripción' : item.type === 'transporte' ? 'Tipo de transporte' : 'Concepto'}</span>
-                <input type="text" class="rendicion-element" value="${item.descripcion || item.nombre || ''}" readonly>
-            </div>
-            <div class="modal-element">
-                <span class="placeholder">${item.type === 'compra' ? 'Motivo' : item.type === 'transporte' ? 'Motivo de viaje' : 'Motivo de viaje'}</span>
-                <input type="text" class="rendicion-element" value="${item.motivo || ''}" title="${item.motivo || ''}" readonly>
-            </div>
-            ${item.type === 'viatico' ? `
-                <div class="modal-element">
-                    <span class="placeholder">Días</span>
-                    <input type="text" class="rendicion-element" value="${item.dias || '0'}" readonly>
+        // modificar condicion para poder cargar recursos y rendir únicamente mientras el estado sea nuevo
+        const isRendido = !!rendido;
+        const itemContainer = document.createElement('div');
+        itemContainer.className = 'container-detalle';
+        itemContainer.innerHTML = `
+            ${item.nombre_persona ? `<p class='sub-title-persona'>Persona: ${item.nombre_persona}<p>` : ''}
+            <div class="compras-elementos-uno">
+                <div class="modal-element" style="display: none;">
+                    <span class="placeholder">Tipo</span>
+                    <input type="text" class="rendicion-element" value="${item.type}" readonly>
                 </div>
                 <div class="modal-element">
-                    <span class="placeholder">Persona</span>
-                    <input type="text" class="rendicion-element" value="${item.nombre_persona || 'Sin nombre'}" readonly>
-                </div>
-            ` : item.type === 'transporte' ? `
-                <div class="modal-element">
-                    <span class="placeholder">Fecha del Viaje</span>
-                    <input type="text" class="rendicion-element" value="${item.fecha ? new Date(item.fecha).toLocaleDateString() : 'Sin fecha'}" readonly>
+                    <span class="placeholder">${item.type === 'compra' ? 'Descripción' : item.type === 'transporte' ? 'Transporte' : 'Concepto'}</span>
+                    <input type="text" class="rendicion-element" value="${item.descripcion || item.nombre || ''}" readonly>
                 </div>
                 <div class="modal-element">
-                    <span class="placeholder">Ciudad Origen</span>
-                    <input type="text" class="rendicion-element" value="${item.ciudad_origen || 'Sin origen'}" readonly>
-                </div>
-                <div class="modal-element">
-                    <span class="placeholder">Ciudad Destino</span>
-                    <input type="text" class="rendicion-element" value="${item.ciudad_destino || 'Sin destino'}" readonly>
-                </div>
-            ` : ''}
-            <div class="modal-element">
-                <span class="placeholder">Monto Solicitado</span>
-                <input type="text" class="rendicion-element" value="${item.importe || item.monto || '0.00'}" readonly>
+                    <span class="placeholder">${item.type === 'compra' ? 'Motivo' : item.type === 'transporte' ? 'Motivo de viaje' : 'Motivo de viaje'}</span>
+                    <input type="text" class="rendicion-element" value="${item.motivo || ''}" title="${item.motivo || ''}" readonly>
+                </div>  
             </div>
-            <div class="modal-element">
-                <span class="placeholder">Monto Rendido</span>
-                <input type="text" class="rendicion-element" id="monto-rendido-${item.id}" value="${rendido.monto_rendido || '0.00'}" readonly>
+            <div style='display: flex;'>
+                ${item.type === 'viatico' ? `
+                    <div class="modal-element">
+                        <span class="placeholder">Días</span>
+                        <input type="text" class="rendicion-element" value="${item.dias || '0'}" readonly>
+                    </div>
+                ` : item.type === 'transporte' ? `
+                    <div class="modal-element">
+                        <span class="placeholder">Fecha del Viaje</span>
+                        <input type="text" class="rendicion-element" value="${item.fecha ? new Date(item.fecha).toLocaleDateString() : 'Sin fecha'}" readonly>
+                    </div>
+                    <div class="modal-element">
+                        <span class="placeholder">Ciudad Origen</span>
+                        <input type="text" class="rendicion-element" value="${item.ciudad_origen || 'Sin origen'}" readonly>
+                    </div>
+                    <div class="modal-element">
+                        <span class="placeholder">Ciudad Destino</span>
+                        <input type="text" class="rendicion-element" value="${item.ciudad_destino || 'Sin destino'}" readonly>
+                    </div>
+                ` : ''}
+                <div class="modal-element">
+                    <span class="placeholder">Monto Solicitado</span>
+                    <input type="text" class="rendicion-element" value="${item.importe || item.monto || '0.00'}" readonly>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Monto Rendido</span>
+                    <input type="text" class="rendicion-element" id="monto-rendido-${item.id}" value="${rendido.monto_rendido || '0.00'}" readonly>
+                </div>  
             </div>
-        </div>
-        <div class="compras-elementos-dos">
-            <div class="btn btn-default open-list"><i class="fa-solid fa-list"></i> Comprobantes</div>
-        </div>
-    `;
-    container.appendChild(itemContainer);
+            <div class="compras-elementos-dos">
+                <div class="btn btn-default open-list"><i class="fa-solid fa-list"></i> Comprobantes</div>
+            </div>
+        `;
+        container.appendChild(itemContainer);
 
-    // Añadir evento de clic para abrir el modal, usando idRendicion en lugar de data.id
-    const openListBtn = itemContainer.querySelector('.open-list');
-    openListBtn.addEventListener('click', () => openComprobanteModal(item, idRendicion));
-}
+        // Añadir evento de clic para abrir el modal, usando idRendicion en lugar de data.id
+        const openListBtn = itemContainer.querySelector('.open-list');
+        openListBtn.addEventListener('click', () => openComprobanteModal(item, idRendicion, latestEstado));
+    }
 
-function openComprobanteModal(item, idRendicion) {
+function openComprobanteModal(item, idRendicion, latestEstado) {
+    const rol = document.getElementById("user-first-info").getAttribute("data-info")
+
+    let puedeEditar = false;
+
+    if((latestEstado == 'Observado' || latestEstado == 'Nuevo') && (rol != 2 && rol != 3)){
+        puedeEditar = false;
+    }else{
+        puedeEditar = true;
+    }
+
     const persona = item.type === 'viatico' ? item.nombre_persona : 'Solicitante';
     const modal = document.createElement('div');
     modal.className = 'comprobante-modal';
@@ -101,7 +111,7 @@ function openComprobanteModal(item, idRendicion) {
             <div class="modal-body-2">
                 <div class="modal-sections-2">
                     <div class="left-panel">
-                        <button id="addComprobanteBtn" class="btn-2">Nuevo Comprobante</button>
+                        <button id="addComprobanteBtn" class="btn-2" ${puedeEditar ? '' : 'style="display: none;"'}>Nuevo Comprobante</button>
                         <ul id="comprobanteList" class="comprobante-list"></ul>
                     </div>
                     <div class="right-panel" id="formContainer"></div>
@@ -147,38 +157,38 @@ function openComprobanteModal(item, idRendicion) {
     let comprobantes = []; // Inicialización como array
 
     function renderForm(comprobante = null) {
-        console.log('Comprobante a editar:', comprobante); // Depuración
+        //console.log('Comprobante a editar:', comprobante); // Depuración
         formContainer.innerHTML = `
-            <input type="file" id="fileUpload" accept=".pdf,.jpg,.jpeg,.png" style="margin-bottom: 20px;">
+            <input type="file" id="fileUpload" accept=".pdf,.jpg,.jpeg,.png" ${puedeEditar ? 'style="margin-bottom: 16px;"' : 'style="display: none;"'}>
             <div id="previewContainer"></div>
             <div class="form-group">
                 <label>Tipo de Comprobante</label>
-                <select id="tipoComprobante">
+                <select id="tipoComprobante" ${puedeEditar ? '' : 'disabled'}>
                     <option value="boleta" ${comprobante ? (comprobante.tipo_comprobante === 'boleta' ? 'selected' : '') : ''}>Boleta</option>
                     <option value="factura" ${comprobante ? (comprobante.tipo_comprobante === 'factura' ? 'selected' : '') : ''}>Factura</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>RUC del Emisor</label>
-                <input type="text" id="rucEmisor" placeholder="RUC" pattern="[0-9]{11}" value="${comprobante ? comprobante.ruc_emisor : ''}">
+                <input type="text" id="rucEmisor" placeholder="RUC" pattern="[0-9]{11}" value="${comprobante ? comprobante.ruc_emisor : ''}" ${puedeEditar ? '' : 'disabled'}>
             </div>
             <div class="form-group">
                 <label>Serie y Número</label>
-                <input type="text" id="serieNumero" placeholder="Ej: F001-000123" value="${comprobante ? comprobante.serie_numero : ''}">
+                <input type="text" id="serieNumero" placeholder="Ej: F001-000123" value="${comprobante ? comprobante.serie_numero : ''}" ${puedeEditar ? '' : 'disabled'}>
             </div>
             <div class="form-group">
                 <label>Tipo y Número de Documento del Receptor</label>
-                <input type="text" id="docReceptor" placeholder="Ej: DNI 12345678" value="${comprobante ? comprobante.doc_receptor : '20600306091'}">
+                <input type="text" id="docReceptor" placeholder="Ej: DNI 12345678" value="${comprobante ? comprobante.doc_receptor : '20600306091'}" ${puedeEditar ? '' : 'disabled'}>
             </div>
             <div class="form-group">
                 <label>Fecha de Emisión</label>
-                <input type="date" id="fechaEmision" value="${comprobante ? comprobante.fecha_emision : ''}">
+                <input type="date" id="fechaEmision" value="${comprobante ? comprobante.fecha_emision : ''}" ${puedeEditar ? '' : 'disabled'}>
             </div>
             <div class="form-group">
                 <label>Importe Total</label>
-                <input type="number" id="importeTotal" step="0.01" placeholder="0.00" value="${comprobante ? comprobante.importe_total : ''}">
+                <input type="number" id="importeTotal" step="0.01" placeholder="0.00" value="${comprobante ? comprobante.importe_total : ''}" ${puedeEditar ? '' : 'disabled'}>
             </div>
-            <button id="saveComprobanteBtn" class="btn-2">Guardar</button>
+            <button id="saveComprobanteBtn" class="btn-2" ${puedeEditar ? '' : 'style="display: none;"'}>Guardar</button>
         `;
 
         // Previsualización automática
@@ -253,7 +263,7 @@ function openComprobanteModal(item, idRendicion) {
     function renderComprobanteList() {
         comprobanteList.innerHTML = '';
         if (!Array.isArray(comprobantes)) comprobantes = [];
-        console.log('Comprobantes en la lista:', comprobantes);
+        //console.log('Comprobantes en la lista:', comprobantes);
         const uniqueComprobantes = Array.from(new Map(comprobantes.map(c => [c.id, c])).values());
         uniqueComprobantes.forEach(comprobante => {
             const li = document.createElement('li');
@@ -307,7 +317,7 @@ function openComprobanteModal(item, idRendicion) {
             } else {
                 comprobantes.push(newComprobante);
             }
-            console.log('Comprobantes después de guardar:', comprobantes); // Depuración
+            //console.log('Comprobantes después de guardar:', comprobantes); // Depuración
             renderComprobanteList();
             renderForm();
             const rendidoField = document.querySelector(`#completarRendicionModal .monto-rendido[data-id="${idRendicion}"]`);
@@ -373,7 +383,10 @@ function updateComprobante(id, comprobante) {
     }
 
     // Evento para agregar comprobante
-    modal.querySelector('#addComprobanteBtn').addEventListener('click', () => renderForm());
+    const btnAgregarComprobante = modal.querySelector('#addComprobanteBtn');
+    if(btnAgregarComprobante){
+        btnAgregarComprobante.addEventListener('click', () => renderForm());
+    }
 
     // Cerrar modal
     modal.querySelector('.btn-close-modal').addEventListener('click', () => {
@@ -420,7 +433,7 @@ function updateComprobante(id, comprobante) {
     fetch(url)
         .then(res => res.json())
         .then(data => {
-            console.log('Datos recibidos:', data);
+            //console.log('Datos recibidos:', data);
             // Verificar si data.comprobantes es un array válido
             const serverComprobantes = Array.isArray(data.comprobantes) ? data.comprobantes : [];
             // Combinar con los comprobantes locales, priorizando los del servidor (basado en id)
@@ -906,7 +919,7 @@ function updateComprobante(id, comprobante) {
                 const res = await fetch(`rendiciones/getRendicionDetails?id_rendicion=${encodeURIComponent(rendicionId)}`);
                 if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
                 const data = await res.json();
-                console.log(data);
+                //console.log(data);
                 // Funcionalidad que abrirá el formulario de rención
                 showRendicionDetails(data);
             } catch (error){
@@ -1002,7 +1015,7 @@ function updateComprobante(id, comprobante) {
         const btnCorregir = document.getElementById("btn-corregir-rendicion");
         if (btnCorregir) {
             const isEditable = ['Observado'].includes(latestEstado);
-            console.log(isEditable);
+            //console.log(isEditable);
             btnCorregir.style.display = isEditable ? 'block' : 'none';
             btnCorregir.style.opacity = isEditable ? '1' : '0';
             btnCorregir.onclick = isEditable ? () => handleCorregirRendicion(data.id) : null;
@@ -1038,7 +1051,10 @@ function updateComprobante(id, comprobante) {
         if (allDetalles.length > 0) {
             if (detallesCompras.length > 0) {
                 const comprasSection = document.createElement('div');
-                comprasSection.innerHTML = '<h3>Compras Menores</h3>';
+                comprasSection.innerHTML = `
+                    <h3>Compras Menores</h3>
+                    <hr>
+                    `;
                 detallesContainer.appendChild(comprasSection);
                 allDetalles.filter(item => item.type === 'compra').forEach(item => {
                     const montoRendido = rendidosMap.get(item.id.toString()) || 0;
@@ -1047,7 +1063,10 @@ function updateComprobante(id, comprobante) {
             }
             if (detallesViajes.length > 0) {
                 const viaticosSection = document.createElement('div');
-                viaticosSection.innerHTML = '<h3>Viáticos</h3>';
+                viaticosSection.innerHTML = `
+                    <h3>Viáticos</h3>
+                    <hr>
+                    `;
                 detallesContainer.appendChild(viaticosSection);
                 allDetalles.filter(item => item.type === 'viatico').forEach(item => {
                     const montoRendido = rendidosMap.get(item.id.toString()) || 0;
@@ -1056,13 +1075,25 @@ function updateComprobante(id, comprobante) {
             }
             if (detallesTransportes.length > 0) {
                 const transportesSection = document.createElement('div');
-                transportesSection.innerHTML = '<h3>Transportes</h3>';
+                transportesSection.innerHTML = `
+                    <h3>Transportes Provinciales</h3>
+                    <hr>
+                    `;
                 detallesContainer.appendChild(transportesSection);
                 allDetalles.filter(item => item.type === 'transporte').forEach(item => {
                     const montoRendido = rendidosMap.get(item.id.toString()) || 0;
                     renderItem(item, { monto_rendido: montoRendido }, detallesContainer, data.id, latestEstado);
                 });
             }
+            /*const rol = document.getElementById("user-first-info").getAttribute("data-info");
+            if(rol==2 || rol==3){
+                console.log(" ");
+            }else{
+                //aqui
+                document.querySelectorAll(".compras-elementos-dos").forEach((e)=>{
+                    e.style.display = "none";
+                })
+            }*/
         } else {
             detallesContainer.innerHTML = '<p>No hay detalles válidos.</p>';
         }
@@ -1086,10 +1117,11 @@ function updateComprobante(id, comprobante) {
             detallesContainer.innerHTML = '';
     }
 
-    // Botones "Cerrar" modal
+    // Botones "Cerrar" modal /here
     document.querySelectorAll('.btn-close-modal').forEach(button => {
         button.addEventListener('click', () => {
             const modalId = button.dataset.modal;
+            //console.log(modalId);
             closeModal(modalId);
         });
     });
@@ -1109,7 +1141,7 @@ function updateComprobante(id, comprobante) {
     // función de búsqueda
     document.getElementById("input-buscar-rendicion").addEventListener("input", function() {
         const filter = this.value.toLowerCase();
-        console.log(filter);
+        //console.log(filter);
 
         const rows = document.querySelectorAll("#table-body tr");
 

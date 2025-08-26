@@ -3,8 +3,7 @@ document.querySelector(".form-login").addEventListener("submit", async function 
 
     const userInput = document.getElementById("form-id").value.trim();
     const passInput = document.getElementById("form-pass").value.trim();
-    console.log(userInput)
-    console.log(passInput)
+
 
     try {
         const response = await fetch("../scripts/datos.json?v=2");
