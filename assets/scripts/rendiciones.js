@@ -166,6 +166,8 @@ function openComprobanteModal(item, idRendicion, latestEstado) {
                 <select id="tipoComprobante" ${puedeEditar ? '' : 'disabled'}>
                     <option value="boleta" ${comprobante ? (comprobante.tipo_comprobante === 'boleta' ? 'selected' : '') : ''}>Boleta</option>
                     <option value="factura" ${comprobante ? (comprobante.tipo_comprobante === 'factura' ? 'selected' : '') : ''}>Factura</option>
+                    <option value="sin comprobante" ${comprobante ? (comprobante.tipo_comprobante === 'sin comprobante' ? 'selected' : '') : ''}>Sin Comprobante</option>
+                    <option value="dc movilidad" ${comprobante ? (comprobante.tipo_comprobante === 'dc movilidad' ? 'selected' : '') : ''}>Declaración jurada de movilidad</option>
                 </select>
             </div>
             <div class="form-group">
@@ -248,6 +250,9 @@ function openComprobanteModal(item, idRendicion, latestEstado) {
                 importe_total: document.getElementById('importeTotal').value,
                 archivo: file ? file : (comprobante?.archivo || null)
             };
+
+            console.log(newComprobante);
+            
             if (comprobante) {
                 // Editar existente
                 updateComprobante(comprobante.id, newComprobante);

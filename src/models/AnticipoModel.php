@@ -226,13 +226,13 @@ class AnticipoModel {
     }
 
     // Agregar un nuevo anticipo y registrar en historial
-    public function addAnticipo($id_usuario, $solicitante, $solicitante_nombres, $dni_solicitante, $departamento, $departamento_nombre,$codigo_sscc, $cargo, $nombre_proyecto, $fecha_solicitud, $motivo_anticipo, $monto_total_solicitado, $id_cat_documento, $detalles_gastos = [], $detalles_viajes) {
+    public function addAnticipo($id_usuario, $solicitante, $solicitante_nombres, $dni_solicitante, $departamento, $departamento_nombre,$codigo_sscc, $cargo, $nombre_proyecto, $fecha_solicitud, $fecha_inicio, $fecha_fin, $motivo_anticipo, $monto_total_solicitado, $id_cat_documento, $detalles_gastos = [], $detalles_viajes) {
         try {
             $this->db->beginTransaction();
 
             // Insertar anticipo
-            $query = "INSERT INTO tb_anticipos (id_usuario, solicitante, solicitante_nombres, dni_solicitante, departamento, departamento_nombre, codigo_sscc, cargo, nombre_proyecto, fecha_solicitud, motivo_anticipo, monto_total_solicitado, id_cat_documento)
-                      VALUES (:id_usuario, :solicitante, :solicitante_nombres, :dni_solicitante, :departamento, :departamento_nombre, :codigo_sscc, :cargo, :nombre_proyecto, :fecha_solicitud, :motivo_anticipo, :monto_total_solicitado, :id_cat_documento)";
+            $query = "INSERT INTO tb_anticipos (id_usuario, solicitante, solicitante_nombres, dni_solicitante, departamento, departamento_nombre, codigo_sscc, cargo, nombre_proyecto, fecha_solicitud, fecha_inicio, fecha_fin, motivo_anticipo, monto_total_solicitado, id_cat_documento)
+                      VALUES (:id_usuario, :solicitante, :solicitante_nombres, :dni_solicitante, :departamento, :departamento_nombre, :codigo_sscc, :cargo, :nombre_proyecto, :fecha_solicitud, :fecha_inicio, :fecha_fin, :motivo_anticipo, :monto_total_solicitado, :id_cat_documento)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 'id_usuario' => $id_usuario,
@@ -245,6 +245,8 @@ class AnticipoModel {
                 'cargo' => $cargo,
                 'nombre_proyecto' => $nombre_proyecto,
                 'fecha_solicitud' => $fecha_solicitud,
+                'fecha_inicio' => $fecha_inicio,
+                'fecha_fin' => $fecha_fin,
                 'motivo_anticipo' => $motivo_anticipo,
                 'monto_total_solicitado' => $monto_total_solicitado,
                 'id_cat_documento' => $id_cat_documento
@@ -493,6 +495,8 @@ class AnticipoModel {
                 a.cargo,
                 a.nombre_proyecto,
                 a.fecha_solicitud,
+                a.fecha_inicio,
+                a.fecha_fin,
                 a.motivo_anticipo,
                 a.monto_total_solicitado,
                 s.scc_codigo,
@@ -632,7 +636,9 @@ class AnticipoModel {
                     codigo_sscc = :codigo_sscc,
                     nombre_proyecto = :nombre_proyecto,
                     motivo_anticipo = :motivo_anticipo,
-                    monto_total_solicitado = :monto_total_solicitado
+                    monto_total_solicitado = :monto_total_solicitado,
+                    fecha_inicio = :fecha_inicio,
+                    fecha_fin = :fecha_fin
                   WHERE id = :id_anticipo";
         $stmt = $this->db->prepare($query);
         $stmt->execute([
@@ -640,7 +646,9 @@ class AnticipoModel {
             'codigo_sscc' => $data['codigo_sscc'],
             'nombre_proyecto' => $data['nombre_proyecto'],
             'motivo_anticipo' => $data['motivo_anticipo'],
-            'monto_total_solicitado' => $data['monto_total_solicitado']
+            'monto_total_solicitado' => $data['monto_total_solicitado'],
+            'fecha_inicio' => $data['fecha_inicio'],
+            'fecha_fin' => $data['fecha_fin']
         ]);
 
         // Obtener IDs existentes de detalles de compras menores
@@ -998,7 +1006,7 @@ class AnticipoModel {
         return $conceptoId ?: null;
     }
 
-    public function abonarAnticipo($id_anticipo, $id_usuario, $comentario) {
+    public function abonarAnticipo($id_anticipo, $id_usuario, $comentario, $fecha_fin) {
         try {
             $this->db->beginTransaction();
             error_log("Transacción iniciada para abonar anticipo ID: $id_anticipo");
@@ -1059,9 +1067,44 @@ class AnticipoModel {
             ]);
 
 
-            // Crear rendición asociada al anticipo
-            $fecha_inicio = date('Y-m-d H:i:s');
-            $fecha_rendicion = date('Y-m-d H:i:s', strtotime('+3 days'));
+            // creando rendición asociada al anticipo
+            $fecha_inicio = $fecha_fin; // fecha en que finaliza la ejecución del anticipo, y se debería de empezar a rendir, desde aquí contarían los 3 días.
+
+            // se leen los feriados desde el archivo 
+            $feriados = [];
+            $feriadosFile = 'feriados_nacionales.json';
+            if (file_exists($feriadosFile)) {
+                $feriadosJson = file_get_contents($feriadosFile);
+                $feriadosData = json_decode($feriadosJson, true);
+                if (is_array($feriadosData)) {
+                    foreach ($feriadosData as $mes => $dias) {
+                        foreach ($dias as $dia) {
+                            $feriados[] = date("Y-m-d", strtotime($dia));
+                        }
+                    }
+                } else {
+                    error_log("Contenido de $feriadosFile no es un array válido");
+                }
+            } else {
+                error_log("Archivo $feriadosFile no encontrado, usando lista vacía de feriados");
+            }
+
+            $diasHabiles = 0;
+            $fecha = strtotime($fecha_inicio);
+
+            while ($diasHabiles < 3) {
+                // Avanzar un día
+                $fecha = strtotime("+1 day", $fecha);
+                $diaSemana = date("N", $fecha); // 1 = Lunes, 7 = Domingo
+                $fechaStr = date("Y-m-d", $fecha);
+
+                // Verificar si es sábado, domingo o feriado
+                if ($diaSemana < 6 && !in_array($fechaStr, $feriados)) {
+                    $diasHabiles++;
+                }
+            }
+
+            $fecha_rendicion = date("Y-m-d", $fecha); // los días después en que se debería de rendir
             $id_cat_documento = 2;
             $id_rendicion = $this->rendicionesModel->createRendicion($id_anticipo, $anticipo_usuario, $fecha_inicio, $fecha_rendicion, $id_cat_documento, $monto, $comentario);
 

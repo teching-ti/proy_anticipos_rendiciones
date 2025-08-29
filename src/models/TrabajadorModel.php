@@ -145,5 +145,23 @@ class TrabajadorModel {
             return [];
         }
     }
+
+    // Funcionalidad para determinar si existe un gerente en el departamento, se utiliza para cuando se logue un usuario que no tiene cargo gerente
+    public function existeGerenteEnDepartamento($departamento_id) {
+        try {
+            $query = "SELECT COUNT(*) as total 
+                    FROM tb_trabajadores 
+                    WHERE departamento = :dep 
+                    AND cargo LIKE '%gerente%' 
+                    AND activo = 1";
+            $stmt = $this->db_external->prepare($query);
+            $stmt->execute(['dep' => $departamento_id]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result && $result['total'] > 0;
+        } catch (PDOException $e) {
+            error_log('Error al verificar gerente en departamento: ' . $e->getMessage());
+            return false;
+        }
+    }
 }
 ?>

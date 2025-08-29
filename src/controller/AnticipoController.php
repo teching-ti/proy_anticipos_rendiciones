@@ -101,6 +101,8 @@ class AnticipoController {
             $codigo_sscc = trim($_POST['codigo_sscc'] ?? '');
             $nombre_proyecto = trim($_POST['nombre_proyecto'] ?? '');
             $fecha_solicitud = trim($_POST['fecha_solicitud'] ?? '');
+            $fecha_inicio = trim($_POST['fecha_ejecucion'] ?? ''); // Fecha inicio del gasto
+            $fecha_fin = trim($_POST['fecha_finalizacion'] ?? ''); // Fecha fin del gasto
             $motivo_anticipo = trim($_POST['motivo-anticipo'] ?? '');
             $monto_total_solicitado = (float)($_POST['monto-total'] ?? 0);
             $id_cat_documento = trim($_POST['id_cat_documento'] ?? '1');
@@ -171,6 +173,12 @@ class AnticipoController {
             } elseif (!preg_match('/^.+$/', $fecha_solicitud) || !strtotime($fecha_solicitud)) {
                 $response['message'] = 'La fecha de solicitud debe tener el formato YYYY-MM-DD.';
                 error_log($response['message']);
+            } elseif(empty($fecha_inicio) && empty($fecha_fin)){
+                $response['message'] = 'Los campos de fecha deben ser completados.';
+                error_log($response['message']);
+            } elseif($fecha_inicio > $fecha_fin){
+                $response['message'] = "La fecha de fin debe ser mayor o igual a la fecha de inicio.";
+                 error_log($response['message']);
             } else {
                 if ($concepto == 'compras-menores' && !empty($detalles_gastos)) {
                     // Validar detalles de gastos menores
@@ -235,6 +243,8 @@ class AnticipoController {
                     }
                 }
 
+                error_log("Todo en orden");
+
                 if ($response['message'] === '') {
                     //url usada en el correo
                     $url_plataforma = 'http://192.168.1.193/proy_anticipos_rendiciones/anticipos';
@@ -243,6 +253,7 @@ class AnticipoController {
                     $response['message'] = 'El solicitante aún tiene pendiente un anticipo por rendir.';
                     error_log($response['message']);
                     } else {
+                        error_log("El solicitante no tiene un anticipo pendiente por rendir");
                         // Verificar saldo disponible
                         $saldo_disponible = $this->anticipoModel->getSaldoDisponibleBySscc($codigo_sscc);
                         if ($saldo_disponible === null) {
@@ -252,8 +263,7 @@ class AnticipoController {
                             $response['message'] = "No se registró el anticipo. El monto solicitado ($monto_total_solicitado) excede el saldo disponible ($saldo_disponible) para el sub-subcentro.";
                             error_log($response['message']);
                         } else {
-
-                            $numero_anticipo = $this->anticipoModel->addAnticipo($id_usuario, $solicitante, $solicitante_nombres, $dni_solicitante, $departamento, $departamento_nombre, $codigo_sscc, $cargo, $nombre_proyecto, $fecha_solicitud, $motivo_anticipo, $monto_total_solicitado, $id_cat_documento, $detalles_gastos, $detalles_viajes);
+                            $numero_anticipo = $this->anticipoModel->addAnticipo($id_usuario, $solicitante, $solicitante_nombres, $dni_solicitante, $departamento, $departamento_nombre, $codigo_sscc, $cargo, $nombre_proyecto, $fecha_solicitud, $fecha_inicio, $fecha_fin, $motivo_anticipo, $monto_total_solicitado, $id_cat_documento, $detalles_gastos, $detalles_viajes);
 
                             if ($numero_anticipo) {
                                 $response['success'] = true;
@@ -326,6 +336,8 @@ class AnticipoController {
                 'nombre_proyecto' => $_POST['edit-nombre-proyecto'] ?? null,
                 'motivo_anticipo' => $_POST['edit-motivo-anticipo'] ?? null,
                 'monto_total_solicitado' => $_POST['edit-monto-total'] ?? 0,
+                'fecha_inicio' => $_POST['edit-fecha-ejecucion'],
+                'fecha_fin' => $_POST['edit-fecha-finalizacion'],
                 'detalles_gastos' => $_POST['edit-detalles_gastos'] ?? [],
                 'detalles_viajes' => $_POST['edit-detalles_viajes'] ?? []
             ];
@@ -905,9 +917,9 @@ class AnticipoController {
         exit;
     }
 
-   public function abonarAnticipo() {
+    public function abonarAnticipo() {
         if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 5) {
-            error_log('No tiene permisos para realizar este tipo de actividad');
+            //error_log('No tiene permisos para realizar este tipo de actividad');
             header('Content-Type: application/json');
             echo json_encode(['error' => 'No tiene permisos para realizar este tipo de actividad']);
             exit;
@@ -923,6 +935,7 @@ class AnticipoController {
             $nombreProyecto = $_POST['nombreProyecto'];
             $motivoAnticipo = $_POST['motivoAnticipo'];
             $montoTotal = $_POST['montoTotal'];
+            $fechaFin = $_POST['fechaFin'];
             $comentario = trim($_POST['comentario'] ?? 'Anticipo Abonado');
 
             $latestEstado = $this->anticipoModel->getLatestAnticipoEstado($id);
@@ -939,7 +952,7 @@ class AnticipoController {
                 exit;
             }
 
-            if ($this->anticipoModel->abonarAnticipo($id, $_SESSION['id'], $comentario)) {
+            if ($this->anticipoModel->abonarAnticipo($id, $_SESSION['id'], $comentario, $fechaFin)) {
 
                 $correo_tesorero = $_SESSION['trabajador']['correo'];
 
@@ -947,9 +960,9 @@ class AnticipoController {
                 $url_plataforma = 'http://192.168.1.193/proy_anticipos_rendiciones/anticipos';
 
                 $solicitante = $this->trabajadorModel->getTrabajadorByDni($dniSolicitante);
-                $correo_solicitante = $solicitante['correo'];
+                $correo_solicitante = $solicitante['correo'] ?? 'null';
 
-                $correos_cc = [$correo_solicitante];
+                $correos_cc = [$correo_solicitante] ? [$correo_solicitante] : [];
 
                 if ($correo_solicitante) {
 
@@ -982,38 +995,6 @@ class AnticipoController {
                         error_log("Anticipo abonado y notificación enviada");
                     } else {
                         error_log("No se pudo enviar la notificación");
-                    }
-
-                    // Enviar correo a usuarios con rol 5
-                    if (!empty($rol5Correos)) {
-                        $bodyTesoreria = "
-                            <p><img alt='Logo SIAR' src='{$this->logoBase64}' width='140' /></p>
-                            <h2>Notificación de Anticipo</h2>
-                            <p>El usuario aprobador realizó la primera autorización correctamente. Información del anticipo:</p>
-                            <ul>
-                                <li><strong>N° de Anticipo:</strong> $id</li>
-                                <li><strong>Motivo:</strong> $motivoAnticipo</li>
-                                <li><strong>DNI Solicitante:</strong> $dniSolicitante</li>
-                                <li><strong>Nombre Solicitante: $solicitanteNombre</strong></li>
-                                <li><strong>Sub sub-centro de costo:</strong> $sscc</li>
-                                <li><strong>Nombre del Proyecto:</strong> $nombreProyecto</li>
-                                <li><strong>Monto:</strong> $montoTotal</li>
-                            </ul>
-                            <p>Deberá revisar en la plataforma SIAR el anticipo respectivo para poder realizar la segunda autorización o marcarlo como observado en caso exista un dato incorrecto.</p>
-                            <hr>
-                            <br>
-                            <p>No es necesario responder a este mensaje. Deberá ingresar a la plataforma SIAR para obtener más detalles del anticipo.</p>
-                            <a href='{$url_plataforma}'>SIAR - TECHING</a>
-                        ";
-                        foreach ($rol5Correos as $rol5Correo) {
-                            if ($this->emailConfig->sendSiarNotification($rol5Correo, $subject, $bodyTesoreria, [])) {
-                                error_log("Notificación enviada al usuario con rol 5: $rol5Correo");
-                            } else {
-                                error_log("No se pudo enviar la notificación al usuario con rol 5: $rol5Correo");
-                            }
-                        }
-                    } else {
-                        error_log("No se encontraron correos de usuarios con rol 5");
                     }
                 } else {
                     error_log("No se envió el correo, no se encontró el correo del solicitante");

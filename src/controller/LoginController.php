@@ -57,6 +57,26 @@ class LoginController {
                     $_SESSION['rol_nombre'] = $user['rol_nombre'];
                     /*únicamente para mostrarlos*/
                     $_SESSION['trabajador'] = $trabajador; // Almacenar apellidos, nombre, cargo, departamento, correo ?-
+
+                    // Lógica de aprob_gerencia
+                    if ($user['rol'] != 2) {
+                        $_SESSION['aprob_gerencia'] = 0;
+                        error_log("Su rol no es 2");
+                    } else {
+                        $cargo = strtolower($trabajador['cargo']);
+                        if (strpos($cargo, 'gerente') !== false) {
+                            $_SESSION['aprob_gerencia'] = 1;
+                            error_log("Su rol es dos, py contiene el dato de gerente en su cargo");
+                        } else {
+                            $hayGerente = $this->trabajadorModel->existeGerenteEnDepartamento($trabajador['departamento']);
+                            $_SESSION['aprob_gerencia'] = $hayGerente ? 0 : 1;
+                            error_log("Su rol es dos, pero tomará el cargo de gerencia porque no hay gerente");
+                        }
+                    }
+
+                    error_log("Gerencia...");
+                    error_log($_SESSION['aprob_gerencia']);
+
                     /*Revisar error_log*/
                     error_log("Datos de trabajador cargados de forma exitosa: " . json_encode($trabajador));
                     

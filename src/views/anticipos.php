@@ -311,11 +311,11 @@ unset($_SESSION['success'], $_SESSION['error']);
                             </div>
                             <div class="modal-element">
                                 <span class="placeholder">Fecha de Ejecución</span>
-                                <input type="date" class="form-control" id="edit-fecha-ejecucion" name="edit-fecha-ejecucion" required>
+                                <input type="date" class="form-control" id="edit-fecha-ejecucion" name="edit-fecha-ejecucion" required disabled>
                             </div>
                             <div class="modal-element">
                                 <span class="placeholder">Fecha de Finalización</span>
-                                <input type="date" class="form-control" id="edit-fecha-finalizacion" name="edit-fecha-finalizacion" required>
+                                <input type="date" class="form-control" id="edit-fecha-finalizacion" name="edit-fecha-finalizacion" required disabled>
                             </div>
                         </div>
 
@@ -379,6 +379,11 @@ unset($_SESSION['success'], $_SESSION['error']);
                                         Autorizado
                                     </div>
                                 <?php endif;?>
+                                <?php if($_SESSION['rol']==2 && $_SESSION['aprob_gerencia']==1): ?>
+                                    <div class="btn-aprobar-anticipo-gerencia" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                        Autorizado G.
+                                    </div>
+                                <?php endif; ?>
                                 <?php if($_SESSION['rol']==5): ?>
                                     <div class="btn-aprobar-totalmente" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
                                         Autorizado Totalmente

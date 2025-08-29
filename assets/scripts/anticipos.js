@@ -144,9 +144,35 @@ function showStep(index) {
 }
 
 function nextStep() {
-    if (currentStep < steps.length - 1) {
-        showStep(currentStep + 1);
+    
+    const currentStepElement = steps[currentStep];
+    const requiredInputs = currentStepElement.querySelectorAll('[required]');
+
+    let allFieldsValid = true;
+    requiredInputs.forEach(input => {
+        // La validación nativa del navegador para 'required'
+        if (!input.checkValidity()) {
+            allFieldsValid = false;
+            // Opcional: enfocar el campo inválido para que el usuario lo vea
+            input.focus(); 
+            // Detener el bucle una vez que se encuentre un campo inválido
+            return; 
+        }
+    });
+
+    if (allFieldsValid) {
+        if (currentStep < steps.length - 1) {
+            showStep(currentStep + 1);
+        }
+    } else {
+        // Opcional: mostrar un mensaje de error si la validación falla
+        alert('Por favor, completa todos los campos obligatorios.');
     }
+
+    //console.log(requiredInputs);
+    // if (currentStep < steps.length - 1) {
+    //     showStep(currentStep + 1);
+    // }
 }
 
 function prevStep() {
@@ -870,10 +896,14 @@ async function actualizarTotalGastos() {
 
     // 3. Mostrar total en el input final
     const montoTotal = document.getElementById("monto-total");
-    if (montoTotal) montoTotal.value = total;
+
+    // Dar formato al total, con dos decimales
+    const totalRedondeado = total.toFixed(2);
+
+    if (montoTotal) montoTotal.value = totalRedondeado;
 
     // Actualizando el elemento visual de "Monto total con el monto calculado"
-    montoTotal.value = total;
+    //montoTotal.value = total;
 
     // Líneas de código para mensaje de advertencia
     const codigoSscc = document.getElementById("codigo_sscc").value;
@@ -1331,6 +1361,8 @@ async function showAnticipoDetails(data) {
     editForm.querySelector("#edit-nombre-proyecto").value = data.nombre_proyecto || '';
     editForm.querySelector("#edit-motivo-anticipo").value = data.motivo_anticipo || '';
     editForm.querySelector("#edit-fecha-solicitud").value = data.fecha_solicitud || '';
+    editForm.querySelector("#edit-fecha-ejecucion").value = data.fecha_inicio || '';
+    editForm.querySelector("#edit-fecha-finalizacion").value = data.fecha_fin || '';
     editForm.querySelector("#edit-estado-anticipo").value = data.estado || '';
     editForm.querySelector("#edit-monto-total").value = (parseFloat(data.monto_total_solicitado) || 0).toFixed(2);
 
@@ -2179,6 +2211,7 @@ async function showAnticipoDetails(data) {
     const estadoAnticipo = document.getElementById("edit-estado-anticipo").value;
     const containerCambioEstado = document.getElementById("container-cambio-estado");
 
+    // here here here
     if(rolUsuario==2 && (estadoAnticipo=='Nuevo' || estadoAnticipo=='Observado')){
         containerCambioEstado.style.display = 'flex';
     }else if(rolUsuario==5){
@@ -2275,7 +2308,7 @@ async function showAnticipoDetails(data) {
                     fecha: item.fecha,
                     monto: parseFloat(item.monto).toFixed(2),
                     moneda: item.moneda,
-                    nombre_persona: item.nombre_persona // Added here
+                    nombre_persona: item.nombre_persona 
                 }));
             }
         } catch (error) {
@@ -2674,11 +2707,41 @@ function toggleEditMode(isEditMode) {
         // Campos siempre de solo lectura
         if (['edit-solicitante', 'edit-dni-solicitante', 'edit-departamento', 'edit-cargo', 'edit-fecha-solicitud', 'edit-nombre-proyecto', 'edit-monto-total'].includes(input.id)) {
             input.readOnly = true;
-        } 
-        // Campos de detalles_gastos y detalles_viajes
-        else if (input.name.includes('edit-detalles_gastos') || input.name.includes('edit-detalles_viajes')) {
-            // Por defecto, todos en readonly
+        }
+
+        if(input.name.includes('edit-codigo-scc') || input.name.includes('edit-codigo-sscc') || input.name.includes('edit-motivo-anticipo')){
+
+            input.disabled = true;
             input.readOnly = true;
+
+            if (isEditMode && isEditable) {
+                input.disabled = false;
+                input.readOnly = false;
+            }
+        }
+
+        if(input.name.includes('edit-fecha-ejecucion') || input.name.includes('edit-fecha-finalizacion')){
+
+            input.disabled = true;
+ 
+            if (isEditMode && isEditable) {
+                input.disabled = false;
+            }
+        }
+
+        if(input.name.includes('edit-detalles_gastos')){
+            input.readOnly = true;
+            input.disabled = true;
+            if (isEditMode && isEditable) {
+                input.readOnly = false;
+                input.disabled = false;
+            }
+        }
+
+        // Campos de detalles_gastos y detalles_viajes
+        else if (input.name.includes('edit-detalles_viajes')) {
+            // Por defecto, todos en readonly
+            input.readOnly = true; //Considerar que en este apartado, cuando se intenta editar un valor de "Compras menores, no se está permitiendo" 
 
             if (isEditMode && isEditable) {
                 // Persona 1 (índice 0) puede editar todo
@@ -3141,8 +3204,11 @@ if(btnAbonarAnticipo){
         let sscc = document.getElementById("edit-codigo-sscc").value;
         let nombreProyecto = document.getElementById("edit-nombre-proyecto").value;
         let motivoAnticipo = document.getElementById("edit-motivo-anticipo").value;
+        let fechaFin = document.getElementById("edit-fecha-finalizacion").value;
         let montoTotal = document.getElementById("edit-monto-total").value;
         
+        console.log(fechaFin);
+
         e.preventDefault();
         showAlert({
             title: 'Confirmación',
@@ -3166,6 +3232,7 @@ if(btnAbonarAnticipo){
             formData.append("sscc", sscc);
             formData.append("nombreProyecto", nombreProyecto);
             formData.append("motivoAnticipo", motivoAnticipo);
+            formData.append("fechaFin", fechaFin);
             formData.append("montoTotal", montoTotal);
 
             // Mostrar el modal de carga
@@ -3179,6 +3246,9 @@ if(btnAbonarAnticipo){
                 });
 
                 const result = await response.json();
+                
+                console.log(result);
+
                 if (result.success) {
                     showAlert({
                         title: 'Completado',

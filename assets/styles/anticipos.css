@@ -724,6 +724,22 @@ label {
     box-shadow: rgba(29, 116, 216, 0.4) 0px 0px 0px 2px, rgba(29, 116, 216, 0.4) 0px 4px 6px -1px, rgba(29, 116, 216, 0.4) 0px 1px 0px inset;
 }
 
+.btn-aprobar-anticipo-gerencia{
+    width: fit-content;
+    background-color: #092957;
+    color: #fff;
+    padding: .5rem 1rem;
+    transition: all ease-in-out .4s;
+    border-radius: .4rem;
+    font-size: .98rem;
+    cursor: pointer;
+}
+
+.btn-aprobar-anticipo-gerencia:hover{
+    background-color: #042453;
+    box-shadow: rgba(29, 116, 216, 0.4) 0px 0px 0px 2px, rgba(29, 116, 216, 0.4) 0px 4px 6px -1px, rgba(29, 116, 216, 0.4) 0px 1px 0px inset;
+}
+
 #container-cambio-estado{
     display: flex;
     gap: .8rem;

@@ -1,3 +1,6 @@
+29082025
+Se resuelven las anotaciones anteiores. Se trabaja hasta lo especificado según la anotación 8. Pendiente funcionalidad de mostrar botón según estado "Ya se muestra por rol" y funcionalidad de registro en historial
+
 26082025
 Se resuelven las anotaciones anteriores. Se trabaja en las nuevas observaciones identificadas el 25/08/2025. Se ha empezado por crear dos nuevos campos de fecha y se han adptado las funcionalidades para que el usuario pueda ingresar la fecha desde dodne inicia su solicitud de anticpo y para cuando finaliza. Por ende, la lógica de fcha máxima de rendición se estaría tomando tres días hábiles de forma automática para la rendición correspondiente. Posterior a ello, se debería de configurar un cronjob en el servidor y un script que se ejecute todos los días a una hora definida y revise en la base de datos si existe una rendición cuya fecha límite sea al día siguiente para poder notificar.
 
