@@ -1076,6 +1076,14 @@ label {
     margin: 0 auto 10px;
 }
 
+.container-doc-autorizacion{
+    display: flex;
+    flex: 1;
+    justify-content: flex-end;
+    gap: .4rem;
+    width: max-content;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -1249,5 +1257,11 @@ label {
     .compras-menores-container .modal-element textarea {
         width: 100%;
         box-sizing: border-box; /* para que respete padding/border */
+    }
+
+    .container-doc-autorizacion{
+        flex: none;
+        gap: .8rem;
+        flex-flow: column;
     }
 }

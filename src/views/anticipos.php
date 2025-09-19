@@ -376,20 +376,20 @@ unset($_SESSION['success'], $_SESSION['error']);
                             <div id="container-cambio-estado">
                                 <?php if($_SESSION['rol']==2): ?>
                                     <div class="btn-aprobar-anticipo" title="Se brinda autorización para el anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                        Autorizado
+                                        Autorizar
                                     </div>
                                 <?php endif;?>
                                 <?php if($_SESSION['rol']==2 && $_SESSION['aprob_gerencia']==1): ?>
                                     <div class="btn-aprobar-anticipo-gerencia" title="Se brinda autorización de gerencia para el anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                        Autorizado G.
+                                        Autorizar Grte.
                                     </div>
                                 <?php endif; ?>
                                 <?php if($_SESSION['rol']==5): ?>
                                     <div class="btn-aprobar-totalmente" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                        Autorizado Totalmente
+                                        Autorizar Totalmente
                                     </div>
                                     <div class="btn-observar-anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                        Observado
+                                        Observar
                                     </div>
                                     <div class="btn-abonar-anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
                                         Abonado
@@ -398,15 +398,17 @@ unset($_SESSION['success'], $_SESSION['error']);
                             </div>
                             <hr>
                             <div id="container-descarga"></div>
-                            <?php if($_SESSION['rol']==3):?>
-                                <div id="get-doc-autorizacion" title="Descargar el documento de autorización para proceder con el anticipo" class="btn btn-default">Doc. Autorización</div>
-                            <?php endif; ?>
-                            <div id="container-archivo-autorizacion">
-                                <div class="btn btn-aniadir-autorizacion" title="Adjuntar autorización firmada y completa">
-                                    Adjuntar <i class="fa-solid fa-file-circle-plus"></i>
+                            <div class="container-doc-autorizacion">
+                                <?php if($_SESSION['rol']==3 || $_SESSION['rol']==2):?>
+                                    <div id="get-doc-autorizacion" title="Descargar el documento de autorización para proceder con el anticipo" class="btn btn-default">Doc. Autorización</div>
+                                <?php endif; ?>
+                                <div id="container-archivo-autorizacion">
+                                    <div class="btn btn-aniadir-autorizacion" title="Adjuntar autorización firmada y completa">
+                                        Adjuntar <i class="fa-solid fa-file-circle-plus"></i>
+                                    </div>
+                                    <input type="file" id="edit-archivo-autorizacion" name="edit-archivo-autorizacion" style="display: none;" accept=".pdf,.doc,.docx,.jpg,.png">
+                                    <a href="#" id="edit-enlace-archivo"><p></p><i class="fa-solid fa-file-arrow-down"></i></a>
                                 </div>
-                                <input type="file" id="edit-archivo-autorizacion" name="edit-archivo-autorizacion" style="display: none;" accept=".pdf,.doc,.docx,.jpg,.png">
-                                <a href="#" id="edit-enlace-archivo"><p></p><i class="fa-solid fa-file-arrow-down"></i></a>
                             </div>
                         </div>
                     </div>
