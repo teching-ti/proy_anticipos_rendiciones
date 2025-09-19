@@ -1176,6 +1176,85 @@ class RendicionesController {
         return $fileName;
     }
 
+    public function getRendicionCompleta() {
+        if (isset($_GET['rendicion_id'])) {
+            $id_rendicion = (int)$_GET['rendicion_id'];
 
-    /* Aquí termina la nueva integración para poder registrar los comprobantes de rendiciones  */ 
+            // Detalles de la rendición
+            $rendicionQuery = "
+            SELECT r.*, a.monto_total_solicitado AS monto_solicitado, a.solicitante AS responsable, a.departamento_nombre AS departamento, a.codigo_sscc AS sscc
+            FROM tb_rendiciones r
+            JOIN tb_anticipos a ON a.id = r.id_anticipo
+            WHERE r.id = :id_rendicion";
+            $rendicionStmt = $this->db->prepare($rendicionQuery);
+            $rendicionStmt->bindParam(':id_rendicion', $id_rendicion, PDO::PARAM_INT);
+            $rendicionStmt->execute();
+            $rendicionData = $rendicionStmt->fetch(PDO::FETCH_ASSOC);
+
+            // Detalles de viajes
+            $viajesQuery = "
+                SELECT dv.id AS detalle_id, dv.id_viaje_persona, dv.id_concepto, dv.dias, dv.monto, dv.moneda,
+                    ct.nombre AS nombre_concepto, vp.doc_identidad, vp.nombre_persona,
+                    cv.id AS comprobante_id, cv.tipo_comprobante, cv.ruc_emisor, cv.serie_numero,
+                    cv.doc_receptor, cv.fecha_emision, cv.importe_total, cv.nombre_archivo, cv.archivo
+                FROM tb_rendiciones r
+                JOIN tb_anticipos a ON a.id = r.id_anticipo
+                JOIN tb_viajes_personas vp ON vp.id_anticipo = a.id
+                JOIN tb_detalles_viajes dv ON dv.id_viaje_persona = vp.id
+                LEFT JOIN tb_categorias_tarifario ct ON ct.id = dv.id_concepto
+                LEFT JOIN tb_comprobantes_viaticos cv ON cv.id_detalle = dv.id
+                WHERE r.id = :id_rendicion";
+            $viajesStmt = $this->db->prepare($viajesQuery);
+            $viajesStmt->bindParam(':id_rendicion', $id_rendicion, PDO::PARAM_INT);
+            $viajesStmt->execute();
+            $viajesData = $viajesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Detalles de compras menores
+            $comprasQuery = "
+                SELECT dcm.id AS detalle_id, dcm.descripcion, dcm.motivo, dcm.moneda, dcm.importe,
+                    cc.id AS comprobante_id, cc.tipo_comprobante, cc.ruc_emisor, cc.serie_numero,
+                    cc.doc_receptor, cc.fecha_emision, cc.importe_total, cc.nombre_archivo, cc.archivo
+                FROM tb_rendiciones r
+                JOIN tb_anticipos a ON a.id = r.id_anticipo
+                JOIN tb_detalles_compras_menores dcm ON dcm.id_anticipo = a.id
+                LEFT JOIN tb_comprobantes_compras cc ON cc.id_detalle = dcm.id
+                WHERE r.id = :id_rendicion AND dcm.valido = 1";
+            $comprasStmt = $this->db->prepare($comprasQuery);
+            $comprasStmt->bindParam(':id_rendicion', $id_rendicion, PDO::PARAM_INT);
+            $comprasStmt->execute();
+            $comprasData = $comprasStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Detalles de transporte provincial
+            $transportesQuery = "
+                SELECT tp.id AS detalle_id, tp.id_viaje_persona, tp.tipo_transporte, tp.ciudad_origen, tp.ciudad_destino,
+                    tp.fecha, tp.monto, tp.moneda, vp.doc_identidad, vp.nombre_persona,
+                    ct.id AS comprobante_id, ct.tipo_comprobante, ct.ruc_emisor, ct.serie_numero,
+                    ct.doc_receptor, ct.fecha_emision, ct.importe_total, ct.nombre_archivo, ct.archivo
+                FROM tb_rendiciones r
+                JOIN tb_anticipos a ON a.id = r.id_anticipo
+                JOIN tb_viajes_personas vp ON vp.id_anticipo = a.id
+                JOIN tb_transporte_provincial tp ON tp.id_viaje_persona = vp.id
+                LEFT JOIN tb_comprobantes_transportes ct ON ct.id_detalle = tp.id
+                WHERE r.id = :id_rendicion AND tp.valido = 1";
+            $transportesStmt = $this->db->prepare($transportesQuery);
+            $transportesStmt->bindParam(':id_rendicion', $id_rendicion, PDO::PARAM_INT);
+            $transportesStmt->execute();
+            $transportesData = $transportesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'rendicion' => $rendicionData,
+                    'viajes' => $viajesData,
+                    'compras' => $comprasData,
+                    'transportes' => $transportesData
+                ]
+            ]);
+            exit;
+        }
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'ID de rendición no proporcionado']);
+        exit;
+    }
 }

@@ -191,6 +191,10 @@
     outline: solid 2px rgb(47, 54, 64,1);
 }
 
+.open-list{
+    width: 134px;
+}
+
 .help-panel{
     display: flex;
     align-items: center;
@@ -341,11 +345,17 @@
     padding: 2px 16px;
 }
 
+.btns-cambio-estado{
+    display: flex;
+    gap: .8rem;
+}
+
 .modal-footer {
     display: flex;
     gap: .6rem;
     padding: 8px 16px;
     color: white;
+    justify-content: space-between;
 }
 
 .form-control-icon{
@@ -511,6 +521,16 @@
     height: 30px;
     animation: spin 1s linear infinite;
     margin: 0 auto 10px;
+}
+
+#container-descarga{
+    display: flex;
+    height: fit-content;
+}
+
+.btn-descargar-rendicion{
+    background-color: green;
+    color: #fff;
 }
 
 @keyframes spin {

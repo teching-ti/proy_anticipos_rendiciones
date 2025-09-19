@@ -167,7 +167,8 @@ function openComprobanteModal(item, idRendicion, latestEstado) {
                     <option value="boleta" ${comprobante ? (comprobante.tipo_comprobante === 'boleta' ? 'selected' : '') : ''}>Boleta</option>
                     <option value="factura" ${comprobante ? (comprobante.tipo_comprobante === 'factura' ? 'selected' : '') : ''}>Factura</option>
                     <option value="sin comprobante" ${comprobante ? (comprobante.tipo_comprobante === 'sin comprobante' ? 'selected' : '') : ''}>Sin Comprobante</option>
-                    <option value="dc movilidad" ${comprobante ? (comprobante.tipo_comprobante === 'dc movilidad' ? 'selected' : '') : ''}>Declaración jurada de movilidad</option>
+                    <option value="dc movilidad" ${comprobante ? (comprobante.tipo_comprobante === 'dec. jurada movilidad' ? 'selected' : '') : ''}>Declaración jurada de movilidad</option>
+                    <option value="bol aereo" ${comprobante ? (comprobante.tipo_comprobante === 'boleto aereo' ? 'selected' : '') : ''}>Boleto aéreo</option>
                 </select>
             </div>
             <div class="form-group">
@@ -251,7 +252,7 @@ function openComprobanteModal(item, idRendicion, latestEstado) {
                 archivo: file ? file : (comprobante?.archivo || null)
             };
 
-            console.log(newComprobante);
+            //console.log(newComprobante);
             
             if (comprobante) {
                 // Editar existente
@@ -273,6 +274,7 @@ function openComprobanteModal(item, idRendicion, latestEstado) {
         uniqueComprobantes.forEach(comprobante => {
             const li = document.createElement('li');
             const fileLink = comprobante.archivo ? `<a href="http://127.0.0.1/proy_anticipos_rendiciones/uploads/${comprobante.archivo}" target="_blank" style="margin-left: 10px; color: #007bff; text-decoration: underline;">Ver Documento</a>` : '';
+            //console.log(comprobante);
             const displayText = `Elemento ${uniqueComprobantes.indexOf(comprobante) + 1} - ${comprobante.tipo_comprobante} - S/ ${parseFloat(comprobante.importe_total).toFixed(2)}`;
             li.innerHTML = `${displayText} ${fileLink}`;
             li.dataset.id = comprobante.id;
@@ -936,7 +938,7 @@ function updateComprobante(id, comprobante) {
 
 
 
-    /*********************************************************************here */
+    /********************************************************************* */
     /********************************Desde aquí inicia todo lo correspondiente al completado de una rendicion*/
     const completarRendicionModal = document.getElementById("completarRendicionModal");
     const completarRendicionTitle = document.getElementById("rendicion-modal-title");
@@ -961,157 +963,374 @@ function updateComprobante(id, comprobante) {
     detallesContainer.style.display = 'flex';
 
     async function showRendicionDetails(data) {
-    currentStep = 0;
-    showStep(0);
-    detallesContainer.innerHTML = '';
-    completarRendicionTitle.textContent = `Rendición #${data.id}`;
-    completarRendicionModal.style.display = "block";
-    
-    idRendicionResponsableModal.value = `${data.id}`;
-    idAnticipoResponsableModal.value = `${data.id_anticipo}`;
-    codigoSsccResponsableModal.value = `${data.codigo_sscc}`;
-    codigoSccResponsableModal.value = `${data.scc_codigo}`;
-    nombreProyectoResponsableModal.value = `${data.nombre_proyecto}`;
-    rendicionResponsable.value = `${data.solicitante_nombres}`;
-    dniResponsable.value = `${data.dni_solicitante}`;
-    motivoAnticipoResponsableModal.value = `${data.motivo_anticipo}`;
-    departamentoResponsable.setAttribute("data-departamento", `${data.departamento}`);
-    departamentoResponsable.value = `${data.departamento_nombre}`;
-    cargoResponsable.value = `${data.cargo}`;
+        currentStep = 0;
+        showStep(0);
+        detallesContainer.innerHTML = '';
+        completarRendicionTitle.textContent = `Rendición #${data.id}`;
+        completarRendicionModal.style.display = "block";
+        
+        idRendicionResponsableModal.value = `${data.id}`;
+        idAnticipoResponsableModal.value = `${data.id_anticipo}`;
+        codigoSsccResponsableModal.value = `${data.codigo_sscc}`;
+        codigoSccResponsableModal.value = `${data.scc_codigo}`;
+        nombreProyectoResponsableModal.value = `${data.nombre_proyecto}`;
+        rendicionResponsable.value = `${data.solicitante_nombres}`;
+        dniResponsable.value = `${data.dni_solicitante}`;
+        motivoAnticipoResponsableModal.value = `${data.motivo_anticipo}`;
+        departamentoResponsable.setAttribute("data-departamento", `${data.departamento}`);
+        departamentoResponsable.value = `${data.departamento_nombre}`;
+        cargoResponsable.value = `${data.cargo}`;
 
-    // Consultar el estado más reciente
-    const resEstado = await fetch(`rendiciones/getLatestEstadoRendicion?id_rendicion=${encodeURIComponent(data.id)}`);
-    const estadoData = await resEstado.json();
-    const latestEstado = estadoData.estado || 'Nuevo';
+        // Consultar el estado más reciente
+        const resEstado = await fetch(`rendiciones/getLatestEstadoRendicion?id_rendicion=${encodeURIComponent(data.id)}`);
+        const estadoData = await resEstado.json();
+        const latestEstado = estadoData.estado || 'Nuevo';
 
-    // Obtener todos los detalles y montos
-    try {
-        const [detallesCompras, detallesViajes, detallesTransportes, montoSolicitado, montoRendido] = await Promise.all([
-            fetch(`rendiciones/getDetallesComprasMenores?id_anticipo=${encodeURIComponent(data.id_anticipo)}`).then(res => res.json()),
-            fetch(`rendiciones/getDetallesViajes?id_anticipo=${encodeURIComponent(data.id_anticipo)}`).then(res => res.json()),
-            fetch(`rendiciones/getDetallesTransportes?id_anticipo=${encodeURIComponent(data.id_anticipo)}`).then(res => res.json()),
-            fetch(`rendiciones/getMontoSolicitadoByAnticipo?id_anticipo=${encodeURIComponent(data.id_anticipo)}`).then(res => res.json()),
-            fetch(`rendiciones/getMontoTotalRendidoByRendicion?id_rendicion=${encodeURIComponent(data.id)}`).then(res => res.json())
-        ]);
+        // Obtener todos los detalles y montos
+        try {
+            const [detallesCompras, detallesViajes, detallesTransportes, montoSolicitado, montoRendido] = await Promise.all([
+                fetch(`rendiciones/getDetallesComprasMenores?id_anticipo=${encodeURIComponent(data.id_anticipo)}`).then(res => res.json()),
+                fetch(`rendiciones/getDetallesViajes?id_anticipo=${encodeURIComponent(data.id_anticipo)}`).then(res => res.json()),
+                fetch(`rendiciones/getDetallesTransportes?id_anticipo=${encodeURIComponent(data.id_anticipo)}`).then(res => res.json()),
+                fetch(`rendiciones/getMontoSolicitadoByAnticipo?id_anticipo=${encodeURIComponent(data.id_anticipo)}`).then(res => res.json()),
+                fetch(`rendiciones/getMontoTotalRendidoByRendicion?id_rendicion=${encodeURIComponent(data.id)}`).then(res => res.json())
+            ]);
 
-        // Controlar visibilidad del botón "Aprobar"
-        const btnAprobar = document.getElementById('btn-aprobar-rendicion');
-        if (btnAprobar) {
-            const isEditable = ['Completado', 'Observado'].includes(latestEstado);
-            btnAprobar.style.display = isEditable ? 'inline-block' : 'none';
-            btnAprobar.style.opacity = isEditable ? '1' : '0';
-            btnAprobar.onclick = isEditable ? () => handleAprobarRendicion(data.id) : null;
+            // Controlar visibilidad del botón "Aprobar"
+            const btnAprobar = document.getElementById('btn-aprobar-rendicion');
+            if (btnAprobar) {
+                const isEditable = ['Completado', 'Observado'].includes(latestEstado);
+                btnAprobar.style.display = isEditable ? 'inline-block' : 'none';
+                btnAprobar.style.opacity = isEditable ? '1' : '0';
+                btnAprobar.onclick = isEditable ? () => handleAprobarRendicion(data.id) : null;
+            }
+
+            // Botones "Observar" y "Cerrar"
+            const btnObservar = document.getElementById("btn-observar-rendicion");
+            const btnCerrar = document.getElementById("btn-cerrar-rendicion");
+            if (btnObservar && btnCerrar) {
+                const isEditable = ['Autorizado'].includes(latestEstado);
+                btnObservar.style.display = isEditable ? 'block' : 'none';
+                btnObservar.style.opacity = isEditable ? '1' : '0';
+                btnCerrar.style.display = isEditable ? 'block' : 'none';
+                btnCerrar.style.opacity = isEditable ? '1' : '0';
+                btnObservar.onclick = isEditable ? () => handleObservarRendicion(data.id) : null;
+                btnCerrar.onclick = isEditable ? () => handleCerrarRendicion(data.id) : null;
+            }
+
+            // Botones "corregir"
+            const btnCorregir = document.getElementById("btn-corregir-rendicion");
+            if (btnCorregir) {
+                const isEditable = ['Observado'].includes(latestEstado);
+                //console.log(isEditable);
+                btnCorregir.style.display = isEditable ? 'block' : 'none';
+                btnCorregir.style.opacity = isEditable ? '1' : '0';
+                btnCorregir.onclick = isEditable ? () => handleCorregirRendicion(data.id) : null;
+            }
+
+            // Botones "completar"
+            const btnCompletado = document.getElementById("btn-completar-rendicion");
+            if (btnCompletado){
+                const isEditable = ['Nuevo'].includes(latestEstado);
+                btnCompletado.style.display = isEditable ? 'inline-block' : 'none';
+                btnCompletado.style.opacity = isEditable ? '1' : '0';
+                btnCompletado.onclick = isEditable ? () => handleCompletarRendicion(data.id) : null;
+            }
+
+            // Renderizar detalles
+            const allDetalles = [
+                ...detallesCompras.map(item => ({ ...item, type: 'compra' })),
+                ...detallesViajes.map(item => ({ ...item, type: 'viatico' })),
+                ...detallesTransportes.map(item => ({ ...item, type: 'transporte' }))
+            ];
+
+            //console.log(allDetalles);
+
+            // Obtener montos rendidos por detalle desde comprobantes
+            const rendidosPromises = allDetalles.map(async (item) => {
+                const res = await fetch(`rendiciones/getMontoTotalRendidoByDetalle?id_rendicion=${data.id}&id_detalle=${item.id}&tipo=${item.type}`);
+                const result = await res.json(); // Cambiar 'data' por 'result'
+
+                let montoToRender = 0;
+                if(result.success){
+                    // console.log(result.monto_total)
+                    montoToRender = result.monto_total;
+                }
+
+                return { id: item.id, monto_rendido: montoToRender };
+            });
+            const rendidosData = await Promise.all(rendidosPromises);
+            const rendidosMap = new Map(rendidosData.map(d => [d.id.toString(), d.monto_rendido]));
+            //console.log(rendidosData);
+            //console.log(rendidosMap);
+
+            updatePanelMontosRendicion(montoSolicitado, montoRendido.monto_total);// here aqui
+
+            if (allDetalles.length > 0) {
+                if (detallesCompras.length > 0) {
+                    const comprasSection = document.createElement('div');
+                    comprasSection.innerHTML = `
+                        <h3>Compras Menores</h3>
+                        <hr>
+                        `;
+                    detallesContainer.appendChild(comprasSection);
+                    allDetalles.filter(item => item.type === 'compra').forEach(item => {
+                        const montoRendido = rendidosMap.get(item.id.toString()) || 0;
+                        renderItem(item, { monto_rendido: montoRendido }, detallesContainer, data.id, latestEstado);
+                    });
+                }
+                if (detallesViajes.length > 0) {
+                    const viaticosSection = document.createElement('div');
+                    viaticosSection.innerHTML = `
+                        <h3>Viáticos</h3>
+                        <hr>
+                        `;
+                    detallesContainer.appendChild(viaticosSection);
+                    allDetalles.filter(item => item.type === 'viatico').forEach(item => {
+                        const montoRendido = rendidosMap.get(item.id.toString()) || 0;
+                        renderItem(item, { monto_rendido: montoRendido }, detallesContainer, data.id, latestEstado);
+                    });
+                }
+                if (detallesTransportes.length > 0) {
+                    const transportesSection = document.createElement('div');
+                    transportesSection.innerHTML = `
+                        <h3>Transportes Provinciales</h3>
+                        <hr>
+                        `;
+                    detallesContainer.appendChild(transportesSection);
+                    allDetalles.filter(item => item.type === 'transporte').forEach(item => {
+                        const montoRendido = rendidosMap.get(item.id.toString()) || 0;
+                        renderItem(item, { monto_rendido: montoRendido }, detallesContainer, data.id, latestEstado);
+                    });
+                }
+                /*const rol = document.getElementById("user-first-info").getAttribute("data-info");
+                if(rol==2 || rol==3){
+                    console.log(" ");
+                }else{
+                    //aqui
+                    document.querySelectorAll(".compras-elementos-dos").forEach((e)=>{
+                        e.style.display = "none";
+                    })
+                }*/
+            } else {
+                detallesContainer.innerHTML = '<p>No hay detalles válidos.</p>';
+            }
+        } catch (error) {
+            console.error('Error en Promise.all:', error);
+            showAlert({
+                title: 'Error',
+                message: 'Error al cargar los detalles de la rendición.',
+                type: 'error'
+            });
+            detallesContainer.innerHTML = '<p>No se pudieron cargar los detalles.</p>';
         }
 
-        // Botones "Observar" y "Cerrar"
-        const btnObservar = document.getElementById("btn-observar-rendicion");
-        const btnCerrar = document.getElementById("btn-cerrar-rendicion");
-        if (btnObservar && btnCerrar) {
-            const isEditable = ['Autorizado'].includes(latestEstado);
-            btnObservar.style.display = isEditable ? 'block' : 'none';
-            btnObservar.style.opacity = isEditable ? '1' : '0';
-            btnCerrar.style.display = isEditable ? 'block' : 'none';
-            btnCerrar.style.opacity = isEditable ? '1' : '0';
-            btnObservar.onclick = isEditable ? () => handleObservarRendicion(data.id) : null;
-            btnCerrar.onclick = isEditable ? () => handleCerrarRendicion(data.id) : null;
+        const containerDescarga = document.getElementById('container-descarga');
+        //console.log(containerDescarga);
+        if (containerDescarga) {
+            containerDescarga.innerHTML = `
+                <button type="button" class="btn btn-descargar-rendicion descargar-rendicion" data-id="${data.id}" data-user="${data.solicitante_nombres.replace(/ /g, '_')}" title="Descargar detalles de rendición.">
+                    Detalles <i class="fa-solid fa-download"></i>
+                </button>
+            `;
         }
 
-        // Botones "corregir"
-        const btnCorregir = document.getElementById("btn-corregir-rendicion");
-        if (btnCorregir) {
-            const isEditable = ['Observado'].includes(latestEstado);
-            //console.log(isEditable);
-            btnCorregir.style.display = isEditable ? 'block' : 'none';
-            btnCorregir.style.opacity = isEditable ? '1' : '0';
-            btnCorregir.onclick = isEditable ? () => handleCorregirRendicion(data.id) : null;
-        }
+        // Manejar el evento de descarga
+        document.querySelector('.descargar-rendicion')?.addEventListener('click', async () => {
+            if (!window.XLSX) {
+                console.error('No se pudo descargar el documento Excel.');
+                return;
+            }
 
-        // Botones "completar"
-        const btnCompletado = document.getElementById("btn-completar-rendicion");
-        if (btnCompletado){
-            const isEditable = ['Nuevo'].includes(latestEstado);
-            btnCompletado.style.display = isEditable ? 'inline-block' : 'none';
-            btnCompletado.style.opacity = isEditable ? '1' : '0';
-            btnCompletado.onclick = isEditable ? () => handleCompletarRendicion(data.id) : null;
-        }
+            const rendicionId = data.id;
+            const userName = data.solicitante_nombres.replace(/ /g, '_');
+            const now = new Date();
+            const dateStr = `${now.getDate().toString().padStart(2, '0')}${String(now.getMonth() + 1).padStart(2, '0')}${now.getFullYear()}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+            const fileName = `${rendicionId}-${userName}-${dateStr}.xlsx`;
+            const baseUrl = 'http://localhost/proy_anticipos_rendiciones/uploads/';
 
-        // Renderizar detalles
-        const allDetalles = [
-            ...detallesCompras.map(item => ({ ...item, type: 'compra' })),
-            ...detallesViajes.map(item => ({ ...item, type: 'viatico' })),
-            ...detallesTransportes.map(item => ({ ...item, type: 'transporte' }))
-        ];
+            let rendicionData = [], viajesData = [], comprasData = [], transportesData = [];
+            try {
+                const response = await fetch(`rendiciones/getRendicionCompleta?rendicion_id=${rendicionId}`);
+                const result = await response.json();
+                if (result.success) {
+                    // Hoja 1: Rendición Detalles
+                    if (result.data.rendicion) {
+                        rendicionData = [{
+                            id_Rendicion: result.data.rendicion.id,
+                            id_Anticipo: result.data.rendicion.id_anticipo,
+                            id_Usuario: result.data.rendicion.id_usuario,
+                            Fecha_Rendicion: result.data.rendicion.fecha_rendicion,
+                            id_Cat_Documento: result.data.rendicion.id_cat_documento,
+                            Monto_Solicitado: parseFloat(result.data.rendicion.monto_solicitado).toFixed(2) || 0,
+                            Monto_Rendido: parseFloat(result.data.rendicion.monto_rendido).toFixed(2) || 0,
+                            Responsable: result.data.rendicion.responsable,
+                            Departamento: result.data.rendicion.departamento,
+                            Sscc: result.data.rendicion.sscc
+                        }];
+                    }
 
-        // Obtener montos rendidos por detalle desde comprobantes
-        const rendidosPromises = allDetalles.map(async (item) => {
-            const res = await fetch(`rendiciones/getMontoTotalRendidoByDetalle?id_rendicion=${data.id}&id_detalle=${item.id}&tipo=${item.type}`);
-            const result = await res.json(); // Cambiar 'data' por 'result'
-            return { id: item.id, monto_rendido: result.success ? result.monto_total : 0 };
+                    // Hoja 2: Detalles de Viajes
+                    if (Array.isArray(result.data.viajes)) {
+                        viajesData = result.data.viajes.map(item => {
+                            const baseData = {
+                                Detalle_ID: item.detalle_id,
+                                id_Viaje_Persona: item.id_viaje_persona,
+                                Nombre_Concepto: item.nombre_concepto || '',
+                                Dias: parseInt(item.dias) || 0,
+                                Monto_Viaje: parseFloat(item.monto) || 0, // Forzar numérico
+                                Moneda: item.moneda || '',
+                                Doc_Identidad: item.doc_identidad || '',
+                                Nombre_Persona: item.nombre_persona || ''
+                            };
+                            const archivoUrl = item.nombre_archivo ? `${baseUrl}${item.archivo || ''}` : '';
+                            if (item.comprobante_id) {
+                                return {
+                                    ...baseData,
+                                    Tipo_Comprobante: item.tipo_comprobante || '',
+                                    RUC_Emisor: item.ruc_emisor || '',
+                                    Serie_Numero: item.serie_numero || '',
+                                    Doc_Receptor: item.doc_receptor || '',
+                                    Fecha_Emision: item.fecha_emision || '',
+                                    Importe_Total: parseFloat(item.importe_total) || 0, // Forzar numérico
+                                    Nombre_Archivo: item.nombre_archivo || '',
+                                    Archivo_URL: archivoUrl
+                                };
+                            }
+                            return {
+                                ...baseData,
+                                Nombre_Archivo: item.nombre_archivo || '',
+                                Archivo_URL: archivoUrl
+                            };
+                        });
+                    }
+
+                    // Hoja 3: Comprobantes Compras
+                    if (Array.isArray(result.data.compras)) {
+                        comprasData = result.data.compras.map(item => {
+                            const baseData = {
+                                Detalle_ID: item.detalle_id,
+                                Descripcion: item.descripcion || '',
+                                Motivo: item.motivo || '',
+                                Moneda: item.moneda || '',
+                                Importe: parseFloat(item.importe) || 0 // Forzar numérico
+                            };
+                            const archivoUrl = item.nombre_archivo ? `${baseUrl}${item.archivo || ''}` : '';
+                            if (item.comprobante_id) {
+                                return {
+                                    ...baseData,
+                                    Tipo_Comprobante: item.tipo_comprobante || '',
+                                    RUC_Emisor: item.ruc_emisor || '',
+                                    Serie_Numero: item.serie_numero || '',
+                                    Doc_Receptor: item.doc_receptor || '',
+                                    Fecha_Emision: item.fecha_emision || '',
+                                    Importe_Total: parseFloat(item.importe_total) || 0, // Forzar numérico
+                                    Nombre_Archivo: item.nombre_archivo || '',
+                                    Archivo_URL: archivoUrl
+                                };
+                            }
+                            return {
+                                ...baseData,
+                                Nombre_Archivo: item.nombre_archivo || '',
+                                Archivo_URL: archivoUrl
+                            };
+                        });
+                    }
+
+                    // Hoja 4: Comprobantes Transportes
+                    if (Array.isArray(result.data.transportes)) {
+                        transportesData = result.data.transportes.map(item => {
+                            const baseData = {
+                                Detalle_ID: item.detalle_id,
+                                id_Viaje_Persona: item.id_viaje_persona,
+                                Tipo_Transporte: item.tipo_transporte || '',
+                                Ciudad_Origen: item.ciudad_origen || '',
+                                Ciudad_Destino: item.ciudad_destino || '',
+                                Fecha: item.fecha || '',
+                                Monto: parseFloat(item.monto) || 0, // Forzar numérico
+                                Moneda: item.moneda || '',
+                                Doc_Identidad: item.doc_identidad || '',
+                                Nombre_Persona: item.nombre_persona || ''
+                            };
+                            const archivoUrl = item.nombre_archivo ? `${baseUrl}${item.archivo || ''}` : '';
+                            if (item.comprobante_id) {
+                                return {
+                                    ...baseData,
+                                    Tipo_Comprobante: item.tipo_comprobante || '',
+                                    RUC_Emisor: item.ruc_emisor || '',
+                                    Serie_Numero: item.serie_numero || '',
+                                    Doc_Receptor: item.doc_receptor || '',
+                                    Fecha_Emision: item.fecha_emision || '',
+                                    Importe_Total: parseFloat(item.importe_total) || 0, // Forzar numérico
+                                    Nombre_Archivo: item.nombre_archivo || '',
+                                    Archivo_URL: archivoUrl
+                                };
+                            }
+                            return {
+                                ...baseData,
+                                Nombre_Archivo: item.nombre_archivo || '',
+                                Archivo_URL: archivoUrl
+                            };
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('Warning: Some data could not be loaded. The file may be incomplete.');
+            }
+
+            // Generate Excel using SheetJS
+            const { utils, writeFile } = window.XLSX;
+            const wb = utils.book_new();
+
+            // Sheet 1: Rendición Detalles
+            if (rendicionData.length > 0) {
+                const rendicionWs = utils.json_to_sheet(rendicionData, { header: ['id_Rendicion', 'id_Anticipo', 'id_Usuario', 'Fecha_Rendicion', 'id_Cat_Documento', 'Monto_Solicitado', 'Monto_Rendido', 'Responsable', 'Departamento', 'Sscc'] });
+                utils.book_append_sheet(wb, rendicionWs, 'Rendición Detalles');
+            }
+
+            // Sheet 2: Detalles de Viajes
+            if (viajesData.length > 0) {
+                const viajesWs = utils.json_to_sheet(viajesData, { 
+                    header: [
+                        'Detalle_ID', 'id_Viaje_Persona', 'Nombre_Concepto', 'Dias', 'Monto_Viaje', 
+                        'Moneda', 'Doc_Identidad', 'Nombre_Persona', 'Tipo_Comprobante', 
+                        'RUC_Emisor', 'Serie_Numero', 'Doc_Receptor', 'Fecha_Emision', 
+                        'Importe_Total', 'Nombre_Archivo', 'Archivo_URL'
+                    ]
+                });
+                utils.book_append_sheet(wb, viajesWs, 'Detalles de Viajes');
+            }
+
+            // Sheet 3: Comprobantes Compras
+            if (comprasData.length > 0) {
+                const comprasWs = utils.json_to_sheet(comprasData, { 
+                    header: [
+                        'Detalle_ID', 'Descripcion', 'Motivo', 'Moneda', 'Importe', 
+                        'Tipo_Comprobante', 'RUC_Emisor', 'Serie_Numero', 'Doc_Receptor', 
+                        'Fecha_Emision', 'Importe_Total', 'Nombre_Archivo', 'Archivo_URL'
+                    ]
+                });
+                utils.book_append_sheet(wb, comprasWs, 'Comprobantes Compras');
+            }
+
+            // Sheet 4: Comprobantes Transportes
+            if (transportesData.length > 0) {
+                const transportesWs = utils.json_to_sheet(transportesData, { 
+                    header: [
+                        'Detalle_ID', 'id_Viaje_Persona', 'Tipo_Transporte', 'Ciudad_Origen', 
+                        'Ciudad_Destino', 'Fecha', 'Monto', 'Moneda', 'Doc_Identidad', 
+                        'Nombre_Persona', 'Tipo_Comprobante', 'RUC_Emisor', 'Serie_Numero', 
+                        'Doc_Receptor', 'Fecha_Emision', 'Importe_Total', 'Nombre_Archivo', 'Archivo_URL'
+                    ]
+                });
+                utils.book_append_sheet(wb, transportesWs, 'Comprobantes Transportes');
+            }
+
+            // Write and trigger download
+            writeFile(wb, fileName);
         });
-        const rendidosData = await Promise.all(rendidosPromises);
-        const rendidosMap = new Map(rendidosData.map(d => [d.id.toString(), d.monto_rendido]));
-
-        updatePanelMontosRendicion(montoSolicitado, montoRendido.monto_total);
-
-        if (allDetalles.length > 0) {
-            if (detallesCompras.length > 0) {
-                const comprasSection = document.createElement('div');
-                comprasSection.innerHTML = `
-                    <h3>Compras Menores</h3>
-                    <hr>
-                    `;
-                detallesContainer.appendChild(comprasSection);
-                allDetalles.filter(item => item.type === 'compra').forEach(item => {
-                    const montoRendido = rendidosMap.get(item.id.toString()) || 0;
-                    renderItem(item, { monto_rendido: montoRendido }, detallesContainer, data.id, latestEstado);
-                });
-            }
-            if (detallesViajes.length > 0) {
-                const viaticosSection = document.createElement('div');
-                viaticosSection.innerHTML = `
-                    <h3>Viáticos</h3>
-                    <hr>
-                    `;
-                detallesContainer.appendChild(viaticosSection);
-                allDetalles.filter(item => item.type === 'viatico').forEach(item => {
-                    const montoRendido = rendidosMap.get(item.id.toString()) || 0;
-                    renderItem(item, { monto_rendido: montoRendido }, detallesContainer, data.id, latestEstado);
-                });
-            }
-            if (detallesTransportes.length > 0) {
-                const transportesSection = document.createElement('div');
-                transportesSection.innerHTML = `
-                    <h3>Transportes Provinciales</h3>
-                    <hr>
-                    `;
-                detallesContainer.appendChild(transportesSection);
-                allDetalles.filter(item => item.type === 'transporte').forEach(item => {
-                    const montoRendido = rendidosMap.get(item.id.toString()) || 0;
-                    renderItem(item, { monto_rendido: montoRendido }, detallesContainer, data.id, latestEstado);
-                });
-            }
-            /*const rol = document.getElementById("user-first-info").getAttribute("data-info");
-            if(rol==2 || rol==3){
-                console.log(" ");
-            }else{
-                //aqui
-                document.querySelectorAll(".compras-elementos-dos").forEach((e)=>{
-                    e.style.display = "none";
-                })
-            }*/
-        } else {
-            detallesContainer.innerHTML = '<p>No hay detalles válidos.</p>';
-        }
-    } catch (error) {
-        console.error('Error en Promise.all:', error);
-        showAlert({
-            title: 'Error',
-            message: 'Error al cargar los detalles de la rendición.',
-            type: 'error'
-        });
-        detallesContainer.innerHTML = '<p>No se pudieron cargar los detalles.</p>';
     }
-}
 
     // supuestamente ya no iba
     function closeModal(modalId) {
@@ -1122,7 +1341,7 @@ function updateComprobante(id, comprobante) {
             detallesContainer.innerHTML = '';
     }
 
-    // Botones "Cerrar" modal /here
+    // Botones "Cerrar" modal /
     document.querySelectorAll('.btn-close-modal').forEach(button => {
         button.addEventListener('click', () => {
             const modalId = button.dataset.modal;

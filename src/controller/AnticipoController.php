@@ -3,6 +3,7 @@ require_once 'src/config/Database.php';
 require_once 'src/models/TrabajadorModel.php';
 require_once 'src/models/AnticipoModel.php';
 require_once 'src/config/EmailConfig.php';
+require_once 'src/config/AutorizationDocumentConfig.php';
 
 class AnticipoController {
     private $db;
@@ -29,6 +30,15 @@ class AnticipoController {
         //$ssccs = $this->anticipoModel->getAllSscc();
         $ssccs = [];
         require_once 'src/views/anticipos.php';
+    }
+
+    public function getAnticipoPendiente(){
+        header('Content-Type: application/json');
+
+        $id_usuario = $_SESSION['id'];
+        $anticipo_pendiente = $this->anticipoModel->anticipoPendiente($id_usuario);
+        echo json_encode($anticipo_pendiente);
+        return;
     }
 
     // Funcionalidad para obtener SSCC por SCC filtrado del select
@@ -264,10 +274,47 @@ class AnticipoController {
                             error_log($response['message']);
                         } else {
                             $numero_anticipo = $this->anticipoModel->addAnticipo($id_usuario, $solicitante, $solicitante_nombres, $dni_solicitante, $departamento, $departamento_nombre, $codigo_sscc, $cargo, $nombre_proyecto, $fecha_solicitud, $fecha_inicio, $fecha_fin, $motivo_anticipo, $monto_total_solicitado, $id_cat_documento, $detalles_gastos, $detalles_viajes);
+                            
+                            date_default_timezone_set('America/Lima');
+                            $now = new DateTime(); // fecha y hora actual en Lima
+                            $dayOfWeek = $now->format('N'); // 2 = martes, 5 = viernes
+                            $hour = (int)$now->format('H');
 
+                            // Calcular la próxima fecha de atención si aplica
+                            $proxima_fecha = null;
+                            if ($dayOfWeek == 2 && $hour >= 12) {
+                                // Martes después de mediodía → próximo viernes
+                                $proxima_fecha = (clone $now)->modify('next friday');
+                            } elseif ($dayOfWeek == 5 && $hour >= 12) {
+                                // Viernes después de mediodía → próximo martes
+                                $proxima_fecha = (clone $now)->modify('next tuesday');
+                            }
+
+                            if ($proxima_fecha) {
+                                 $formatter = new IntlDateFormatter(
+                                    'es_PE',
+                                    IntlDateFormatter::FULL,  // ejemplo: martes, 2 de septiembre de 2025
+                                    IntlDateFormatter::NONE,
+                                    'America/Lima',
+                                    IntlDateFormatter::GREGORIAN,
+                                    "EEEE, d 'de' MMMM"
+                                );
+                                $fecha_formateada = $formatter->format($proxima_fecha);
+
+                                $respuesta = "Su solicitud de anticipo ha sido registrada correctamente. "
+                                . "Por motivos de horario, se programa la atención para el próximo "
+                                . $fecha_formateada . ".";
+                                //$respuesta = "Su anticipo estará siendo atendido en la próxima fecha de atención: $fecha_formateada";
+                            } else {
+                                /*$response['message'] = "Anticipo registrado con éxito";*/
+                                $respuesta = "Anticipo registrado con éxito";
+                            }
+
+
+                            // Aquí se puede validar la fecha y hora actual (no considerar la fecha y hora del dispositivo America/ Lima) UCT-NOW(Datetime).
                             if ($numero_anticipo) {
                                 $response['success'] = true;
-                                $response['message'] = 'Anticipo registrado con éxito';
+                                $response['message'] = $respuesta;
 
                                 $solicitante = $this->trabajadorModel->getTrabajadorByDni($dni_solicitante);
 
@@ -429,20 +476,24 @@ class AnticipoController {
                         echo json_encode(['error' => "Datos incompletos en detalles_viajes[$index]"]);
                         return;
                     }
-                    foreach ($viaje['transporte'] as $tIndex => $transporte) {
-                        if ($transporte['valido'] === '1') {
-                            if (empty($transporte['tipo_transporte']) || empty($transporte['ciudad_origen']) || empty($transporte['ciudad_destino']) || empty($transporte['fecha']) || empty($transporte['monto']) || empty($transporte['moneda'])) {
-                                echo json_encode(['error' => "Datos incompletos en detalles_viajes[$index][transporte][$tIndex]"]);
-                                return;
+
+                    if(!empty($viaje['transporte']) && is_array($viaje['transporte'])){
+                        foreach ($viaje['transporte'] as $tIndex => $transporte) {
+                            if ($transporte['valido'] === '1') {
+                                if (empty($transporte['tipo_transporte']) || empty($transporte['ciudad_origen']) || empty($transporte['ciudad_destino']) || empty($transporte['fecha']) || empty($transporte['monto']) || empty($transporte['moneda'])) {
+                                    echo json_encode(['error' => "Datos incompletos en detalles_viajes[$index][transporte][$tIndex]"]);
+                                    return;
+                                }
                             }
                         }
                     }
+                    /*
                     foreach ($viaje['viaticos'] as $concepto => $viatico) {
                         if (!isset($viatico['dias']) || !isset($viatico['monto']) || $viatico['dias'] < 0 || $viatico['monto'] < 0) {
                             echo json_encode(['error' => "Datos incompletos o inválidos en detalles_viajes[$index][viaticos][$concepto]"]);
                             return;
                         }
-                    }
+                    }*/
                 }
             }
 
@@ -525,6 +576,100 @@ class AnticipoController {
         }
     }
 
+    public function getDocAutorizacion() {
+        //$nombreSolicitante = trim($_POST['solicitante']) ?? '---';
+        $datos = json_decode($_POST['datos'], true);
+
+        $doc = new DocumentService();
+        $doc->generarDesdePlantilla($datos);
+    }
+
+    public function guardar_adjunto() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['archivo']) && isset($_POST['id_anticipo'])) {
+            $id_anticipo = (int)$_POST['id_anticipo'];
+            $archivo = $_FILES['archivo'];
+            $nombre_original = $_POST['nombre_original'] ?? basename($archivo['name']);
+
+            // Validar archivo
+            $allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png'];
+            if (!in_array($archivo['type'], $allowedTypes)) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Tipo de archivo no permitido.']);
+                exit;
+            }
+
+            // Directorio de uploads
+            $uploadDir = 'uploads/anticipos/';
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+
+            $nombreArchivo = uniqid() . '_' . basename($archivo['name']);
+            $rutaArchivo = $uploadDir . $nombreArchivo;
+
+            // Mover archivo
+            if (move_uploaded_file($archivo['tmp_name'], $rutaArchivo)) {
+                // Verificar si ya existe un adjunto para este anticipo
+                $query = "SELECT id FROM tb_anticipos_adjuntos WHERE id_anticipo = :id_anticipo AND estado = 1";
+                $stmt = $this->db->prepare($query);
+                $stmt->execute([':id_anticipo' => $id_anticipo]);
+                $existente = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($existente) {
+                    // Actualizar el existente (reemplazar)
+                    $query = "UPDATE tb_anticipos_adjuntos SET nombre_archivo = :nombre, ruta_archivo = :ruta, tipo_archivo = :tipo, fecha_subida = NOW(), nombre_original = :nombre_original WHERE id = :id";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->execute([
+                        ':nombre' => $nombreArchivo,
+                        ':ruta' => $rutaArchivo,
+                        ':tipo' => $archivo['type'],
+                        ':nombre_original' => $nombre_original,
+                        ':id' => $existente['id']
+                    ]);
+                } else {
+                    // Insertar nuevo
+                    $query = "INSERT INTO tb_anticipos_adjuntos (id_anticipo, nombre_archivo, ruta_archivo, tipo_archivo, nombre_original) VALUES (:id_anticipo, :nombre, :ruta, :tipo, :nombre_original)";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->execute([
+                        ':id_anticipo' => $id_anticipo,
+                        ':nombre' => $nombreArchivo,
+                        ':ruta' => $rutaArchivo,
+                        ':tipo' => $archivo['type'],
+                        ':nombre_original' => $nombre_original
+                    ]);
+                }
+
+                header('Content-Type: application/json');
+                echo json_encode(['success' => true, 'ruta' => $rutaArchivo]);
+                exit;
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Error al mover el archivo.']);
+                exit;
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Solicitud inválida.']);
+        exit;
+    }
+
+    public function obtener_adjunto() {
+        if (isset($_GET['id_anticipo'])) {
+            $id_anticipo = (int)$_GET['id_anticipo'];
+            $query = "SELECT nombre_archivo, ruta_archivo, nombre_original FROM tb_anticipos_adjuntos WHERE id_anticipo = :id_anticipo AND estado = 1";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id_anticipo' => $id_anticipo]);
+            $adjunto = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            header('Content-Type: application/json');
+            echo json_encode($adjunto ? $adjunto : []);
+            exit;
+        }
+        header('Content-Type: application/json');
+        echo json_encode([]);
+        exit;
+    }
+
     // Funcionalidad para autorizar un anticipo
     public function autorizar() {
         if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 2) {
@@ -579,7 +724,7 @@ class AnticipoController {
                     $subject = "SIAR - TECHING - Anticipo N° $id ha sido autorizado";
 
                     // obteniendo información de los tesoreros
-                    $dnisRol5 = $this->trabajadorModel->getDnisByRol5();
+                    /*$dnisRol5 = $this->trabajadorModel->getDnisByRol5();
                     $rol5Correos = [];
                     if (!empty($dnisRol5)) {
                         // Buscar correos en tb_trabajadores (base externa) para los DNI con rol 5
@@ -589,7 +734,7 @@ class AnticipoController {
                                 $rol5Correos[] = $trabajador['correo'];
                             }
                         }
-                    }
+                    }*/
 
                     $body = "
                         <p><img alt='Logo SIAR' src='{$this->logoBase64}' width='140' /></p>
@@ -620,7 +765,7 @@ class AnticipoController {
                     }
 
                     // Enviar correo a usuarios con rol 5
-                    if (!empty($rol5Correos)) {
+                    /*if (!empty($rol5Correos)) {
                         $bodyTesoreria = "
                             <p><img alt='Logo SIAR' src='{$this->logoBase64}' width='140' /></p>
                             <h2>Notificación de Anticipo</h2>
@@ -649,7 +794,7 @@ class AnticipoController {
                         }
                     } else {
                         error_log("No se encontraron correos de usuarios con rol 5");
-                    }
+                    }*/
                 } else {
                     error_log("No se envió el correo, no se encontró el correo del solicitante");
                 }
@@ -669,6 +814,150 @@ class AnticipoController {
         header("Location: /".$_SESSION['ruta_base']."/anticipos");
         exit;
     }
+
+    // Funcionalidad para autorizar un anticipo como gerencia
+    public function autorizacionGerencia(){
+        if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 2) {
+            $_SESSION['error'] = 'No tienes permiso para autorizar anticipos.';
+            error_log( 'No tiene permisos para realizar este tipo de aprobación');
+            header("Location: /".$_SESSION['ruta_base']."/anticipos");
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id'])) {
+            $id = (int)$_POST['id'];
+            
+            // Elementos enviados para la notificación por correo
+            $dniSolicitante = $_POST['dniSolicitante'];
+            $solicitanteNombre = $_POST['solicitanteNombre'];
+            $sscc = $_POST['sscc'];
+            $nombreProyecto = $_POST['nombreProyecto'];
+            $motivoAnticipo = $_POST['motivoAnticipo'];
+            $montoTotal = $_POST['montoTotal'];
+
+            $latestEstado = $this->anticipoModel->getLatestAnticipoEstado($id);
+            if ($latestEstado === null) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'No se pudo verificar el estado del anticipo']);
+                exit;
+            }
+
+            // Validar que el estado sea "Nuevo" u "Observado"
+            if (!in_array($latestEstado, ['Autorizado'])) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'El anticipo no puede ser marcado como autorizado por gerencia. Solo se pueden autorizar como gerencia anticipos en estado "Autorizado".']);
+                exit;
+            }
+
+            if ($this->anticipoModel->updateAnticipoEstado($id, 'Autorizado por Gerencia', $_SESSION['id'], 'Autorizado por Gerencia')) {
+                // $_SESSION['success'] = 'Anticipo aprobado correctamente.';
+
+                // error_log($_SESSION['trabajador']['correo']);
+                $correo_aprobador = $_SESSION['trabajador']['correo'];
+
+                //url usada en el correo
+                $url_plataforma = 'http://192.168.1.193/proy_anticipos_rendiciones/anticipos';
+
+                $solicitante = $this->trabajadorModel->getTrabajadorByDni($dniSolicitante);
+                $correo_solicitante = $solicitante['correo'];
+
+                $correos_cc = [$correo_solicitante];
+
+                if ($correo_solicitante) {
+
+                    $to = $correo_aprobador;
+                    $subject = "SIAR - TECHING - Anticipo N° $id ha sido autorizado por gerencia";
+
+                    // obteniendo información de los tesoreros
+                    $dnisRol5 = $this->trabajadorModel->getDnisByRol5();
+                    $rol5Correos = [];
+                    if (!empty($dnisRol5)) {
+                        // Buscar correos en tb_trabajadores (base externa) para los DNI con rol 5
+                        foreach ($dnisRol5 as $dni) {
+                            $trabajador = $this->trabajadorModel->getTrabajadorByDni($dni);
+                            if ($trabajador && isset($trabajador['correo'])) {
+                                $rol5Correos[] = $trabajador['correo'];
+                            }
+                        }
+                    }
+
+                    $body = "
+                        <p><img alt='Logo SIAR' src='{$this->logoBase64}' width='140' /></p>
+                        <h2>Notificación de Anticipo</h2>
+                        <p>Se realizó la autorización de gerencia correctamente. Información del anticipo:</p>
+                        <ul>
+                            <li><strong>N° de Anticipo:</strong> $id</li>
+                            <li><strong>Motivo:</strong> $motivoAnticipo</li>
+                            <li><strong>DNI Solicitante:</strong> $dniSolicitante</li>
+                            <li><strong>Nombre Solicitante: $solicitanteNombre</strong></li>
+                            <li><strong>Sub sub-centro de costo:</strong> $sscc</li>
+                            <li><strong>Nombre del Proyecto:</strong> $nombreProyecto</li>
+                            <li><strong>Monto:</strong> $montoTotal</li>
+                        </ul>
+                        <p>Recuerde que el anticipo deberá ser autorizado por el área de <b>contabilidad</b> para continuar con la atención de su solicitud.</p>
+                        <hr>
+                        <br>
+                        <p>No es necesario responder a este mensaje. Deberá ingresar a la plataforma SIAR para obtener más detalles del anticipo.</p>
+                        <a href='{$url_plataforma}'>SIAR - TECHING</a>
+                    ";
+
+                    error_log("Correo del solciitante" .$correo_solicitante);
+
+                    if ($this->emailConfig->sendSiarNotification($to, $subject, $body, $correos_cc)) {
+                        error_log("Anticipo creado y notificación enviada");
+                    } else {
+                        error_log("No se pudo enviar la notificación");
+                    }
+
+                    // Enviar correo a usuarios con rol 5
+                    if (!empty($rol5Correos)) {
+                        $bodyTesoreria = "
+                            <p><img alt='Logo SIAR' src='{$this->logoBase64}' width='140' /></p>
+                            <h2>Notificación de Anticipo</h2>
+                            <p>El usuario aprobador realizó la autorización de gerencia correctamente. Información del anticipo:</p>
+                            <ul>
+                                <li><strong>N° de Anticipo:</strong> $id</li>
+                                <li><strong>Motivo:</strong> $motivoAnticipo</li>
+                                <li><strong>DNI Solicitante:</strong> $dniSolicitante</li>
+                                <li><strong>Nombre Solicitante: $solicitanteNombre</strong></li>
+                                <li><strong>Sub sub-centro de costo:</strong> $sscc</li>
+                                <li><strong>Nombre del Proyecto:</strong> $nombreProyecto</li>
+                                <li><strong>Monto:</strong> $montoTotal</li>
+                            </ul>
+                            <p>Deberá revisar en la plataforma SIAR el anticipo respectivo para poder realizar la autorización total o marcarlo como observado en caso exista un dato incorrecto.</p>
+                            <hr>
+                            <br>
+                            <p>No es necesario responder a este mensaje. Deberá ingresar a la plataforma SIAR para obtener más detalles del anticipo.</p>
+                            <a href='{$url_plataforma}'>SIAR - TECHING</a>
+                        ";
+                        foreach ($rol5Correos as $rol5Correo) {
+                            if ($this->emailConfig->sendSiarNotification($rol5Correo, $subject, $bodyTesoreria, [])) {
+                                error_log("Notificación enviada al usuario con rol 5: $rol5Correo");
+                            } else {
+                                error_log("No se pudo enviar la notificación al usuario con rol 5: $rol5Correo");
+                            }
+                        }
+                    } else {
+                        error_log("No se encontraron correos de usuarios con rol 5");
+                    }
+                } else {
+                    error_log("No se envió el correo, no se encontró el correo del solicitante");
+                }
+            
+                header('Content-Type: application/json');
+                echo json_encode(['success' => 'Anticipo autorizado correctamente.']);
+                exit;
+            } else {
+                // $_SESSION['error'] = 'Error al autorizar el anticipo.';
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'No se pudo autorizar el anticipo']);
+                exit;
+            }
+        }
+        header("Location: /".$_SESSION['ruta_base']."/anticipos");
+        exit;
+    }
+
 
     //Funcionalidad para autorizar totalmente un anticipo y enviar notificación
     public function autorizarTotalmente() {
@@ -698,9 +987,9 @@ class AnticipoController {
             }
 
             // Validar que el estado sea "autorizado"
-            if (!in_array($latestEstado, ['Autorizado'])) {
+            if (!in_array($latestEstado, ['Autorizado por Gerencia'])) {
                 header('Content-Type: application/json');
-                echo json_encode(['error' => 'El anticipo no puede ser autorizado. Solo se pueden autorizar totalmente anticipos en estado "Autorizado".']);
+                echo json_encode(['error' => 'El anticipo no puede ser autorizado. Solo se pueden autorizar totalmente anticipos en estado "Autorizado por Gerencia".']);
                 exit;
             }
 
@@ -725,7 +1014,7 @@ class AnticipoController {
                     $body = "
                         <p><img alt='Logo SIAR' src='{$this->logoBase64}' width='140' /></p>
                         <h2>Notificación de Anticipo</h2>
-                        <p>Se realizó la segunda autorización del anticipo correctamente. Información del anticipo:</p>
+                        <p>Se realizó autorización del anticipo correctamente, por el área de tesorería. Información del anticipo:</p>
                         <ul>
                             <li><strong>N° de Anticipo:</strong> $id</li>
                             <li><strong>Motivo:</strong> $motivoAnticipo</li>
@@ -755,7 +1044,7 @@ class AnticipoController {
                         $bodyTesoreria = "
                             <p><img alt='Logo SIAR' src='{$this->logoBase64}' width='140' /></p>
                             <h2>Notificación de Anticipo</h2>
-                            <p>El usuario aprobador realizó la primera autorización correctamente. Información del anticipo:</p>
+                            <p>Se realizó la autorización correctamente, por parte de teserería. Información del anticipo:</p>
                             <ul>
                                 <li><strong>N° de Anticipo:</strong> $id</li>
                                 <li><strong>Motivo:</strong> $motivoAnticipo</li>
@@ -765,7 +1054,7 @@ class AnticipoController {
                                 <li><strong>Nombre del Proyecto:</strong> $nombreProyecto</li>
                                 <li><strong>Monto:</strong> $montoTotal</li>
                             </ul>
-                            <p>Deberá revisar en la plataforma SIAR el anticipo respectivo para poder realizar la segunda autorización o marcarlo como observado en caso exista un dato incorrecto.</p>
+                            <p>Deberá revisar en la plataforma SIAR el anticipo respectivo para poder continuar con el proceso de anticipo.</p>
                             <hr>
                             <br>
                             <p>No es necesario responder a este mensaje. Deberá ingresar a la plataforma SIAR para obtener más detalles del anticipo.</p>
@@ -808,7 +1097,7 @@ class AnticipoController {
             echo json_encode(['error' => 'No tiene permisos para realizar este tipo de actividad']);
             exit;
         }
-        
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
             $id = (int)$_POST['id'];
 
@@ -834,9 +1123,9 @@ class AnticipoController {
             }
 
             // Validar que el estado actual sea autorizado
-            if (!in_array($latestEstado, ['Autorizado'])) {
+            if (!in_array($latestEstado, ['Autorizado por Gerencia'])) {
                 header('Content-Type: application/json');
-                echo json_encode(['error' => 'El anticipo no pudo ser marcado como observado. Solo se pueden observar anticipos en estado "Autorizado".']);
+                echo json_encode(['error' => 'El anticipo no pudo ser marcado como observado. Solo se pueden observar anticipos en estado "Autorizado por Gerencia".']);
                 exit;
             }
 

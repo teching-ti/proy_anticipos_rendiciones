@@ -66,16 +66,16 @@ class LoginController {
                         $cargo = strtolower($trabajador['cargo']);
                         if (strpos($cargo, 'gerente') !== false) {
                             $_SESSION['aprob_gerencia'] = 1;
-                            error_log("Su rol es dos, py contiene el dato de gerente en su cargo");
+                            //error_log("Su rol es dos, py contiene el dato de gerente en su cargo");
                         } else {
                             $hayGerente = $this->trabajadorModel->existeGerenteEnDepartamento($trabajador['departamento']);
                             $_SESSION['aprob_gerencia'] = $hayGerente ? 0 : 1;
-                            error_log("Su rol es dos, pero tomará el cargo de gerencia porque no hay gerente");
+                            //error_log("Su rol es dos, pero tomará el cargo de gerencia porque no hay gerente");
                         }
                     }
 
-                    error_log("Gerencia...");
-                    error_log($_SESSION['aprob_gerencia']);
+                    //error_log("Gerencia...");
+                    //error_log($_SESSION['aprob_gerencia']);
 
                     /*Revisar error_log*/
                     error_log("Datos de trabajador cargados de forma exitosa: " . json_encode($trabajador));

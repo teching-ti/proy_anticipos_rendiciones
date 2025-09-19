@@ -8,7 +8,7 @@ include "base.php";
 unset($_SESSION['success'], $_SESSION['error']);
 ?>
 
-<section class="anticipos-content">
+<section class="anticipos-content" style="display: none;">
     <!-- Incluir alert.js -->
     <script src="assets/scripts/modalAlert.js"></script>
 
@@ -375,12 +375,12 @@ unset($_SESSION['success'], $_SESSION['error']);
                             <button type="submit" class="btn btn-default">Terminar</button>
                             <div id="container-cambio-estado">
                                 <?php if($_SESSION['rol']==2): ?>
-                                    <div class="btn-aprobar-anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                    <div class="btn-aprobar-anticipo" title="Se brinda autorización para el anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
                                         Autorizado
                                     </div>
                                 <?php endif;?>
                                 <?php if($_SESSION['rol']==2 && $_SESSION['aprob_gerencia']==1): ?>
-                                    <div class="btn-aprobar-anticipo-gerencia" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                    <div class="btn-aprobar-anticipo-gerencia" title="Se brinda autorización de gerencia para el anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
                                         Autorizado G.
                                     </div>
                                 <?php endif; ?>
@@ -396,7 +396,18 @@ unset($_SESSION['success'], $_SESSION['error']);
                                     </div>
                                 <?php endif;?>
                             </div>
+                            <hr>
                             <div id="container-descarga"></div>
+                            <?php if($_SESSION['rol']==3):?>
+                                <div id="get-doc-autorizacion" title="Descargar el documento de autorización para proceder con el anticipo" class="btn btn-default">Doc. Autorización</div>
+                            <?php endif; ?>
+                            <div id="container-archivo-autorizacion">
+                                <div class="btn btn-aniadir-autorizacion" title="Adjuntar autorización firmada y completa">
+                                    Adjuntar <i class="fa-solid fa-file-circle-plus"></i>
+                                </div>
+                                <input type="file" id="edit-archivo-autorizacion" name="edit-archivo-autorizacion" style="display: none;" accept=".pdf,.doc,.docx,.jpg,.png">
+                                <a href="#" id="edit-enlace-archivo"><p></p><i class="fa-solid fa-file-arrow-down"></i></a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -425,6 +436,16 @@ unset($_SESSION['success'], $_SESSION['error']);
     </div>
 
 </section>
+
+<section>
+    <div id="loadingModalPage" class="loading-modal-page" style="display: block;">
+        <div class="loading-content-page">
+            <div class="spinner"></div>
+            <p>Cargando...</p>
+        </div>
+    </div>
+</section>
+<!-- Librería para exportar en excel -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
 <?php include "footer.php"; ?>

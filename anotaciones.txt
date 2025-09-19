@@ -1,3 +1,6 @@
+19092025
+Sistema en producción, el usuario puede generar anticipos y editar con normalidad. Los días para conceptos de alimentación, hospedaje y movilidad ya no se encuentran limitados. Está pendiente configurar la sección visual de anticipos para que los botones no estén agrupados juntos hacia la izquierda. De igual manera, se deberán modificar la interfaz de visual de anticipos y rendiciones para facilitar el trabajo del solicitante.
+
 29082025
 Se resuelven las anotaciones anteiores. Se trabaja hasta lo especificado según la anotación 8. Pendiente funcionalidad de mostrar botón según estado "Ya se muestra por rol" y funcionalidad de registro en historial
 

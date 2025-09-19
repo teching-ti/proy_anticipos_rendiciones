@@ -70,8 +70,6 @@ class UserController {
                 // $error = 'El documento debe ser únicamente un número.';
                 // error_log($error);
                 $_SESSION['error'] = 'El documento debe ser únicamente un número';
-            } elseif (!preg_match('/^\d+$/', $n_cuenta)) {
-                $_SESSION['error'] = 'El número de cuenta debe ser únicamente un número.';
             }elseif ($this->userModel->dniExists($dni)) {
                 // $error = 'Un usuario con este número de DNI ya existe.';
                 // error_log($error);

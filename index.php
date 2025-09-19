@@ -53,12 +53,17 @@ $routes = [
     'anticipos/getSaldoDisponibleTiempoReal' => ['controller' => 'anticipo', 'action' => 'getSaldoDisponibleTiempoReal'],
     'anticipos/getAnticipoDetails' => ['controller' => 'anticipo', 'action' => 'getAnticipoDetails'],
     'anticipos/autorizar' => ['controller' => 'anticipo', 'action' => 'autorizar'],
+    'anticipos/autorizacionGerencia' => ['controller' => 'anticipo', 'action' => 'autorizacionGerencia'],
     'anticipos/autorizarTotalmente' => ['controller' => 'anticipo', 'action' => 'autorizarTotalmente'],
     'anticipos/observarAnticipo' => ['controller' => 'anticipo', 'action' => 'observarAnticipo'],
     'anticipos/abonarAnticipo' => ['controller' => 'anticipo', 'action' => 'abonarAnticipo'],
     'anticipos/getComprasMenores' => ['controller' => 'anticipo', 'action' => 'getComprasMenores'], // se usa para descargar en excel
     'anticipos/getViaticos' => ['controller' => 'anticipo', 'action' => 'getViaticos'],
     'anticipos/getTransporteProvincial' => ['controller' => 'anticipo', 'action' => 'getTransporteProvincial'],
+    'anticipos/getDocAutorizacion' => ['controller' => 'anticipo', 'action' => 'getDocAutorizacion'], // metodo que se usa para descargar el word con la autorización de descuento
+    'anticipos/guardar_adjunto' => ['controller' => 'anticipo', 'action' => 'guardar_adjunto'],
+    'anticipos/obtener_adjunto' => ['controller' => 'anticipo', 'action' => 'obtener_adjunto'],
+    'anticipos/getAnticipoPendiente' => ['controller' => 'anticipo', 'action' => 'getAnticipoPendiente'],
     'detallesViaticos' => ['controller' => 'anticipo', 'action' => 'detallesViaticos'],
     'tarifario' => ['controller' => 'tarifario', 'action'=> 'index'],
     'tarifario/cargos' => ['controller' => 'tarifario', 'action' => 'obtenerCargos'], //ruta para obtener los cargos del tarifario
@@ -100,7 +105,8 @@ $routes = [
     'rendiciones/getMontoTotalRendidoByDetalle' => ['controller' => 'rendiciones', 'action' => 'getMontoTotalRendidoByDetalle'],
     'rendiciones/updateComprobante_compra' => ['controller' => 'rendiciones', 'action' => 'updateComprobante_compra'],
     'rendiciones/updateComprobante_viatico' => ['controller' => 'rendiciones', 'action' => 'updateComprobante_viatico'],
-    'rendiciones/updateComprobante_transporte' => ['controller' => 'rendiciones', 'action' => 'updateComprobante_transporte']
+    'rendiciones/updateComprobante_transporte' => ['controller' => 'rendiciones', 'action' => 'updateComprobante_transporte'],
+    'rendiciones/getRendicionCompleta' => ['controller' => 'rendiciones', 'action' => 'getRendicionCompleta']
 ];
 
 // Buscar la ruta en el arreglo de rutas

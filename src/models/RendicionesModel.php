@@ -369,4 +369,30 @@ class RendicionesModel {
             return null;
         }
     }
+
+    // Obtener últimas rendiciones
+    public function getUltimasRendiciones($limite) {
+        $query = "SELECT * FROM tb_rendiciones ORDER BY id DESC LIMIT :limite";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':limite', $limite, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getUltimoEstadoRendicion($id_rendicion) {
+        $query = "SELECT estado FROM tb_historial_rendiciones WHERE id_rendicion = :id_rendicion ORDER BY fecha DESC LIMIT 1";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':id_rendicion', $id_rendicion, PDO::PARAM_INT);
+        $stmt->execute();
+        $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $resultado ? $resultado['estado'] : null;
+    }
+
+    public function getUsuarioPorId($id_usuario) {
+        $query = "SELECT dni FROM tb_usuarios WHERE id = :id_usuario";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }

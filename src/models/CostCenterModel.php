@@ -25,7 +25,7 @@ class CostCenterModel {
     // Obtener datos de tb_scc con el nombre del cc
     public function getSccData() {
         try {
-            $query = "SELECT s.codigo, s.nombre, s.nombre_corto, s.activo, c.nombre AS cc_nombre
+            $query = "SELECT s.codigo, s.nombre, s.nombre_corto, s.activo, c.nombre AS cc_nombre, c.codigo AS cc_codigo
                       FROM tb_scc s
                       JOIN tb_cc c ON s.cc_codigo = c.codigo";
             $stmt = $this->db->prepare($query);
@@ -40,7 +40,7 @@ class CostCenterModel {
     // Obtener datos de tb_sscc con el nombre del scc
     public function getSsccData() {
         try {
-            $query = "SELECT ss.codigo, ss.nombre, ss.nombre_corto, ss.activo, sc.nombre AS scc_nombre
+            $query = "SELECT ss.codigo, ss.nombre, ss.nombre_corto, ss.activo, sc.nombre AS scc_nombre, sc.codigo AS scc_codigo
                       FROM tb_sscc ss
                       JOIN tb_scc sc ON ss.scc_codigo = sc.codigo";
             $stmt = $this->db->prepare($query);

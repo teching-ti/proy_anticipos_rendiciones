@@ -1,3 +1,4 @@
 /uploads
 src/config/EmailConfig_prod.php
 .env
+src/libs/

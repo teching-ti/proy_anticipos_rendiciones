@@ -896,14 +896,16 @@ class AnticipoModel {
                                 throw new Exception("Concepto '$concepto' no encontrado en la base de datos.");
                             }
 
+                            $dias = isset($viatico['dias']) && is_numeric($viatico['dias']) ? (int)$viatico['dias'] : 0;
+
                             if (isset($viatico['id']) && !empty($viatico['id'])) {
-                                if ($viatico['dias'] > 0) {
+                                if ($dias > 0) {
                                     // Recalcular monto basado en tb_tarifario
                                     $queryTarifa = "SELECT monto FROM tb_tarifario WHERE cargo_id = :cargo_id AND concepto_id = :concepto_id LIMIT 1";
                                     $stmtTarifa = $this->db->prepare($queryTarifa);
                                     $stmtTarifa->execute(['cargo_id' => $cargoId, 'concepto_id' => $conceptoId]);
                                     $tarifa = $stmtTarifa->fetchColumn() ?: 0;
-                                    $monto = $viatico['dias'] * $tarifa;
+                                    $monto = $dias * $tarifa;
 
                                     $query = "UPDATE tb_detalles_viajes 
                                             SET dias = :dias, 
@@ -913,7 +915,7 @@ class AnticipoModel {
                                     $stmt = $this->db->prepare($query);
                                     if (!$stmt->execute([
                                         'id' => $viatico['id'],
-                                        'dias' => $viatico['dias'],
+                                        'dias' => $dias,
                                         'monto' => $monto,
                                         'moneda' => $viatico['moneda'] ?? 'PEN'
                                     ])) {
@@ -931,27 +933,29 @@ class AnticipoModel {
                                 }
                                 $processedViaticoIds[] = $viatico['id'];
                             } else {
-                                // Recalcular monto para nueva inserción
-                                $queryTarifa = "SELECT monto FROM tb_tarifario WHERE cargo_id = :cargo_id AND concepto_id = :concepto_id LIMIT 1";
-                                $stmtTarifa = $this->db->prepare($queryTarifa);
-                                $stmtTarifa->execute(['cargo_id' => $cargoId, 'concepto_id' => $conceptoId]);
-                                $tarifa = $stmtTarifa->fetchColumn() ?: 0;
-                                $monto = $viatico['dias'] * $tarifa;
+                                if($dias > 0){
+                                    // Recalcular monto para nueva inserción
+                                    $queryTarifa = "SELECT monto FROM tb_tarifario WHERE cargo_id = :cargo_id AND concepto_id = :concepto_id LIMIT 1";
+                                    $stmtTarifa = $this->db->prepare($queryTarifa);
+                                    $stmtTarifa->execute(['cargo_id' => $cargoId, 'concepto_id' => $conceptoId]);
+                                    $tarifa = $stmtTarifa->fetchColumn() ?: 0;
+                                    $monto = $viatico['dias'] * $tarifa;
 
-                                $query = "INSERT INTO tb_detalles_viajes 
-                                        (id_viaje_persona, id_concepto, dias, monto, moneda) 
-                                        VALUES (:id_viaje_persona, :id_concepto, :dias, :monto, :moneda)";
-                                $stmt = $this->db->prepare($query);
-                                if (!$stmt->execute([
-                                    'id_viaje_persona' => $viajeId,
-                                    'id_concepto' => $conceptoId,
-                                    'dias' => $viatico['dias'],
-                                    'monto' => $monto,
-                                    'moneda' => $viatico['moneda'] ?? 'PEN'
-                                ])) {
-                                    throw new Exception("Error al insertar en tb_detalles_viajes.");
+                                    $query = "INSERT INTO tb_detalles_viajes 
+                                            (id_viaje_persona, id_concepto, dias, monto, moneda) 
+                                            VALUES (:id_viaje_persona, :id_concepto, :dias, :monto, :moneda)";
+                                    $stmt = $this->db->prepare($query);
+                                    if (!$stmt->execute([
+                                        'id_viaje_persona' => $viajeId,
+                                        'id_concepto' => $conceptoId,
+                                        'dias' => $dias,
+                                        'monto' => $monto,
+                                        'moneda' => $viatico['moneda'] ?? 'PEN'
+                                    ])) {
+                                        throw new Exception("Error al insertar en tb_detalles_viajes.");
+                                    }
+                                    $processedViaticoIds[] = $this->db->lastInsertId();
                                 }
-                                $processedViaticoIds[] = $this->db->lastInsertId();
                             }
                         }
                     }

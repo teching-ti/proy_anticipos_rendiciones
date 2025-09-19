@@ -168,6 +168,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <hr>
                         <div class="modal-footer">
                             <div class="btn btn-default" onclick="nextStep()">Siguiente <i class="fa-solid fa-caret-right"></i></div>
+                            <div id="container-descarga"></div>
                         </div>
                     </div>
 
@@ -197,17 +198,19 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <hr>
                         <div class="modal-footer">
                             <div class="btn btn-default" onclick="prevStep()"><i class="fa-solid fa-caret-left"></i> Atrás</div>
-                            <?php if($_SESSION['rol']==3): ?>
-                                <div id="btn-corregir-rendicion" data-usuario="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Corregir</div>
-                                <div id="btn-completar-rendicion" data-usuario="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Completado</div> 
-                            <?php endif;?>
-                            <?php if($_SESSION['rol']==2): ?>
-                                <div id="btn-aprobar-rendicion" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Autorizar</div> 
-                            <?php endif;?>
-                            <?php if($_SESSION['rol']==4): ?>
-                                <div id="btn-observar-rendicion" data-contador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Observar</div>
-                                <div id="btn-cerrar-rendicion" data-contador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Finalizar</div>
-                            <?php endif;?>
+                            <div class="btns-cambio-estado">
+                                <?php if($_SESSION['rol']==3): ?>
+                                    <div id="btn-corregir-rendicion" data-usuario="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Corregir</div>
+                                    <div id="btn-completar-rendicion" data-usuario="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Completado</div> 
+                                <?php endif;?>
+                                <?php if($_SESSION['rol']==2): ?>
+                                    <div id="btn-aprobar-rendicion" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Autorizar</div> 
+                                <?php endif;?>
+                                <?php if($_SESSION['rol']==4): ?>
+                                    <div id="btn-observar-rendicion" data-contador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Observar</div>
+                                    <div id="btn-cerrar-rendicion" data-contador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Finalizar</div>
+                                <?php endif;?>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -223,4 +226,7 @@ unset($_SESSION['success'], $_SESSION['error']);
         </div>
     </div>
 </section>
+
+<!-- Librería para exportar en excel -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <?php include "footer.php"; ?>

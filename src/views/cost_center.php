@@ -273,7 +273,7 @@ include "base.php";
                             <option value=''>Seleccione un centro de costo</option>
                             <?php foreach ($cc_list as $cc): ?>
                                 <option value='<?php echo htmlspecialchars($cc['codigo'], ENT_QUOTES, 'UTF-8'); ?>'>
-                                    <?php echo htmlspecialchars($cc['nombre'], ENT_QUOTES, 'UTF-8'); ?>
+                                    <?php echo htmlspecialchars($cc['codigo'], ENT_QUOTES, 'UTF-8') ." - ". htmlspecialchars($cc['nombre'], ENT_QUOTES, 'UTF-8'); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -317,7 +317,7 @@ include "base.php";
                             <option value="">Seleccione un centro de costo</option>
                             <?php foreach ($cc_list as $cc): ?>
                                 <option value="<?php echo htmlspecialchars($cc['codigo'], ENT_QUOTES, 'UTF-8'); ?>">
-                                    <?php echo htmlspecialchars($cc['nombre'], ENT_QUOTES, 'UTF-8'); ?>
+                                    <?php echo htmlspecialchars($cc['codigo'], ENT_QUOTES, 'UTF-8') . " - " .htmlspecialchars($cc['nombre'], ENT_QUOTES, 'UTF-8'); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -363,7 +363,7 @@ include "base.php";
                             <option value="">Seleccione un subcentro de costo</option>
                             <?php foreach ($scc_list as $scc): ?>
                                 <option value="<?php echo htmlspecialchars($scc['codigo'], ENT_QUOTES, 'UTF-8'); ?>">
-                                    <?php echo htmlspecialchars($scc['nombre'], ENT_QUOTES, 'UTF-8'); ?>
+                                    <?php echo htmlspecialchars($scc['codigo'], ENT_QUOTES, 'UTF-8') . " - " . htmlspecialchars($scc['nombre'], ENT_QUOTES, 'UTF-8'); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -405,7 +405,7 @@ include "base.php";
                             <option value="">Seleccione un subcentro de costo</option>
                             <?php foreach ($scc_list as $scc): ?>
                                 <option value="<?php echo htmlspecialchars($scc['codigo'], ENT_QUOTES, 'UTF-8'); ?>">
-                                    <?php echo htmlspecialchars($scc['nombre'], ENT_QUOTES, 'UTF-8'); ?>
+                                    <?php echo htmlspecialchars($scc['codigo'], ENT_QUOTES, 'UTF-8') . " - " . htmlspecialchars($scc['nombre'], ENT_QUOTES, 'UTF-8'); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

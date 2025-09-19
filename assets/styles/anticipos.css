@@ -32,6 +32,51 @@
     outline: solid 2px rgb(47, 54, 64,1);
 }
 
+.btn-descargar-anticipo{
+    outline: solid 2px rgb(113, 128, 147, 0);
+    background: #b1d2fc;
+    transition: all ease-in-out .6s;
+    color: rgb(0, 62, 133);
+    font-size: .98rem;
+    display: flex;
+    align-items: center;
+    gap: .2rem;
+}
+
+.btn-descargar-anticipo:hover{
+    background: #a9ccfa;
+    outline: solid 2px rgb(5, 99, 207);
+}
+
+#container-archivo-autorizacion{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+}
+
+.btn-aniadir-autorizacion{
+    outline: solid 2px rgb(171, 209, 252);
+    background: #f7fbff;
+    transition: all ease-in-out .6s;
+    color: rgb(12, 94, 189);
+    height: max-content;
+    font-size: .98rem;
+    gap: .2rem;
+}
+
+.btn-aniadir-autorizacion:hover{
+    background: #e8f2ff;
+    outline: solid 2px rgb(133, 184, 241);
+}
+
+#edit-enlace-archivo{
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    color: #007bff;
+}
+
 .help-panel{
     display: flex;
     align-items: center;
@@ -48,6 +93,13 @@
 
 .btn-add-anticipo {
     background-color: #1f58a8;
+    color: #ffffff;
+}
+
+/*En caso de tener un anticipo pendiente*/
+.bloq-anticipo-pendiente {
+    background-color: #81a3d4;
+    cursor: no-drop;
     color: #ffffff;
 }
 
@@ -249,6 +301,7 @@
 
 .modal-footer {
     display: flex;
+    flex-wrap: wrap;
     gap: .6rem;
     padding: 8px 16px;
     color: white;
@@ -743,7 +796,7 @@ label {
 #container-cambio-estado{
     display: flex;
     gap: .8rem;
-    width: 100%;
+    /* width: 100%; */
 }
 
 .btn-aprobar-totalmente{
@@ -879,7 +932,8 @@ label {
 #edit-monto-total{
     background: none;
     border: none;
-    width: 80px
+    width: 80px;
+    outline: none;
 }
 
 .viaticos-detalles{
@@ -984,7 +1038,7 @@ label {
 }
 
 /*MODAL DE CARGA*/
-.loading-modal {
+.loading-modal{
     display: none;
     position: fixed;
     top: 0;
@@ -999,6 +1053,14 @@ label {
 
 .loading-content {
     background: white;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+/*Este es el referente a la página completa*/
+.loading-content-page {
+    background: none;
     padding: 20px;
     border-radius: 5px;
     text-align: center;

@@ -141,6 +141,7 @@
                 <p><strong>Cargo:</strong> <?php echo htmlspecialchars($_SESSION['trabajador']['cargo'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></p>
                 <p><strong>Correo:</strong> <?php echo htmlspecialchars($_SESSION['trabajador']['correo'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></p>
                 <p><strong>Rol:</strong> <?php echo htmlspecialchars($_SESSION['rol_nombre'], ENT_QUOTES, 'UTF-8'); ?></p>
+                <p id="base-dni-user" style="visibility: hidden; display: none;"><?php echo htmlspecialchars($_SESSION['dni'], ENT_QUOTES, 'UTF-8');?></p>
                 <p class="line-exit-session">
                     <a href="/proy_anticipos_rendiciones/logout" class="exit-session">
                         <i class="fas fa-sign-out-alt"></i><span>Salir</span>

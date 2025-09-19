@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
     const btnRefresh = document.getElementById("btn-refresh");
     btnRefresh.addEventListener("click", ()=>{
@@ -23,6 +23,16 @@ document.addEventListener('DOMContentLoaded', () => {
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     });
+
+    // Lógica para activar o bloquear el boton de creación de anticipo
+    const userAnticipo = await fetch(`anticipos/getAnticipoPendiente`);
+    const userEstadoAnticipos = await userAnticipo.json();
+    if(userEstadoAnticipos){
+        document.querySelector(".btn-add-anticipo").classList.add("bloq-anticipo-pendiente");
+        document.querySelector('.btn-add-anticipo').addEventListener('click', () => alert('Estimado usuario. Usted aún tiene un anticipo en proceso, no podrá generar otra solicitud hasta que su anticipo actual se encuentre en estado "Rendido".'));
+    }else{
+        document.querySelector('.btn-add-anticipo').addEventListener('click', () => openModal('addAnticipoModal'));
+    }
 
     const fechaHoy = new Date();
     const fechaFormateada = fechaHoy.toISOString().split('T')[0];
@@ -55,8 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Botón "Agregar Anticipo"
-    document.querySelector('.btn-add-anticipo').addEventListener('click', () => openModal('addAnticipoModal'));
+    //document.querySelector('.btn-add-anticipo').addEventListener('click', () => openModal('addAnticipoModal'));
 
     // Botones "Cerrar" modal
     document.querySelectorAll('.btn-close-modal').forEach(button => {
@@ -130,6 +139,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
 });
+
+// Funcionalidad para mostrar ícono de carga de la página tras ingresar/ actualizar
+window.addEventListener("load", function(){
+    let anticiposContent = document.querySelector(".anticipos-content");
+    anticiposContent.style.display = "block";
+    let loadingModalSection = document.getElementById('loadingModalPage');
+    loadingModalSection.style.display = "none";
+})
 
 /*Inicia funcionalidad para cambiar de pestañas dentro del formulario de creación de anticipos*/
 // steps del formulario
@@ -230,6 +247,7 @@ async function agregarNuevaPersona() {
     const persona1DiasHospedaje = document.querySelector('[name="dias-hospedaje-1"]')?.value || '';
 
     // Obtener ítems de Transporte Provincial de Persona 1
+    // Aquí se modificó la funcionalidad para que se permite editar el número de días de viático para los casos de movilidad, hospedaje y alimentación, se retira el readonly pero no las condiciones
     const persona1TranspProvList = document.getElementById('transp-prov-list-1');
     let transpProvContent = '';
     if (persona1TranspProvList) {
@@ -333,7 +351,7 @@ async function agregarNuevaPersona() {
         <div class="viaje-element section-hospedaje-${newIndex}" style="display: none;">
             <div class="modal-element">
                 <span class="placeholder">Días</span>
-                <input type="number" class="form-control" name="dias-hospedaje-${newIndex}" value="${persona1DiasHospedaje}" ${newIndex == 1 ? '' : 'readonly'} >
+                <input type="number" class="form-control" name="dias-hospedaje-${newIndex}" value="${persona1DiasHospedaje}" ${newIndex == 1 ? '' : ''} >
             </div>
             <div class="modal-element">
                 <span class="placeholder">Monto</span>
@@ -351,7 +369,7 @@ async function agregarNuevaPersona() {
         <div class="viaje-element section-movilidad-${newIndex}" style="display: none;">
             <div class="modal-element">
                 <span class="placeholder">Días</span>
-                <input type="number" class="form-control" name="dias-movilidad-${newIndex}" value="${persona1DiasMovilidad}" ${newIndex == 1 ? '' : 'readonly'}>
+                <input type="number" class="form-control" name="dias-movilidad-${newIndex}" value="${persona1DiasMovilidad}" ${newIndex == 1 ? '' : ''}>
             </div>
             <div class="modal-element">
                 <span class="placeholder">Monto</span>
@@ -369,7 +387,7 @@ async function agregarNuevaPersona() {
         <div class="viaje-element section-alimentacion-${newIndex}" style="display: none;">
             <div class="modal-element">
                 <span class="placeholder">Días</span>
-                <input type="number" class="form-control" name="dias-alimentacion-${newIndex}" value="${persona1DiasAlimentacion}" ${newIndex == 1 ? '' : 'readonly'}>
+                <input type="number" class="form-control" name="dias-alimentacion-${newIndex}" value="${persona1DiasAlimentacion}" ${newIndex == 1 ? '' : ''}>
             </div>
             <div class="modal-element">
                 <span class="placeholder">Monto</span>
@@ -444,10 +462,34 @@ async function agregarNuevaPersona() {
     function conectarCalculoAutomatico(index, tipo) {
         const diasInput = document.querySelector(`[name='dias-${tipo}-${index}']`);
         diasInput.addEventListener("input", () => {
-            calcularMonto(index, tipo);
-            if (index == 1) {
-                    actualizarOtrasPersonas(tipo);
+
+            /*Inicia lógica para colocar un número máximo de días - agregar anticipo*/
+            // Obtener el límite de días
+            const fechaInicio = document.getElementById("fecha_ejecucion").value;
+            const fechaFin = document.getElementById("fecha_finalizacion").value;
+
+            if(fechaInicio && fechaFin){
+                const inicio = new Date(fechaInicio);
+                const fin = new Date(fechaFin);
+
+                if(fin >= inicio){
+                    const diffDias = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
+                    const valor = parseInt(diasInput.value) || 0;
+                    
+                    // diffDias, es el número de días permitido
+
+                    if (valor > diffDias) {
+                        alert(`El número máximo de días permitido es ${diffDias}.`);
+                        diasInput.value = 0;
+                    }
                 }
+            }
+            /*Termina lógica para colocar un número máximo de días - agregar anticipo*/
+            calcularMonto(index, tipo);
+
+            if (index == 1) {
+                actualizarOtrasPersonas(tipo);
+            }
         });
     }
 
@@ -914,7 +956,7 @@ async function actualizarTotalGastos() {
     
     if(montoTotal.value>data){
         //console.log(`No se podrá crear este anticipo el monto total ${montoTotal.value} supera a ${data}`)
-        montoTotal.style.outline = "2px solid red";
+        //montoTotal.style.outline = "2px solid red";
         showAlert({
             title: 'Advertencia',
             message: `Esta solicitud no puede ser procesada porque supera el limite del presupuesto asignado para el [SSCC]. Por favor, contacte al área de contabilidad.`,
@@ -1097,8 +1139,8 @@ async function actualizarTotalGastosEdit(formPrefix = '') {
             const saldoDisponible = parseFloat(data) || 0;
 
             if (total > saldoDisponible) {
-                montoTotalInput.style.border = '2px solid red';
-                //console.log(`No se podrá actualizar este anticipo. El monto total ${total.toFixed(2)} supera el saldo disponible ${saldoDisponible.toFixed(2)}.`);
+                //montoTotalInput.style.border = '2px solid red';
+                console.log(`No se podrá actualizar este anticipo. El monto total ${total.toFixed(2)} supera el saldo disponible ${saldoDisponible.toFixed(2)}.`);
             } else {
                 montoTotalInput.style.border = '';
                 //console.log('Monto total dentro del saldo disponible.');
@@ -1365,6 +1407,172 @@ async function showAnticipoDetails(data) {
     editForm.querySelector("#edit-fecha-finalizacion").value = data.fecha_fin || '';
     editForm.querySelector("#edit-estado-anticipo").value = data.estado || '';
     editForm.querySelector("#edit-monto-total").value = (parseFloat(data.monto_total_solicitado) || 0).toFixed(2);
+
+    // Probando boton de generar word
+    // Crear un form dinámico para enviar y forzar la descarga
+    const btnObtenerDocAutorizacion = document.getElementById("get-doc-autorizacion");
+    if(btnObtenerDocAutorizacion){
+        btnObtenerDocAutorizacion.addEventListener("click", function() {
+            
+            // Logica para obtener el mes y año actual
+            const hoy = new Date();
+            const dia = hoy.getDate().toString().padStart(2, "0");
+            const meses = [
+                "enero", "febrero", "marzo", "abril", "mayo", "junio",
+                "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+            ];
+            const mes = meses[hoy.getMonth()];
+            const anio = hoy.getFullYear();
+
+            // Logica para formatear la fecha de solicitud
+            const fechaOriginal = data.fecha_fin; // "2025-09-02"
+            //console.log(fechaOriginal);
+            const partes = fechaOriginal.split("-");
+            //console.log(partes);
+
+            const fechaSolicitudFormateada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+            //Objeto con los valores
+            const datos = {
+                id_anticipo: data.id,
+                nombre: data.solicitante_nombres,
+                dni: data.dni_solicitante,
+                motivo: data.motivo_anticipo,
+                monto: (parseFloat(data.monto_total_solicitado) || 0).toFixed(2),
+                fecha_finalizacion: fechaSolicitudFormateada,
+                dia_solicitud: dia,
+                mes_solicitud: mes,
+                nombre2: data.solicitante_nombres,
+                dni2: data.dni_solicitante,
+                dia_solicitud2: dia,
+                mes_solicitud2: (hoy.getMonth()+1).toString().padStart(2, "0"),
+                anio_solicitud: anio
+            };
+            
+            const form = document.createElement("form");
+            form.method = "POST";
+            form.action = "anticipos/getDocAutorizacion";
+
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "datos";
+            input.value = JSON.stringify(datos);
+
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        });
+    }
+    // termina form dinamico para envios
+
+    // adjuntar archivo de autorizacion
+    const btnAnadirAutorizacion = document.querySelector('.btn-aniadir-autorizacion');
+    const inputArchivo = document.getElementById('edit-archivo-autorizacion');
+    const idAnticipoInput = document.getElementById('edit-id-anticipo');
+
+    // Mostrar el input al hacer clic en el botón
+    btnAnadirAutorizacion.addEventListener('click', function () {
+        inputArchivo.click();
+    });
+
+    // Manejar la selección del archivo
+    inputArchivo.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+
+            showAlert({
+                title: 'Confirmación',
+                message: `¿Estás seguro de que desea adjuntar el archivo ${file.name}?`,
+                type: 'confirm',
+                event: 'confirm'
+            });
+
+            const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+            const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+            // here aqui
+            acceptButton.onclick = () => {
+                const formData = new FormData();
+
+                acceptButton.disabled = true;
+                cancelButton.disabled = true;
+
+                formData.append('id_anticipo', idAnticipoInput.value);
+                formData.append('archivo', file);
+                formData.append('nombre_original', file.name);
+
+                // Mostrar el modal de carga
+                const loadingModal = document.getElementById('loadingModal');
+                loadingModal.style.display = 'flex';
+
+                try{
+                    fetch('anticipos/guardar_adjunto', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showAlert({
+                                title: 'Éxito',
+                                message: 'Archivo adjuntado correctamente.',
+                                type: 'success',
+                                event: 'envio'
+                            });
+                            editAnticipoModal.style.display = 'none';
+                        } else {
+                            showAlert({
+                                title: 'Error',
+                                message: data.error || 'No se pudo adjuntar el archivo.',
+                                type: 'error'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        showAlert({
+                            title: 'Error',
+                            message: 'Error al subir el archivo. Intente de nuevo.',
+                            type: 'error'
+                        });
+                        console.error('Error:', error);
+                    });
+                } catch(error){
+                    showAlert({
+                        title: 'Error',
+                        message: `No se pudo adjuntar el documento. Revise que únicamente sea "pdf, word, jpg o png."`,
+                        type: 'error',
+                        event: 'envio'
+                    });
+                } finally {
+                    // Ocultar el modal de carga independientemente del resultado
+                    loadingModal.style.display = 'none';
+                    acceptButton.disabled = false;
+                    cancelButton.disabled = false;
+                }
+            };
+
+            cancelButton.onclick = () => {
+                const modal = document.getElementById('custom-alert-modal');
+                modal.style.display = 'none';
+                inputArchivo.value = '';
+            };
+        }
+    });
+
+
+    const enlaceDescargaArchivoAdjunto = document.getElementById("edit-enlace-archivo");
+    fetch(`anticipos/obtener_adjunto?id_anticipo=${data.id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.ruta_archivo) {
+                enlaceDescargaArchivoAdjunto.href = data.ruta_archivo;
+                enlaceDescargaArchivoAdjunto.target = '_blank';
+                enlaceDescargaArchivoAdjunto.querySelector('p').textContent = 'Archivo cargado' || 'File.';
+            } else {
+                enlaceDescargaArchivoAdjunto.href = 'javascript:void(0)';
+                enlaceDescargaArchivoAdjunto.target = '';
+                enlaceDescargaArchivoAdjunto.querySelector('p').textContent = 'sin archivo.';
+            }
+        });
 
     document.getElementById("editAnticipoModal").setAttribute("data-user-anticipo", data.id_usuario);
 
@@ -1683,7 +1891,7 @@ async function showAnticipoDetails(data) {
                     <input type="hidden" name="edit-detalles_viajes[${index}][viaticos][hospedaje][id]" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'hospedaje')?.id || ''}">
                     <div class="modal-element">
                         <span class="placeholder">Días</span>
-                        <input type="number" class="form-control" name="edit-dias-hospedaje-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'hospedaje')?.dias || 0}" ${index != 0 ? 'readonly' : ''} >
+                        <input type="number" class="form-control" name="edit-dias-hospedaje-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'hospedaje')?.dias || 0}" ${index != 0 ? '' : ''} >
                     </div>
                     <div class="modal-element">
                         <span class="placeholder">Monto</span>
@@ -1701,7 +1909,7 @@ async function showAnticipoDetails(data) {
                     <input type="hidden" name="edit-detalles_viajes[${index}][viaticos][movilidad][id]" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'movilidad')?.id || ''}">
                     <div class="modal-element">
                         <span class="placeholder">Días</span>
-                        <input type="number" class="form-control" name="edit-dias-movilidad-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'movilidad')?.dias || 0}" ${index != 0 ? 'readonly' : ''}>
+                        <input type="number" class="form-control" name="edit-dias-movilidad-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'movilidad')?.dias || 0}" ${index != 0 ? '' : ''}>
                     </div>
                     <div class="modal-element">
                         <span class="placeholder">Monto</span>
@@ -1719,7 +1927,7 @@ async function showAnticipoDetails(data) {
                     <input type="hidden" name="edit-detalles_viajes[${index}][viaticos][alimentacion][id]" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'alimentacion')?.id || ''}">
                     <div class="modal-element">
                         <span class="placeholder">Días</span>
-                        <input type="number" class="form-control" name="edit-dias-alimentacion-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'alimentacion')?.dias || 0}" ${index != 0 ? 'readonly' : ''}>
+                        <input type="number" class="form-control" name="edit-dias-alimentacion-${index + 1}" value="${viaje.viaticos.find(v => v.concepto_nombre.toLowerCase() === 'alimentacion')?.dias || 0}" ${index != 0 ? '' : ''}>
                     </div>
                     <div class="modal-element">
                         <span class="placeholder">Monto</span>
@@ -1773,11 +1981,33 @@ async function showAnticipoDetails(data) {
                     calcularMontoEdit(idx, tipo);
                 });
             });
-
+            // limitación de días a la fecha de inicio y fin - limite dias viaticos
             ['alimentacion', 'hospedaje', 'movilidad'].forEach(tipo => {
                 const diasInput = tabContent.querySelector(`[name='edit-dias-${tipo}-${index + 1}']`);
                 diasInput.addEventListener("input", () => {
+
+                    // --- Validación de días para inputs de edición - modo editar ---
+
+                    const fechaInicio = document.getElementById("edit-fecha-ejecucion")?.value;
+                    const fechaFin = document.getElementById("edit-fecha-finalizacion")?.value;
+
+                    if (fechaInicio && fechaFin) {
+                        const inicio = new Date(fechaInicio);
+                        const fin = new Date(fechaFin);
+
+                        if (fin >= inicio) {
+                            const diffDias = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
+                            const valor = parseInt(diasInput.value) || 0;
+
+                            if (valor > diffDias) {
+                                alert(`El número máximo de días permitido es ${diffDias}.`);
+                                diasInput.value = 0;
+                            }
+                        }
+                    }
+    
                     calcularMontoEdit(index + 1, tipo);
+
                 });
             });
 
@@ -1858,7 +2088,7 @@ async function showAnticipoDetails(data) {
                                 const result = await response.json();
                                 console.log(result);// here actual
                                 if (result.success) {
-                                    console.log("Se eliminó el elemento de transporte");
+                                    //console.log("Se eliminó el elemento de transporte");
                                     showAlert({
                                         title: 'Completado',
                                         message: `El anticipo fue actualizado correctamente.`,
@@ -1866,7 +2096,7 @@ async function showAnticipoDetails(data) {
                                         event: 'envio'
                                     });
                                 } else {
-                                    console.log("No se pudo actualizar");
+                                    //console.log("No se pudo actualizar");
                                     showAlert({
                                         title: 'Error',
                                         message: `El anticipo no pudo ser actualizado. "${result.error}".`,
@@ -2158,7 +2388,7 @@ async function showAnticipoDetails(data) {
 
                 grupo.querySelector(".gasto-viaje").addEventListener("input", () => actualizarTotalGastosEdit('edit-'));
                 grupo.querySelector(".edit-remove-transporte-btn").addEventListener("click", () => {
-                    console.log("a");
+                    //console.log("a");
                     const validoInput = grupo.querySelector(`input[name*='[valido]']`);
                     if (validoInput) {
                         validoInput.value = '0';
@@ -2172,13 +2402,13 @@ async function showAnticipoDetails(data) {
         });
 
         // Ensure edit-adding-transp-provincial is visible only for Person 1
-    editTabsBody.addEventListener("click", function(e) {
-        const addButton = e.target.closest(".edit-adding-transp-provincial");
-        if (addButton) {
-            const persona = addButton.dataset.persona;
-            addButton.style.display = persona === "1" ? "block" : "none";
-        }
-    });
+        editTabsBody.addEventListener("click", function(e) {
+            const addButton = e.target.closest(".edit-adding-transp-provincial");
+            if (addButton) {
+                const persona = addButton.dataset.persona;
+                addButton.style.display = persona === "1" ? "block" : "none";
+            }
+        });
 
         // Actualizar el total después de cargar todos los datos
         actualizarTotalGastosEdit('edit-');
@@ -2204,29 +2434,102 @@ async function showAnticipoDetails(data) {
 
     //actualizarTotalGastosEdit('edit-');
     setTimeout(() => actualizarTotalGastosEdit('edit-'), 0);
-    
 
     // Validaciones para mostrar elementos de cambio de estado en base a estado de un anticipo y del rol del usuario
     const rolUsuario = document.getElementById("user-first-info").getAttribute("data-info");
     const estadoAnticipo = document.getElementById("edit-estado-anticipo").value;
     const containerCambioEstado = document.getElementById("container-cambio-estado");
 
-    // here here here
-    if(rolUsuario==2 && (estadoAnticipo=='Nuevo' || estadoAnticipo=='Observado')){
-        containerCambioEstado.style.display = 'flex';
-    }else if(rolUsuario==5){
-        if(estadoAnticipo=='Autorizado'){
-            containerCambioEstado.style.display = 'flex';
-            document.querySelector(".btn-observar-anticipo").style.display='block';
-            document.querySelector(".btn-aprobar-totalmente").style.display='block';
-        }else if(estadoAnticipo=='Autorizado Totalmente'){
-            //console.log("El anticipo se encuentra autorizado totalmente")
-            document.querySelector(".btn-abonar-anticipo").style.display='block';
-        }else{
-            containerCambioEstado.style.display = 'none';
+    //console.log(estadoAnticipo);
+    // Lógica para ocultar boton de descarga de archivo de autorización en word, según estado
+    const btnEditObtenerDocAutorizacion = document.getElementById("get-doc-autorizacion");
+    if(btnEditObtenerDocAutorizacion){
+        if(estadoAnticipo != 'Nuevo' && estadoAnticipo != 'Autorizado'){
+            btnEditObtenerDocAutorizacion.style.display = "none";
+            btnEditObtenerDocAutorizacion.style.visibility = "hidden";
         }
-    }else{
-        containerCambioEstado.style.display = 'none';
+    }
+
+    // Lógica para ocultar el boton de adjuntar autorización, según estado
+    // const btnAdjuntarDocAutorizacion = document.querySelector(".btn-aniadir-autorizacion");
+    // if(btnAdjuntarDocAutorizacion){
+    //     console.log(estadoAnticipo);
+    //     if(estadoAnticipo != 'Nuevo' && estadoAnticipo != 'Autorizado'){
+    //         btnAdjuntarDocAutorizacion.style.display = "none";
+    //         btnAdjuntarDocAutorizacion.style.visibility = "hidden";
+    //     }else{
+    //         btnAdjuntarDocAutorizacion.style.display = "block";
+    //         btnAdjuntarDocAutorizacion.style.visibility = "visible";
+    //     }
+    // }
+
+    // Lógica para ocultar el botn de adjuntar autorización según usuario
+    // const dniUsuarioBase = document.getElementById("base-dni-user");
+    // if(dniUsuarioBase){
+    //     if(dniUsuarioBase.innerText === data.dni_solicitante){
+    //         btnAdjuntarDocAutorizacion.style.display = "block";
+    //         btnAdjuntarDocAutorizacion.style.visibility = "visible";
+    //     }else{
+    //         btnAdjuntarDocAutorizacion.style.display = "none";
+    //         btnAdjuntarDocAutorizacion.style.visibility = "hidden";
+    //     }
+    // }
+    
+    // Probar
+    const btnAdjuntarDocAutorizacion = document.querySelector(".btn-aniadir-autorizacion");
+    const dniUsuarioBase = document.getElementById("base-dni-user");
+
+    if (btnAdjuntarDocAutorizacion && dniUsuarioBase) {
+        // Condición combinada: estado correcto Y usuario correcto
+        if ((estadoAnticipo === 'Nuevo' || estadoAnticipo === 'Autorizado') 
+            && dniUsuarioBase.innerText === data.dni_solicitante) {
+            
+            btnAdjuntarDocAutorizacion.style.display = "block";
+            btnAdjuntarDocAutorizacion.style.visibility = "visible";
+        } else {
+            btnAdjuntarDocAutorizacion.style.display = "none";
+            btnAdjuntarDocAutorizacion.style.visibility = "hidden";
+        }
+    }
+
+
+    // Lógica para botones por rol de usuario y estado
+    const btnAprobar = document.querySelector(".btn-aprobar-anticipo");
+    const btnAprobarGerencia = document.querySelector(".btn-aprobar-anticipo-gerencia");
+    const btnAprobarTotalmente = document.querySelector(".btn-aprobar-totalmente");
+    const btnObservar = document.querySelector(".btn-observar-anticipo");
+    const btnAbonar = document.querySelector(".btn-abonar-anticipo");
+
+    if (btnAprobar) btnAprobar.style.display = "none";
+    if (btnAprobarGerencia) btnAprobarGerencia.style.display = "none";
+    if (btnAprobarTotalmente) btnAprobarTotalmente.style.display = "none";
+    if (btnObservar) btnObservar.style.display = "none";
+    if (btnAbonar) btnAbonar.style.display = "none";
+
+    // Ahora aplicamos reglas según rol y estado
+    if (rolUsuario == 2) {
+        if (estadoAnticipo === "Nuevo" || estadoAnticipo === "Observado") {
+            containerCambioEstado.style.display = "flex";
+            if (btnAprobar) btnAprobar.style.display = "block";
+        } else if (estadoAnticipo === "Autorizado") {
+            containerCambioEstado.style.display = "flex";
+            if (btnAprobarGerencia) btnAprobarGerencia.style.display = "block";
+        } else {
+            containerCambioEstado.style.display = "none";
+        }
+    } else if (rolUsuario == 5) {
+        if (estadoAnticipo === "Autorizado por Gerencia") {
+            containerCambioEstado.style.display = "flex";
+            if (btnObservar) btnObservar.style.display = "block";
+            if (btnAprobarTotalmente) btnAprobarTotalmente.style.display = "block";
+        } else if (estadoAnticipo === "Autorizado Totalmente") {
+            containerCambioEstado.style.display = "flex";
+            if (btnAbonar) btnAbonar.style.display = "block";
+        } else {
+            containerCambioEstado.style.display = "none";
+        }
+    } else {
+        containerCambioEstado.style.display = "none";
     }
 
     // Se añade boton de descarga
@@ -2234,8 +2537,8 @@ async function showAnticipoDetails(data) {
     const modalFooter = document.getElementById('container-descarga');
     if (modalFooter) {
         modalFooter.innerHTML = `
-            <button type="button" class="btn btn-default descargar-anticipo" data-id="${data.id}" data-user="${data.solicitante_nombres.replace(/ /g, '_')}" title="Descargar detalles de anticipo.">
-                <i class="fa-solid fa-download"></i>
+            <button type="button" class="btn btn-descargar-anticipo descargar-anticipo" data-id="${data.id}" data-user="${data.solicitante_nombres.replace(/ /g, '_')}" title="Descargar detalles de anticipo.">
+                Detalles <i class="fa-solid fa-download"></i>
             </button>
         `;
     }
@@ -2358,6 +2661,10 @@ editAddTabBtn.addEventListener('click', async function() {
     editpersonaIndices.push(newIndex);
     editpersonaIndices.sort((a, b) => a - b);
 
+    // agregado para corregir error de que no se puede agregar nueva persona cuando se edita un anticipo
+    const persona1Existe = document.querySelector('[name="edit-dias-hospedaje-1"]') !== null;
+    const esBase = (newIndex === 1 || !persona1Existe);
+
     const newTabBtn = document.createElement("div");
     newTabBtn.className = "tab-button";
     newTabBtn.dataset.tab = `edit-persona-${newIndex}`;
@@ -2437,9 +2744,9 @@ editAddTabBtn.addEventListener('click', async function() {
         });
     }
 
-    const editNumDiasHospedaje = document.querySelector('[name="edit-dias-hospedaje-1"]').value;
-    const editNumDiasMovilidad = document.querySelector('[name="edit-dias-movilidad-1"]').value;
-    const editNumDiasAlimentacion = document.querySelector('[name="edit-dias-alimentacion-1"]').value;
+    const editNumDiasHospedaje = document.querySelector('[name="edit-dias-hospedaje-1"]')?.value || '';
+    const editNumDiasMovilidad = document.querySelector('[name="edit-dias-movilidad-1"]')?.value || '';
+    const editNumDiasAlimentacion = document.querySelector('[name="edit-dias-alimentacion-1"]')?.value || '';
 
     const newTabContent = document.createElement("div");
     newTabContent.className = "tab-content";
@@ -2485,7 +2792,7 @@ editAddTabBtn.addEventListener('click', async function() {
         <div class="viaje-element section-hospedaje-${newIndex}" style="display: none;">
             <div class="modal-element">
                 <span class="placeholder">Días</span>
-                <input type="number" class="form-control" name="edit-dias-hospedaje-${newIndex}" value="${editNumDiasHospedaje}" readonly>
+                <input type="number" class="form-control" name="edit-dias-hospedaje-${newIndex}" value="${editNumDiasHospedaje}" >
             </div>
             <div class="modal-element">
                 <span class="placeholder">Monto</span>
@@ -2502,7 +2809,7 @@ editAddTabBtn.addEventListener('click', async function() {
         <div class="viaje-element section-movilidad-${newIndex}" style="display: none;">
             <div class="modal-element">
                 <span class="placeholder">Días</span>
-                <input type="number" class="form-control" name="edit-dias-movilidad-${newIndex}" value="${editNumDiasMovilidad}" readonly>
+                <input type="number" class="form-control" name="edit-dias-movilidad-${newIndex}" value="${editNumDiasMovilidad}" >
             </div>
             <div class="modal-element">
                 <span class="placeholder">Monto</span>
@@ -2519,7 +2826,7 @@ editAddTabBtn.addEventListener('click', async function() {
         <div class="viaje-element section-alimentacion-${newIndex}" style="display: none;">
             <div class="modal-element">
                 <span class="placeholder">Días</span>
-                <input type="number" class="form-control" name="edit-dias-alimentacion-${newIndex}" value="${editNumDiasAlimentacion}" readonly>
+                <input type="number" class="form-control" name="edit-dias-alimentacion-${newIndex}" value="${editNumDiasAlimentacion}" >
             </div>
             <div class="modal-element">
                 <span class="placeholder">Monto</span>
@@ -2567,6 +2874,27 @@ editAddTabBtn.addEventListener('click', async function() {
     ['alimentacion', 'hospedaje', 'movilidad'].forEach(tipo => {
         const diasInput = newTabContent.querySelector(`[name='edit-dias-${tipo}-${newIndex}']`);
         diasInput.addEventListener("input", () => {
+
+            // --- Validación de días para inputs de edición - modo editar ---
+
+            const fechaInicio = document.getElementById("edit-fecha-ejecucion")?.value;
+            const fechaFin = document.getElementById("edit-fecha-finalizacion")?.value;
+
+            if (fechaInicio && fechaFin) {
+                const inicio = new Date(fechaInicio);
+                const fin = new Date(fechaFin);
+
+                if (fin >= inicio) {
+                    const diffDias = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
+                    const valor = parseInt(diasInput.value) || 0;
+
+                    if (valor > diffDias) {
+                        alert(`El número máximo de días permitido es ${diffDias}.`);
+                        diasInput.value = 0;
+                    }
+                }
+            }
+
             calcularMontoEdit(newIndex, tipo);
         });
     });
@@ -2590,7 +2918,7 @@ editAddTabBtn.addEventListener('click', async function() {
     });
 
     newTabContent.querySelectorAll(".edit-remove-transporte-btn").forEach(btn => {
-        console.log("a");
+        //console.log("a");
         btn.addEventListener("click", () => {
             const transporteElement = btn.closest(".transp-prov-element");
             const validoInput = transporteElement.querySelector(`input[name*='[valido]']`);
@@ -2610,6 +2938,166 @@ editAddTabBtn.addEventListener('click', async function() {
     newTabContent.style.display = 'block';
 
     actualizarBotonesEliminarEdit();
+
+    editTabsBody.addEventListener("click", function(e) {
+
+        if (e.target.classList.contains("edit-adding-transp-provincial")) {
+    
+            const persona = e.target.dataset.persona;
+            const container = document.getElementById(`edit-transp-prov-list-${persona}`);
+            const index = container.children.length;
+
+            const grupo = document.createElement("div");
+            grupo.classList.add("transp-prov-element");
+            grupo.innerHTML = `
+                <input type="hidden" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][valido]" value="1">
+                ${persona === "1" ? '<div class="edit-remove-transporte-btn"><i class="fa-regular fa-trash-can"></i></div>' : ''}
+                <div class="med-transporte">
+                    <div ${persona === "1" ? '' : 'style="display: none;"'}>
+                        <input type="radio" name="edit-tipo-transporte-${persona}-${index}" id="edit-terrestre-${persona}-${index}" value="terrestre" checked>
+                        <label for="edit-terrestre-${persona}-${index}">Terrestre</label>
+                    </div>
+                    <div ${persona === "1" ? '' : 'style="display: none;"'}>
+                        <input type="radio" name="edit-tipo-transporte-${persona}-${index}" id="edit-aereo-${persona}-${index}" value="aereo">
+                        <label for="edit-aereo-${persona}-${index}">Aéreo</label>
+                    </div>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Ciudad Origen</span>
+                    <input type="text" class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][ciudad_origen]" ${persona === "1" ? '' : 'readonly'}>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Ciudad Destino</span>
+                    <input type="text" class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][ciudad_destino]" ${persona === "1" ? '' : 'readonly'}>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Fecha</span>
+                    <input type="date" class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][fecha]" required ${persona === "1" ? '' : 'readonly'}>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Gasto</span>
+                    <input type="number" class="form-control gasto-viaje" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][monto]" required ${persona === "1" ? '' : 'readonly'}>
+                </div>
+                <div class="modal-element">
+                    <span class="placeholder">Moneda</span>
+                    <select class="form-control" name="edit-detalles_viajes[${persona - 1}][transporte][${index}][moneda]" ${persona === "1" ? '' : 'readonly'}>
+                        <option value="PEN" selected>PEN</option>
+                    </select>
+                </div>
+            `;
+            container.appendChild(grupo);
+
+            
+            // Sincronizar para otras personas cuando se edita o se añade información desde persona 1
+            if (persona === "1") {
+                editpersonaIndices.forEach(idx => {
+                    if (idx !== 1) {
+                        const otherContainer = document.getElementById(`edit-transp-prov-list-${idx}`);
+                        if (otherContainer) {
+                            const otherGrupo = document.createElement("div");
+                            otherGrupo.classList.add("transp-prov-element");
+                            otherGrupo.innerHTML = `
+                                <input type="hidden" name="edit-detalles_viajes[${idx - 1}][transporte][${index}][valido]" value="1">
+                        
+                                <div class="med-transporte">
+                                    <div>
+                                        <input type="radio" name="edit-tipo-transporte-${idx}-${index}" id="edit-terrestre-${idx}-${index}" value="terrestre" checked readonly>
+                                        <label for="edit-terrestre-${idx}-${index}">Terrestre</label>
+                                    </div>
+                                    <div>
+                                        <input type="radio" name="edit-tipo-transporte-${idx}-${index}" id="edit-aereo-${idx}-${index}" value="aereo" readonly>
+                                        <label for="edit-aereo-${idx}-${index}">Aéreo</label>
+                                    </div>
+                                </div>
+                                <div class="modal-element">
+                                    <span class="placeholder">Ciudad Origen</span>
+                                    <input type="text" class="form-control" name="edit-detalles_viajes[${idx - 1}][transporte][${index}][ciudad_origen]" readonly>
+                                </div>
+                                <div class="modal-element">
+                                    <span class="placeholder">Ciudad Destino</span>
+                                    <input type="text" class="form-control" name="edit-detalles_viajes[${idx - 1}][transporte][${index}][ciudad_destino]" readonly>
+                                </div>
+                                <div class="modal-element">
+                                    <span class="placeholder">Fecha</span>
+                                    <input type="date" class="form-control" name="edit-detalles_viajes[${idx - 1}][transporte][${index}][fecha]" required readonly>
+                                </div>
+                                <div class="modal-element">
+                                    <span class="placeholder">Gasto</span>
+                                    <input type="number" class="form-control gasto-viaje" name="edit-detalles_viajes[${idx - 1}][transporte][${index}][monto]" required readonly>
+                                </div>
+                                <div class="modal-element">
+                                    <span class="placeholder">Moneda</span>
+                                    <select class="form-control" name="edit-detalles_viajes[${idx - 1}][transporte][${index}][moneda]">
+                                        <option value="PEN" selected>PEN</option>
+                                    </select>
+                                </div>
+                            `;
+                            otherContainer.appendChild(otherGrupo);
+                        }
+                    }
+                });
+            }
+
+            // Sincronizar cambos para persona 1
+            if (persona === "1") {
+                const newInputs = {
+                    ciudadOrigen: grupo.querySelector(`[name*='[ciudad_origen]']`),
+                    ciudadDestino: grupo.querySelector(`[name*='[ciudad_destino]']`),
+                    fecha: grupo.querySelector(`[name*='[fecha]']`),
+                    monto: grupo.querySelector(`[name*='[monto]']`),
+                    tipoTransporte: grupo.querySelector(`input[name="edit-tipo-transporte-${persona}-${index + 1}"]:checked`)
+                };
+                Object.values(newInputs).forEach(input => {
+                    if (input) {
+                        input.addEventListener("input" || "change", () => {
+                            const values = {
+                                tipoTransporte: newInputs.tipoTransporte?.value || 'terrestre',
+                                ciudadOrigen: newInputs.ciudadOrigen?.value || '',
+                                ciudadDestino: newInputs.ciudadDestino?.value || '',
+                                fecha: newInputs.fecha?.value || '',
+                                monto: newInputs.monto?.value || ''
+                            };
+                            editpersonaIndices.forEach(idx => {
+                                if (idx !== 1) {
+                                    const otherItem = document.querySelector(`#edit-transp-prov-list-${idx} .transp-prov-element:nth-child(${index + 1})`);
+                                    if (otherItem) {
+                                        otherItem.querySelector(`input[name="edit-tipo-transporte-${idx}-${index + 1}"][value="${values.tipoTransporte}"]`)?.setAttribute('checked', true);
+                                        otherItem.querySelector(`[name*='[ciudad_origen]']`).value = values.ciudadOrigen;
+                                        otherItem.querySelector(`[name*='[ciudad_destino]']`).value = values.ciudadDestino;
+                                        otherItem.querySelector(`[name*='[fecha]']`).value = values.fecha;
+                                        otherItem.querySelector(`[name*='[monto]']`).value = values.monto;
+                                    }
+                                }
+                            });
+                            actualizarTotalGastosEdit('edit-');
+                        });
+                    }
+                });
+            }
+
+            if (persona === "1") {
+                ['ciudad_origen', 'ciudad_destino', 'fecha', 'monto'].forEach(field => {
+                    const input = grupo.querySelector(`[name*='[${index}][${field}]']`);
+                    if (input) {
+                        input.addEventListener("input", () => syncTransporteProvincial(index));
+                    }
+                });
+            }
+
+            grupo.querySelector(".gasto-viaje").addEventListener("input", () => actualizarTotalGastosEdit('edit-'));
+            grupo.querySelector(".edit-remove-transporte-btn").addEventListener("click", () => {
+                //console.log("a");
+                const validoInput = grupo.querySelector(`input[name*='[valido]']`);
+                if (validoInput) {
+                    validoInput.value = '0';
+                    grupo.style.display = 'none';
+                } else {
+                    grupo.remove();
+                }
+                actualizarTotalGastosEdit('edit-');
+            });
+        }
+    });
 });
 
 
@@ -2988,7 +3476,99 @@ if(btnAutorizarAprobador){
     })
 }
 
-// Autorizacion 2 de un anticipo
+// Autorización de  gerencia para un anticipo
+const btnAutorizarAprobadorGerencia = document.querySelector(".btn-aprobar-anticipo-gerencia");
+if(btnAutorizarAprobadorGerencia){
+    btnAutorizarAprobadorGerencia.addEventListener("click", async function(e){
+        // estos valores serán usados también para la notificación por correo electrónico
+        let idAnticipo = document.getElementById("edit-id-anticipo").value;
+        let dniSolicitante = document.getElementById("edit-dni-solicitante").value;
+        let solicitanteNombre = document.getElementById("edit-solicitante").value;
+        let sscc = document.getElementById("edit-codigo-sscc").value;
+        let nombreProyecto = document.getElementById("edit-nombre-proyecto").value;
+        let motivoAnticipo = document.getElementById("edit-motivo-anticipo").value;
+        let montoTotal = document.getElementById("edit-monto-total").value;
+
+        //let userId = btnAutorizarAprobador.getAttribute("data-aprobador");
+        
+        e.preventDefault();
+        showAlert({
+            title: 'Confirmación',
+            message: '¿Estás seguro de que deseas autorizar este anticipo? Esta acción no se puede deshacer.',
+            type: 'confirm',
+            event: 'confirm'
+        });
+        
+        const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+        const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+        
+        acceptButton.onclick = async () => {
+
+            // const comentario = document.getElementById('custom-alert-comentario').value;
+            const formData = new FormData();
+
+            acceptButton.disabled = true;
+            cancelButton.disabled = true;
+
+            formData.append("id", idAnticipo);
+            formData.append("dniSolicitante", dniSolicitante);
+            formData.append("comentario", 'Anticipo Autorizado por gerencia');
+            formData.append("sscc", sscc);
+            formData.append("solicitanteNombre", solicitanteNombre);
+            formData.append("nombreProyecto", nombreProyecto);
+            formData.append("motivoAnticipo", motivoAnticipo);
+            formData.append("montoTotal", montoTotal);
+
+            // Mostrar el modal de carga
+            const loadingModal = document.getElementById('loadingModal');
+            loadingModal.style.display = 'flex';
+
+            try {
+                const response = await fetch('anticipos/autorizacionGerencia', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showAlert({
+                        title: 'Completado',
+                        message: `El anticipo fue autorizado por gerencia correctamente.`,
+                        type: 'success',
+                        event: 'envio'
+                    });
+                    editAnticipoModal.style.display = 'none';
+                } else {
+                    showAlert({
+                        title: 'Error',
+                        message: `El anticipo no pudo ser autorizado. "${result.error}".`,
+                        type: 'error',
+                        event: 'envio'
+                    });
+                }
+            } catch (error) {
+                showAlert({
+                    title: 'Error',
+                    message: `No se pudo enviar la información del anticipo.`,
+                    type: 'error',
+                    event: 'envio'
+                });
+            } finally {
+                // Ocultar el modal de carga independientemente del resultado
+                loadingModal.style.display = 'none';
+                acceptButton.disabled = false;
+                cancelButton.disabled = false;
+            }
+        };
+
+        cancelButton.onclick = () => {
+            const modal = document.getElementById('custom-alert-modal');
+            modal.style.display = 'none';
+        };
+    })
+}
+
+// Autorizacion total por parte de tesorería de un anticipo
 const btnAutorizarTotalmente = document.querySelector(".btn-aprobar-totalmente");
 if(btnAutorizarTotalmente){
     btnAutorizarTotalmente.addEventListener("click", async function(e){
@@ -3207,7 +3787,7 @@ if(btnAbonarAnticipo){
         let fechaFin = document.getElementById("edit-fecha-finalizacion").value;
         let montoTotal = document.getElementById("edit-monto-total").value;
         
-        console.log(fechaFin);
+        //console.log(fechaFin);
 
         e.preventDefault();
         showAlert({
@@ -3247,7 +3827,7 @@ if(btnAbonarAnticipo){
 
                 const result = await response.json();
                 
-                console.log(result);
+                //console.log(result);
 
                 if (result.success) {
                     showAlert({
