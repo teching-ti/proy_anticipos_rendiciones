@@ -590,6 +590,8 @@ class AnticipoController {
             $archivo = $_FILES['archivo'];
             $nombre_original = $_POST['nombre_original'] ?? basename($archivo['name']);
 
+            $fecha = date('Y-m-d H:i:s');
+
             // Validar archivo
             $allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png'];
             if (!in_array($archivo['type'], $allowedTypes)) {
@@ -617,13 +619,14 @@ class AnticipoController {
 
                 if ($existente) {
                     // Actualizar el existente (reemplazar)
-                    $query = "UPDATE tb_anticipos_adjuntos SET nombre_archivo = :nombre, ruta_archivo = :ruta, tipo_archivo = :tipo, fecha_subida = NOW(), nombre_original = :nombre_original WHERE id = :id";
+                    $query = "UPDATE tb_anticipos_adjuntos SET nombre_archivo = :nombre, ruta_archivo = :ruta, tipo_archivo = :tipo, fecha_subida = :fecha, nombre_original = :nombre_original WHERE id = :id";
                     $stmt = $this->db->prepare($query);
                     $stmt->execute([
                         ':nombre' => $nombreArchivo,
                         ':ruta' => $rutaArchivo,
                         ':tipo' => $archivo['type'],
                         ':nombre_original' => $nombre_original,
+                        ':fecha' => $fecha,
                         ':id' => $existente['id']
                     ]);
                 } else {

@@ -1,3 +1,6 @@
+22092025
+Se corrigieron los horarios de registros automáticos para la zona de américa Lima. Se validó que los usuarios puedan adjuntar los documentos de autorización de descuento para recibir sus anticipos con los estados "nuevo, autorizado, autorizado por gerencia, observado"
+
 19092025-2
 Se agregaron modificaciones visuales para acomodar los botones en la parte inferior
 19092025

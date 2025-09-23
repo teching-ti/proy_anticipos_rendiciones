@@ -281,15 +281,16 @@ class AnticipoModel {
             }else {
                 error_log("No se recibieron detalles_gastos para insertar.");
             }
-
+            $fecha = date('Y-m-d H:i:s');
             // Insertar en historial
             $query = "INSERT INTO tb_historial_anticipos (id_anticipo, estado, id_usuario, fecha, comentario)
-                      VALUES (:id_anticipo, :estado, :id_usuario, NOW(), :comentario)";
+                      VALUES (:id_anticipo, :estado, :id_usuario, :fecha, :comentario)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 'id_anticipo' => $id_anticipo,
                 'estado' => 'Nuevo',
                 'id_usuario' => $id_usuario,
+                'fecha' => $fecha,
                 'comentario' => 'Anticipo creado'
             ]);
 
@@ -426,14 +427,16 @@ class AnticipoModel {
     
     // Actualizar estado de un anticipo y registrar en historial
    public function updateAnticipoEstado($id, $estado, $id_usuario, $comentario = null) {
+        $fecha = date('Y-m-d H:i:s');
         try {
             $query = "INSERT INTO tb_historial_anticipos (id_anticipo, estado, id_usuario, fecha, comentario)
-                      VALUES (:id_anticipo, :estado, :id_usuario, NOW(), :comentario)";
+                      VALUES (:id_anticipo, :estado, :id_usuario, :fecha, :comentario)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 'id_anticipo' => $id,
                 'estado' => $estado,
                 'id_usuario' => $id_usuario,
+                'fecha' => $fecha,
                 'comentario' => $comentario ?? "Cambio a $estado"
             ]);
             return true;
@@ -1046,20 +1049,23 @@ class AnticipoModel {
             if ($nuevo_saldo_disponible < 0) {
                 throw new Exception('No hay saldo suficiente en el presupuesto.');
             }
-
+            
+            $fecha = date('Y-m-d H:i:s');
             // Actualizar el presupuesto
             $query = "UPDATE tb_presupuestos_sscc 
-                      SET saldo_disponible = :saldo_disponible, ultima_actualizacion = NOW() 
+                      SET saldo_disponible = :saldo_disponible, ultima_actualizacion = :fecha 
                       WHERE id = :id";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 ':saldo_disponible' => $nuevo_saldo_disponible,
+                ':fecha' => $fecha,
                 ':id' => $id_presupuesto
             ]);
 
+            $fecha2 = date('Y-m-d H:i:s');
             // Registrar movimiento en tb_movimientos_presupuesto
             $query = "INSERT INTO tb_movimientos_presupuesto (id_presupuesto, tipo_movimiento, monto, id_anticipo, id_usuario, fecha, comentario)
-                      VALUES (:id_presupuesto, :tipo_movimiento, :monto, :id_anticipo, :id_usuario, NOW(), :comentario)";
+                      VALUES (:id_presupuesto, :tipo_movimiento, :monto, :id_anticipo, :id_usuario, :fecha2, :comentario)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 ':id_presupuesto' => $id_presupuesto,
@@ -1067,6 +1073,7 @@ class AnticipoModel {
                 ':monto' => $monto,
                 ':id_anticipo' => $id_anticipo,
                 ':id_usuario' => $id_usuario,
+                ':fecha2' => $fecha2,
                 ':comentario' => 'Anticipo'
             ]);
 

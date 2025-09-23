@@ -1,6 +1,8 @@
 <?php
 require_once 'src/config/Database.php';
 
+date_default_timezone_set('America/Lima');
+
 class PresupuestoSsccModel {
     private $db;
 
@@ -54,15 +56,17 @@ class PresupuestoSsccModel {
 
     // Insertar nuevo presupuesto en tb_presupuestos_sscc
     public function addPresupuesto($codigo_sscc, $saldo_inicial, $saldo_final, $saldo_disponible, $ultima_actualizacion, $activo) {
+        $fecha = date('Y-m-d H:i:s');
         try {
             $query = "INSERT INTO tb_presupuestos_sscc (codigo_sscc, saldo_inicial, saldo_final, saldo_disponible, ultima_actualizacion, activo) 
-                      VALUES (:codigo_sscc, :saldo_inicial, :saldo_final, :saldo_disponible, NOW(), :activo)";
+                      VALUES (:codigo_sscc, :saldo_inicial, :saldo_final, :saldo_disponible, :fecha, :activo)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 ':codigo_sscc' => $codigo_sscc,
                 ':saldo_inicial' => $saldo_inicial,
                 ':saldo_final' => $saldo_final,
                 ':saldo_disponible' => $saldo_disponible,
+                ':fecha' => $fecha,
                 ':activo' => $activo
             ]);
             return true;
@@ -134,14 +138,17 @@ class PresupuestoSsccModel {
                 throw new Exception('El monto a añadir no puede resultar en saldos negativos.');
             }
 
+            $fechaAct = date('Y-m-d H:i:s');
+
             // Actualizar el presupuesto
             $query = "UPDATE tb_presupuestos_sscc 
-                      SET saldo_disponible = :saldo_disponible, saldo_final = :saldo_final, ultima_actualizacion = NOW() 
+                      SET saldo_disponible = :saldo_disponible, saldo_final = :saldo_final, ultima_actualizacion = :ultima_actualizacion
                       WHERE id = :id";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 ':saldo_disponible' => $saldo_disponible,
                 ':saldo_final' => $saldo_final,
+                ':ultima_actualizacion' => $fechaAct,
                 ':id' => $presupuestoId
             ]);
 

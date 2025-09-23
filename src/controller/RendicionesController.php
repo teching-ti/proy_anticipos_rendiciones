@@ -471,6 +471,9 @@ class RendicionesController {
             $monto_solicitado = $_POST['monto_solicitado'];
             $monto_rendido = $_POST['monto_rendido_actual'];
 
+            $departamento = $_SESSION['trabajador']['departamento'];
+            //error_log("Departamento: ".$departamento);
+
             $model = new RendicionesModel();
             $result = $model->completarRendicion($id_rendicion, $id_usuario, $comentario);
 
@@ -479,6 +482,7 @@ class RendicionesController {
             $dniAutorizador = $this->trabajadorModel->getDniById($idAutorizador);
             $autorizador = $idAutorizador ? $this->trabajadorModel->getTrabajadorByDni($dniAutorizador) : null;
             $correo_autorizador = $autorizador && isset($autorizador['correo']) ? $autorizador['correo'] : null;
+
             error_log("Correo del autorizador". $correo_autorizador);
 
             // Obteniendo el correo del responsable
@@ -488,6 +492,9 @@ class RendicionesController {
             $correos_cc = [];
             if ($correo_autorizador) {
                 $correos_cc[] = $correo_autorizador; // Añadir el correo del autorizador a CC
+            }else{
+                $aprobadores = $this->trabajadorModel->getAprobadoresByDepartamento($departamento);
+                $correos_cc = $aprobadores;
             }
 
             if ($correo_responsable) {

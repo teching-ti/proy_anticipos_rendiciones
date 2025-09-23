@@ -1,6 +1,8 @@
 <?php
 require_once 'src/config/Database.php';
 
+date_default_timezone_set('America/Lima');
+
 class RendicionesModel {
     private $db;
     
@@ -11,13 +13,15 @@ class RendicionesModel {
 
     // Funcionalidad para actualizar el estado de una rendición
     public function updateEstado($id_rendicion, $estado, $id_usuario, $comentario = null) {
+        $fecha = date('Y-m-d H:i:s');
         try {
             $query = "INSERT INTO tb_historial_rendiciones (id_rendicion, estado, fecha, id_usuario, comentario)
-                      VALUES (:id_rendicion, :estado, NOW(), :id_usuario, :comentario)";
+                      VALUES (:id_rendicion, :estado, :fecha, :id_usuario, :comentario)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 ':id_rendicion' => $id_rendicion,
                 ':estado' => $estado,
+                ':fecha' => $fecha,
                 ':id_usuario' => $id_usuario,
                 ':comentario' => $comentario ?? "Cambio a $estado"
             ]);
@@ -237,6 +241,7 @@ class RendicionesModel {
     }
 
     public function aprobarRendicion($id_rendicion, $id_usuario) {
+        $fecha = date('Y-m-d H:i:s');
         try {
             $this->db->beginTransaction();
             error_log("Rendicion: $id_rendicion");
@@ -252,9 +257,9 @@ class RendicionesModel {
 
             // Insertar en tb_historial_rendiciones
             $queryInsert = "INSERT INTO tb_historial_rendiciones (id_rendicion, estado, fecha, id_usuario, comentario) 
-                            VALUES (:id_rendicion, 'Autorizado', NOW(), :id_usuario, 'Rendición Autorizada')";
+                            VALUES (:id_rendicion, 'Autorizado', :fecha, :id_usuario, 'Rendición Autorizada')";
             $stmtInsert = $this->db->prepare($queryInsert);
-            $stmtInsert->execute([':id_rendicion' => $id_rendicion, ':id_usuario' => $id_usuario]);
+            $stmtInsert->execute([':id_rendicion' => $id_rendicion, ':fecha' => $fecha, ':id_usuario' => $id_usuario]);
 
             $this->db->commit();
             return true;
@@ -266,13 +271,15 @@ class RendicionesModel {
     }
 
     public function observarRendicion($id_rendicion, $id_usuario, $comentario) {
+        $fecha = date('Y-m-d H:i:s');
         try {
             $this->db->beginTransaction();
             $query = "INSERT INTO tb_historial_rendiciones (id_rendicion, estado, fecha, id_usuario, comentario) 
-                    VALUES (:id_rendicion, 'Observado', NOW(), :id_usuario, :comentario)";
+                    VALUES (:id_rendicion, 'Observado', :fecha, :id_usuario, :comentario)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 ':id_rendicion' => $id_rendicion,
+                ':fecha' => $fecha,
                 ':id_usuario' => $id_usuario,
                 ':comentario' => $comentario
             ]);
@@ -286,13 +293,15 @@ class RendicionesModel {
     }
 
     public function corregirRendicion($id_rendicion, $id_usuario, $comentario) {
+        $fecha = date('Y-m-d H:i:s');
         try {
             $this->db->beginTransaction();
             $query = "INSERT INTO tb_historial_rendiciones (id_rendicion, estado, fecha, id_usuario, comentario) 
-                    VALUES (:id_rendicion, 'Completado', NOW(), :id_usuario, :comentario)";
+                    VALUES (:id_rendicion, 'Completado', :fecha, :id_usuario, :comentario)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 ':id_rendicion' => $id_rendicion,
+                ':fecha' => $fecha,
                 ':id_usuario' => $id_usuario,
                 ':comentario' => $comentario
             ]);
@@ -306,13 +315,15 @@ class RendicionesModel {
     }
 
     public function completarRendicion($id_rendicion, $id_usuario, $comentario) {
+        $fecha = date('Y-m-d H:i:s');
         try {
             $this->db->beginTransaction();
             $query = "INSERT INTO tb_historial_rendiciones (id_rendicion, estado, fecha, id_usuario, comentario) 
-                    VALUES (:id_rendicion, 'Completado', NOW(), :id_usuario, :comentario)";
+                    VALUES (:id_rendicion, 'Completado', :fecha, :id_usuario, :comentario)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 ':id_rendicion' => $id_rendicion,
+                ':fecha' => $fecha,
                 ':id_usuario' => $id_usuario,
                 ':comentario' => $comentario
             ]);
@@ -326,22 +337,26 @@ class RendicionesModel {
     }
 
     public function cerrarRendicion($id_rendicion, $id_usuario, $comentario, $id_anticipo) {
+        $fecha = date('Y-m-d H:i:s');
+        $fecha2 = date('Y-m-d H:i:s');
         try {
             $this->db->beginTransaction();
             $query = "INSERT INTO tb_historial_rendiciones (id_rendicion, estado, fecha, id_usuario, comentario) 
-                    VALUES (:id_rendicion, 'Rendido', NOW(), :id_usuario, :comentario)";
+                    VALUES (:id_rendicion, 'Rendido', :fecha, :id_usuario, :comentario)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 ':id_rendicion' => $id_rendicion,
+                ':fecha' => $fecha,
                 ':id_usuario' => $id_usuario,
                 ':comentario' => $comentario
             ]);
 
             $queryAnticipo = "INSERT INTO tb_historial_anticipos (id_anticipo, estado, fecha, id_usuario, comentario) 
-                          VALUES (:id_anticipo, 'Rendido', NOW(), :id_usuario, :comentario)";
+                          VALUES (:id_anticipo, 'Rendido', :fecha, :id_usuario, :comentario)";
             $stmtAnticipo = $this->db->prepare($queryAnticipo);
             $stmtAnticipo->execute([
                 ':id_anticipo' => $id_anticipo,
+                ':fecha' => $fecha2,
                 ':id_usuario' => $id_usuario,
                 ':comentario' => $comentario
             ]);

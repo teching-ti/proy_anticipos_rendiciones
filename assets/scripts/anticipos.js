@@ -2444,7 +2444,7 @@ async function showAnticipoDetails(data) {
     // Lógica para ocultar boton de descarga de archivo de autorización en word, según estado
     const btnEditObtenerDocAutorizacion = document.getElementById("get-doc-autorizacion");
     if(btnEditObtenerDocAutorizacion){
-        if(estadoAnticipo != 'Nuevo' && estadoAnticipo != 'Autorizado'){
+        if(estadoAnticipo != 'Nuevo' && estadoAnticipo != 'Autorizado' && estadoAnticipo != 'Autorizado por Gerencia' && estadoAnticipo!= 'Observado'){
             btnEditObtenerDocAutorizacion.style.display = "none";
             btnEditObtenerDocAutorizacion.style.visibility = "hidden";
         }
@@ -2481,7 +2481,7 @@ async function showAnticipoDetails(data) {
 
     if (btnAdjuntarDocAutorizacion && dniUsuarioBase) {
         // Condición combinada: estado correcto Y usuario correcto
-        if ((estadoAnticipo === 'Nuevo' || estadoAnticipo === 'Autorizado') 
+        if ((estadoAnticipo === 'Nuevo' || estadoAnticipo === 'Autorizado' || estadoAnticipo === 'Observado' || estadoAnticipo ==='Autorizado por Gerencia') 
             && dniUsuarioBase.innerText === data.dni_solicitante) {
             
             btnAdjuntarDocAutorizacion.style.display = "block";

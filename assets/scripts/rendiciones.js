@@ -93,10 +93,10 @@ function openComprobanteModal(item, idRendicion, latestEstado) {
 
     let puedeEditar = false;
 
-    if((latestEstado == 'Observado' || latestEstado == 'Nuevo') && (rol != 2 && rol != 3)){
-        puedeEditar = false;
-    }else{
+    if((latestEstado == 'Observado' || latestEstado == 'Nuevo') && (rol == 2 || rol == 3)){
         puedeEditar = true;
+    }else{
+        puedeEditar = false;
     }
 
     const persona = item.type === 'viatico' ? item.nombre_persona : 'Solicitante';
