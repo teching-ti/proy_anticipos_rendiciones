@@ -1,3 +1,24 @@
+30092025
+- En index.php se creó la ruta para anular el anticipo
+
+- En 'AnticipoModel' se modificó la función de AnticipoPendiente para que no se tome en cuenta cuando el estado es Rendido o Anulado
+//return $estado != false && $estado != 'Rendido';
+return $estado !== false && !in_array($estado, ['Rendido', 'Anulado']);
+
+- En 'AnticipoController' se agregó la función.  public function anularAnticipo()
+
+- En 'anticipos.php' se agregó el elementó del botón 'Anular', dentro del container-cambio-estado en modal-footer.
+
+- En anticipos.css se agregó el btn para anular anticipo
+
+- En anticipos.js se agregó funcionalidad de envío y confirmación para anulación de anticipo junto con la ruta que se encarga de esta actividad
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------
+25092025
+Se agregó un mensaje a manera de recordatorio para que los usuarios adjunten su documento de autorización
+
 22092025
 Se corrigieron los horarios de registros automáticos para la zona de américa Lima. Se validó que los usuarios puedan adjuntar los documentos de autorización de descuento para recibir sus anticipos con los estados "nuevo, autorizado, autorizado por gerencia, observado"
 

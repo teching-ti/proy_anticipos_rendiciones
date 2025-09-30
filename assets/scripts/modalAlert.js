@@ -105,7 +105,17 @@ function showAlert({ title = 'Alerta', message, type = 'info', event = ''} = {})
     const cancelButton = document.getElementById('custom-alert-btn-cancelar');
 
     titleElement.textContent = title;
-    messageElement.textContent = message;
+    // anteriormente estaba colocando de forma directa el messageElement.textContent = message; Se agregó esta condición para mostrar el mensaje.
+    if(message=="Anticipo registrado con éxito"){
+        messageElement.innerHTML = `<p style="text-align: left; font-weight: bolder;">Estimado usuario, no olvide adjuntar el documento de autorización de descuento. Para ello debe seguir los siguiente pasos dentro de su anticipo creado:"</p>
+        <br>
+        <br>
+        <img src="assets/img/recordatorioDocAut.png" style="width: 80%"/>
+        <br>
+        <p style="font-weight: bolder;">Caso contrario, su anticipo puede ser observado. Muchas gracias.</p>`;
+    }else{
+        messageElement.textContent = message;
+    }
 
     if (acceptButton && cancelButton) {
         acceptButton.className = 'custom-alert-button';
@@ -134,9 +144,12 @@ function showAlert({ title = 'Alerta', message, type = 'info', event = ''} = {})
         }
 
         closeButton.onclick = () => {
-            modal.style.display = 'none';
-            if (event === 'envio') {
-                location.reload();
+            if(event === 'envio'){
+                setTimeout(function(){
+                    location.reload();
+                }, 1000);
+            }else{
+                modal.style.display = 'none';
             }
         };
     }

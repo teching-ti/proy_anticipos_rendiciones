@@ -219,7 +219,8 @@ class AnticipoModel {
             $stmt = $this->db->prepare($query);
             $stmt->execute(['id_solicitante' => $id_solicitante]);
             $estado = $stmt->fetchColumn();
-            return $estado != false && $estado != 'Rendido';
+            //return $estado != false && $estado != 'Rendido';
+            return $estado !== false && !in_array($estado, ['Rendido', 'Anulado']);
         } catch (PDOException $e) {
             return false;
         }

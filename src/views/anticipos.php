@@ -10,7 +10,7 @@ unset($_SESSION['success'], $_SESSION['error']);
 
 <section class="anticipos-content" style="display: none;">
     <!-- Incluir alert.js -->
-    <script src="assets/scripts/modalAlert.js"></script>
+    <script src="assets/scripts/modalAlert.js?v=1.2"></script>
 
     <!-- Notificaciones -->
     <?php if (isset($_SESSION['success'])): ?>
@@ -393,6 +393,9 @@ unset($_SESSION['success'], $_SESSION['error']);
                                     </div>
                                     <div class="btn-abonar-anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
                                         Abonado
+                                    </div>
+                                    <div class="btn-anular-anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                        Anular
                                     </div>
                                 <?php endif;?>
                             </div>

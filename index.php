@@ -56,6 +56,7 @@ $routes = [
     'anticipos/autorizacionGerencia' => ['controller' => 'anticipo', 'action' => 'autorizacionGerencia'],
     'anticipos/autorizarTotalmente' => ['controller' => 'anticipo', 'action' => 'autorizarTotalmente'],
     'anticipos/observarAnticipo' => ['controller' => 'anticipo', 'action' => 'observarAnticipo'],
+    'anticipos/anularAnticipo' => ['controller' => 'anticipo', 'action' => 'anularAnticipo'],
     'anticipos/abonarAnticipo' => ['controller' => 'anticipo', 'action' => 'abonarAnticipo'],
     'anticipos/getComprasMenores' => ['controller' => 'anticipo', 'action' => 'getComprasMenores'], // se usa para descargar en excel
     'anticipos/getViaticos' => ['controller' => 'anticipo', 'action' => 'getViaticos'],

@@ -629,6 +629,11 @@
     color: #f5f6fa;
 }
 
+.anulado{
+    background-color: #8b9cb6;
+    color: #f5f6fa;
+}
+
 .observado{
     background-color: #ff3838;
     color: #f5f6fa;
@@ -831,6 +836,23 @@ label {
 .btn-observar-anticipo:hover{
     background-color: #d42c1f;
     box-shadow: rgba(199, 70, 70, 0.4) 0px 0px 0px 2px, rgba(199, 70, 70, 0.4) 0px 4px 6px -1px, rgba(199, 70, 70, 0.4) 0px 1px 0px inset;
+}
+
+.btn-anular-anticipo{
+    /*display: none;*/
+    width: fit-content;
+    padding: .5rem 1rem;
+    background-color: #8594ac;
+    color: #fff;
+    transition: all ease-in-out .4s;
+    border-radius: .4rem;
+    font-size: .98rem;
+    cursor: pointer;
+}
+
+.btn-anular-anticipo:hover{
+    background-color: #8b9cb6;
+    box-shadow: rgba(149, 152, 156, 0.4) 0px 0px 0px 2px, rgba(143, 145, 148, 0.4) 0px 4px 6px -1px, rgba(208, 211, 214, 0.4) 0px 1px 0px inset;
 }
 
 .btn-abonar-anticipo{

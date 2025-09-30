@@ -1042,7 +1042,7 @@ document.getElementById('addAnticipoForm').addEventListener('submit', function(e
                 loadingModal.style.display = 'none';
 
                 showAlert({
-                    title: data.success ? 'Éxito' : 'Error',
+                    title: data.success ? 'Aviso Importante' : 'Error',
                     message: data.message,
                     type: data.success ? 'success' : 'error',
                     event: data.success ? 'envio' : ''
@@ -1489,7 +1489,7 @@ async function showAnticipoDetails(data) {
 
             const acceptButton = document.getElementById('custom-alert-btn-aceptar');
             const cancelButton = document.getElementById('custom-alert-btn-cancelar');
-            // here aqui
+            
             acceptButton.onclick = () => {
                 const formData = new FormData();
 
@@ -2086,7 +2086,7 @@ async function showAnticipoDetails(data) {
                                     body: formData
                                 });
                                 const result = await response.json();
-                                console.log(result);// here actual
+                                //console.log(result);
                                 if (result.success) {
                                     //console.log("Se eliminó el elemento de transporte");
                                     showAlert({
@@ -2499,12 +2499,14 @@ async function showAnticipoDetails(data) {
     const btnAprobarTotalmente = document.querySelector(".btn-aprobar-totalmente");
     const btnObservar = document.querySelector(".btn-observar-anticipo");
     const btnAbonar = document.querySelector(".btn-abonar-anticipo");
+    const btnAnular = document.querySelector("btn-anular-anticipo");
 
     if (btnAprobar) btnAprobar.style.display = "none";
     if (btnAprobarGerencia) btnAprobarGerencia.style.display = "none";
     if (btnAprobarTotalmente) btnAprobarTotalmente.style.display = "none";
     if (btnObservar) btnObservar.style.display = "none";
     if (btnAbonar) btnAbonar.style.display = "none";
+    if (btnAnular) btnAbonar.style.display = "block";
 
     // Ahora aplicamos reglas según rol y estado
     if (rolUsuario == 2) {
@@ -2525,8 +2527,10 @@ async function showAnticipoDetails(data) {
         } else if (estadoAnticipo === "Autorizado Totalmente") {
             containerCambioEstado.style.display = "flex";
             if (btnAbonar) btnAbonar.style.display = "block";
-        } else {
+        } else if(estadoAnticipo==="Abonado" || estadoAnticipo==="Rendido" || estadoAnticipo==="Anulado"){
             containerCambioEstado.style.display = "none";
+        } else {
+            containerCambioEstado.style.display = "flex";
         }
     } else {
         containerCambioEstado.style.display = "none";
@@ -2569,6 +2573,8 @@ async function showAnticipoDetails(data) {
             Nombre_de_Proyecto: data.nombre_proyecto,
             Fecha_de_Solicitud: data.fecha_solicitud,
             Motivo_del_Anticipo: data.motivo_anticipo,
+            Fecha_de_Ejecucion: data.fecha_inicio,
+            Fecha_de_Finalizacion: data.fecha_fin,
             Monto_Total_Solicitado: parseFloat(data.monto_total_solicitado).toFixed(2)
         };
 
@@ -3758,6 +3764,122 @@ if(btnObservarAnticipo){
         acceptButton.style.cursor = "not-allowed";
 
         // 🔹 Activar/desactivar según la longitud del comentario
+        const comentarioInput = document.getElementById('custom-alert-comentario');
+        comentarioInput.addEventListener("input", function() {
+            if (this.value.trim().length >= 6) {
+                acceptButton.disabled = false;
+                acceptButton.style.opacity = "1";
+                acceptButton.style.cursor = "pointer";
+            } else {
+                acceptButton.disabled = true;
+                acceptButton.style.opacity = "0.5";
+                acceptButton.style.cursor = "not-allowed";
+            }
+        });
+    })
+}
+
+// Anular Anticipo
+const btnAnularAnticipo = document.querySelector(".btn-anular-anticipo");
+if(btnAnularAnticipo){
+    btnAnularAnticipo.addEventListener("click", async function(e){
+        let idAnticipo = document.getElementById("edit-id-anticipo").value;
+        //let userId = btnAutorizarAprobador.getAttribute("data-aprobador");
+
+        let dniSolicitante = document.getElementById("edit-dni-solicitante").value;
+        let solicitanteNombre = document.getElementById("edit-solicitante").value;
+        let sscc = document.getElementById("edit-codigo-sscc").value;
+        let nombreProyecto = document.getElementById("edit-nombre-proyecto").value;
+        let motivoAnticipo = document.getElementById("edit-motivo-anticipo").value;
+        let montoTotal = document.getElementById("edit-monto-total").value;
+        
+        e.preventDefault();
+        showAlert({
+            title: 'Confirmación',
+            message: '¿Estás seguro de que desea anular este anticipo? Esta acción no podrá ser revertida',
+            type: 'confirm',
+            event: 'confirm-comment'
+        });
+
+        const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+        const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+        
+        acceptButton.onclick = async () => {
+
+            const comentario = document.getElementById('custom-alert-comentario').value.trim();
+
+            // Si el boton se encuentra desactivado, no se realizará nada
+            if (acceptButton.disabled) {
+                return;
+            }
+
+            const formData = new FormData();
+
+            acceptButton.disabled = true;
+            cancelButton.disabled = true;
+
+            formData.append("id", idAnticipo);
+            formData.append("comentario", comentario);
+            formData.append("dniSolicitante", dniSolicitante);
+            formData.append("solicitanteNombre", solicitanteNombre);
+            formData.append("sscc", sscc);
+            formData.append("nombreProyecto", nombreProyecto);
+            formData.append("motivoAnticipo", motivoAnticipo);
+            formData.append("montoTotal", montoTotal);
+
+            // Mostrar el modal de carga
+            const loadingModal = document.getElementById('loadingModal');
+            loadingModal.style.display = 'flex';
+
+            try {
+                const response = await fetch('anticipos/anularAnticipo', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showAlert({
+                        title: 'Completado',
+                        message: `El anticipo fue anulado correctamente.`,
+                        type: 'success',
+                        event: 'envio'
+                    });
+                    editAnticipoModal.style.display = 'none';
+                } else {
+                    showAlert({
+                        title: 'Error',
+                        message: `El anticipo no pudo ser marcado como observado. "${result.error}".`,
+                        type: 'error',
+                        event: 'envio'
+                    });
+                }
+            } catch (error) {
+                showAlert({
+                    title: 'Error',
+                    message: `No se pudo enviar la información del anticipo.`,
+                    type: 'error',
+                    event: 'envio'
+                });
+            } finally {
+                // Ocultar el modal de carga independientemente del resultado
+                loadingModal.style.display = 'none';
+                acceptButton.disabled = false;
+                cancelButton.disabled = false;
+            }
+        };
+
+        cancelButton.onclick = () => {
+            const modal = document.getElementById('custom-alert-modal');
+            modal.style.display = 'none';
+        };
+
+        // Deshabilitar el botón por defecto
+        acceptButton.disabled = true;
+        acceptButton.style.opacity = "0.5"; // efecto visual
+        acceptButton.style.cursor = "not-allowed";
+
+        // Activar/desactivar según la longitud del comentario
         const comentarioInput = document.getElementById('custom-alert-comentario');
         comentarioInput.addEventListener("input", function() {
             if (this.value.trim().length >= 6) {

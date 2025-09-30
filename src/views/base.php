@@ -22,8 +22,8 @@
     <!-- Page tiitle -->
     <title><?= htmlspecialchars($titulo)?></title>
     <!-- Estilos -->
-    <link rel="stylesheet" href="assets/styles/base.css">
-    <link rel="stylesheet" href="assets/styles/modalAlert.css">
+    <link rel="stylesheet" href="assets/styles/base.css?v=1.1">
+    <link rel="stylesheet" href="assets/styles/modalAlert.css?v=1.1">
     <link rel="stylesheet" href="assets/styles/<?= htmlspecialchars($hoja_de_estilos) ?>">
     <!-- fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -1209,6 +1209,116 @@ class AnticipoController {
         exit;
     }
 
+    //  Funcionalidad para anular un anticipo
+    public function anularAnticipo() {
+        if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 5) {
+            error_log( 'No tiene permisos para realizar este tipo de actividad');
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'No tiene permisos para realizar este tipo de actividad']);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
+            $id = (int)$_POST['id'];
+
+            // Elementos enviados para la notificación por correo
+            $dniSolicitante = $_POST['dniSolicitante'];
+            $solicitanteNombre = $_POST['solicitanteNombre'];
+            $sscc = $_POST['sscc'];
+            $nombreProyecto = $_POST['nombreProyecto'];
+            $motivoAnticipo = $_POST['motivoAnticipo'];
+            $montoTotal = $_POST['montoTotal'];
+
+            $comentario = trim($_POST['comentario'] ?? 'Anticipo Anulado');
+
+            $latestEstado = $this->anticipoModel->getLatestAnticipoEstado($id);
+            error_log("Resultado de latestEstado:");
+            error_log($latestEstado);
+            // $ultimoAutorizador = $latestEstado['id_usuario'];
+
+            if ($latestEstado === null) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'No se pudo verificar el estado del anticipo']);
+                exit;
+            }
+
+            if ($this->anticipoModel->updateAnticipoEstado($id, 'Anulado', $_SESSION['id'], $comentario)) {
+
+                $idAutorizador = $this->anticipoModel->getLastAuthorizerId($id);
+                error_log("Id del autorizador: ".$idAutorizador);
+
+                $dniAutorizador = $this->trabajadorModel->getDniById($idAutorizador);
+                error_log("DNI del autorizador: ".$dniAutorizador);
+
+                // Obtener el correo del autorizador
+                $autorizador = $idAutorizador ? $this->trabajadorModel->getTrabajadorByDni($dniAutorizador) : null;
+                $correo_autorizador = $autorizador && isset($autorizador['correo']) ? $autorizador['correo'] : null;
+                error_log("Correo del autorizador". $correo_autorizador);
+                
+                // Se obtiene el correo del tesorero para la notificación
+                $correo_tesorero = $_SESSION['trabajador']['correo'];
+
+                //url usada en el correo
+                $url_plataforma = 'http://192.168.1.193/proy_anticipos_rendiciones/anticipos';
+
+                $solicitante = $this->trabajadorModel->getTrabajadorByDni($dniSolicitante);
+                $correo_solicitante = $solicitante['correo'];
+
+                $correos_cc = [$correo_solicitante];
+                if ($correo_autorizador) {
+                    $correos_cc[] = $correo_autorizador; // Añadir el correo del autorizador a CC
+                }
+
+                if ($correo_solicitante) {
+
+                    $to = $correo_tesorero;
+                    $subject = "SIAR - TECHING - Anticipo N° $id ha sido anulado";
+
+                    $body = "
+                        <p><img alt='Logo SIAR' src='{$this->logoBase64}' width='140' /></p>
+                        <h2>Notificación de Anticipo</h2>
+                        <p>El anticipo fue anulado por tesorería. Información del anticipo:</p>
+                        <ul>
+                            <li><strong>N° de Anticipo:</strong> $id</li>
+                            <li><strong>Motivo:</strong> $motivoAnticipo</li>
+                            <li><strong>DNI Solicitante:</strong> $dniSolicitante</li>
+                            <li><strong>Nombre Solicitante: $solicitanteNombre</strong></li>
+                            <li><strong>Sub sub-centro de costo:</strong> $sscc</li>
+                            <li><strong>Nombre del Proyecto:</strong> $nombreProyecto</li>
+                            <li><strong>Monto:</strong> $montoTotal</li>
+                            <p><strong>Motivo de anulación:</strong> $comentario</p>
+                        </ul>
+                        <hr>
+                        <br>
+                        <p>No es necesario responder a este mensaje. Deberá ingresar a la plataforma SIAR para obtener más detalles del anticipo.</p>
+                        <a href='{$url_plataforma}'>SIAR - TECHING</a>
+                    ";
+
+                    error_log("Correo del solciitante" .$correo_solicitante);
+
+                    if ($this->emailConfig->sendSiarNotification($to, $subject, $body, $correos_cc)) {
+                        error_log("Anticipo anulado y con notificación enviada");
+                        } else {
+                            error_log("No se pudo enviar la notificación");
+                        }
+
+                    } else {
+                        error_log("No se envió el correo, no se encontró el correo del solicitante");
+                    }
+
+                header('Content-Type: application/json');
+                echo json_encode(['success' => 'Anticipo anulado.']);
+                exit;
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'El anticipo no pudo ser anulado.']);
+                exit;
+            }
+        }
+        header("Location: /".$_SESSION['ruta_base']."/anticipos");
+        exit;
+    }
+
     public function abonarAnticipo() {
         if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 5) {
             //error_log('No tiene permisos para realizar este tipo de actividad');
