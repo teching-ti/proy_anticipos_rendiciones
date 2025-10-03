@@ -1,3 +1,8 @@
+03102025
+- Se modifició el controlador de AntiicpoController, directamente el metodo Add porque se habían identificado registros con viaticos y compras pero no viajaba la información de los viaticos agregados.
+- Se modificó el archivo de anticipos.js para que la validación de búsqueda por dni no realice un envío de fetch con campo vacio o menos dígitos.
+- Se modificó rendiciones.js para permitir agregar archivos excel y txt. Como comprobantes
+
 30092025
 - En index.php se creó la ruta para anular el anticipo
 

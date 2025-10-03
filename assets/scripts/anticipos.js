@@ -562,6 +562,11 @@ async function agregarNuevaPersona() {
     newTabContent.querySelector(".lupa").addEventListener("click", async function(){
         const index = this.dataset.index;
         const docId = document.querySelector(`[name='doc-id-${index}']`).value;
+
+        if (!docId.trim() || docId.trim().length<8) {
+            alert("El número ingresado no es válido"); return; 
+        }
+
         const inputNombres = document.querySelector(`[name=persona-nombre-${index}]`);
         const res = await fetch(`usuarios/anticipoBuscarDni?doc-identidad=${docId}`);
         const data = await res.json();
@@ -2499,7 +2504,7 @@ async function showAnticipoDetails(data) {
     const btnAprobarTotalmente = document.querySelector(".btn-aprobar-totalmente");
     const btnObservar = document.querySelector(".btn-observar-anticipo");
     const btnAbonar = document.querySelector(".btn-abonar-anticipo");
-    const btnAnular = document.querySelector("btn-anular-anticipo");
+    const btnAnular = document.querySelector(".btn-anular-anticipo");
 
     if (btnAprobar) btnAprobar.style.display = "none";
     if (btnAprobarGerencia) btnAprobarGerencia.style.display = "none";
@@ -2522,11 +2527,13 @@ async function showAnticipoDetails(data) {
     } else if (rolUsuario == 5) {
         if (estadoAnticipo === "Autorizado por Gerencia") {
             containerCambioEstado.style.display = "flex";
+            if (btnAbonar) btnAbonar.style.display = "none";
             if (btnObservar) btnObservar.style.display = "block";
             if (btnAprobarTotalmente) btnAprobarTotalmente.style.display = "block";
         } else if (estadoAnticipo === "Autorizado Totalmente") {
             containerCambioEstado.style.display = "flex";
             if (btnAbonar) btnAbonar.style.display = "block";
+            if (btnAnular) btnAnular.style.display = "none";
         } else if(estadoAnticipo==="Abonado" || estadoAnticipo==="Rendido" || estadoAnticipo==="Anulado"){
             containerCambioEstado.style.display = "none";
         } else {

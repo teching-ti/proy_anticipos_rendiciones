@@ -87,6 +87,7 @@ class AnticipoController {
 
 
     // Funcionalidad para agregar un anticipo
+    /*
     public function add() {
 
         if (!isset($_SESSION['id'])) {
@@ -306,7 +307,7 @@ class AnticipoController {
                                 . $fecha_formateada . ".";
                                 //$respuesta = "Su anticipo estará siendo atendido en la próxima fecha de atención: $fecha_formateada";
                             } else {
-                                /*$response['message'] = "Anticipo registrado con éxito";*/
+                                //$response['message'] = "Anticipo registrado con éxito";
                                 $respuesta = "Anticipo registrado con éxito";
                             }
 
@@ -373,6 +374,206 @@ class AnticipoController {
         }
         require_once 'src/views/anticipos.php';
     }
+    */
+
+    public function add() {
+
+        if (!isset($_SESSION['id'])) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Sesión no iniciada.']);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $response = ['success' => false, 'message' => '']; 
+
+            // Datos principales
+            $id_usuario = $_SESSION['id'];
+            $solicitante = $_SESSION['nombre_usuario'];
+            $solicitante_nombres = trim($_POST['solicitante'] ?? '');
+            $dni_solicitante = $_SESSION['dni'];
+            $departamento = $_SESSION['trabajador']['departamento'];
+            $departamento_nombre = $_SESSION['trabajador']['departamento_nombre'];
+            $cargo = $_SESSION['trabajador']['cargo'];
+            $codigo_sscc = trim($_POST['codigo_sscc'] ?? '');
+            $nombre_proyecto = trim($_POST['nombre_proyecto'] ?? '');
+            $fecha_solicitud = trim($_POST['fecha_solicitud'] ?? '');
+            $fecha_inicio = trim($_POST['fecha_ejecucion'] ?? '');
+            $fecha_fin = trim($_POST['fecha_finalizacion'] ?? '');
+            $motivo_anticipo = trim($_POST['motivo-anticipo'] ?? '');
+            $monto_total_solicitado = (float)($_POST['monto-total'] ?? 0);
+            $id_cat_documento = trim($_POST['id_cat_documento'] ?? '1');
+
+            // Compras menores
+            $detalles_gastos = $_POST['detalles_gastos'] ?? [];
+            foreach ($detalles_gastos as &$detalle) {
+                $detalle['moneda'] = strtoupper($detalle['moneda'] ?? '');
+                $detalle['importe'] = (float)($detalle['importe'] ?? 0);
+            }
+            unset($detalle);
+
+            // Viajes
+            $detalles_viajes = [];
+            $conceptos_validos = array_column($this->anticipoModel->getConceptosViaticos(), 'id', 'nombre');
+            foreach ($_POST as $key => $value) {
+                if (preg_match('/^doc-id-(\d+)$/', $key, $matches)) {
+                    $index = $matches[1];
+                    $detalles_viajes[$index] = [
+                        'doc_identidad' => $value,
+                        'nombre_persona' => $_POST["persona-nombre-$index"] ?? '',
+                        'id_cargo' => (int)($_POST["cargo-nombre-$index"] ?? 0),
+                        'viaticos' => [],
+                        'transporte' => []
+                    ];
+                    foreach (['alimentacion', 'hospedaje', 'movilidad'] as $tipo) {
+                        $id_concepto = $conceptos_validos[$tipo] ?? null;
+                        if ($id_concepto && isset($_POST["dias-$tipo-$index"]) && (int)$_POST["dias-$tipo-$index"] > 0) {
+                            $detalles_viajes[$index]['viaticos'][] = [
+                                'id_concepto' => $id_concepto,
+                                'dias' => (int)($_POST["dias-$tipo-$index"] ?? 0),
+                                'monto' => (float)($_POST["monto-$tipo-$index"] ?? 0)
+                            ];
+                        }
+                    }
+                }
+                if (preg_match('/^gasto-viaje-(\d+)-(\d+)$/', $key, $matches)) {
+                    $index = $matches[1];
+                    $subindex = $matches[2];
+                    $detalles_viajes[$index]['transporte'][] = [
+                        'tipo_transporte' => $_POST["tipo-transporte-$index-$subindex"] ?? '',
+                        'ciudad_origen' => trim($_POST["ciudad-origen-$index-$subindex"] ?? ''),
+                        'ciudad_destino' => trim($_POST["ciudad-destino-$index-$subindex"] ?? ''),
+                        'fecha' => $_POST["fecha-$index-$subindex"] ?? '',
+                        'monto' => (float)($value ?? 0)
+                    ];
+                }
+            }
+
+            // Validaciones generales
+            if (empty($codigo_sscc) || empty($nombre_proyecto) || empty($fecha_solicitud) || empty($motivo_anticipo) || $monto_total_solicitado <= 0 || !$id_cat_documento) {
+                $response['message'] = 'Los campos sub-subcentro, proyecto, fecha, motivo y monto son obligatorios. El monto debe ser mayor a 0.';
+            } elseif (!strtotime($fecha_solicitud)) {
+                $response['message'] = 'La fecha de solicitud debe tener el formato YYYY-MM-DD.';
+            } elseif(empty($fecha_inicio) && empty($fecha_fin)) {
+                $response['message'] = 'Los campos de fecha deben ser completados.';
+            } elseif($fecha_inicio > $fecha_fin) {
+                $response['message'] = "La fecha de fin debe ser mayor o igual a la fecha de inicio.";
+            }
+
+            // Validaciones de compras menores
+            foreach ($detalles_gastos as $index => $detalle) {
+                if (empty($detalle['descripcion']) || empty($detalle['motivo']) || !isset($detalle['importe']) || empty($detalle['moneda'])) {
+                    $response['message'] = "El detalle de gasto #$index tiene campos incompletos.";
+                }
+            }
+
+            // Validaciones de viajes
+            foreach ($detalles_viajes as $index => $persona) {
+                if (empty($persona['doc_identidad']) || !preg_match('/^[0-9A-Za-z]{1,11}$/', $persona['doc_identidad'])) {
+                    $response['message'] = "Documento de identidad de la persona #$index inválido.";
+                }
+                if (empty($persona['nombre_persona'])) {
+                    $response['message'] = "Nombre de la persona #$index inválido.";
+                }
+                if (empty($persona['id_cargo']) || !$this->anticipoModel->cargoExists($persona['id_cargo'])) {
+                    $response['message'] = "Cargo de la persona #$index inválido.";
+                }
+
+                foreach ($persona['viaticos'] as $viatico) {
+                    if ($viatico['dias'] < 0 || $viatico['monto'] < 0) {
+                        $response['message'] = "Días y monto de viáticos para persona #$index deben ser no negativos.";
+                    }
+                }
+
+                foreach ($persona['transporte'] as $subindex => $transp) {
+                    // Tipo de transporte
+                    if (empty($transp['tipo_transporte']) || !in_array($transp['tipo_transporte'], ['terrestre', 'aereo'])) {
+                        $response['message'] = "Tipo de transporte #$subindex para persona #$index inválido.";
+                    }
+                    // Ciudades
+                    if (empty($transp['ciudad_origen']) || empty($transp['ciudad_destino'])) {
+                        $response['message'] = "Ciudades de transporte #$subindex para persona #$index incompletas.";
+                    }
+                    // Fecha
+                    if (empty($transp['fecha']) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $transp['fecha'])) {
+                        $response['message'] = "Fecha de transporte #$subindex para persona #$index inválida.";
+                    }
+                    // Monto
+                    if ($transp['monto'] <= 0) {
+                        $response['message'] = "Monto de transporte #$subindex para persona #$index inválido.";
+                    }
+                }
+            }
+
+            // Guardar si no hay errores
+            if ($response['message'] === '') {
+                if ($this->anticipoModel->anticipoPendiente($id_usuario)) {
+                    $response['message'] = 'El solicitante aún tiene pendiente un anticipo por rendir.';
+                } else {
+                    $saldo_disponible = $this->anticipoModel->getSaldoDisponibleBySscc($codigo_sscc);
+                    if ($saldo_disponible === null) {
+                        $response['message'] = 'No se encontró presupuesto activo para el sub-subcentro.';
+                    } elseif ($monto_total_solicitado > $saldo_disponible) {
+                        $response['message'] = "Monto solicitado ($monto_total_solicitado) excede saldo disponible ($saldo_disponible).";
+                    } else {
+                        $numero_anticipo = $this->anticipoModel->addAnticipo(
+                            $id_usuario, $solicitante, $solicitante_nombres, $dni_solicitante, 
+                            $departamento, $departamento_nombre, $codigo_sscc, $cargo, $nombre_proyecto, 
+                            $fecha_solicitud, $fecha_inicio, $fecha_fin, $motivo_anticipo, 
+                            $monto_total_solicitado, $id_cat_documento, $detalles_gastos, $detalles_viajes
+                        );
+                        
+                        if ($numero_anticipo) {
+                            $response['success'] = true;
+                            $response['message'] = 'Anticipo registrado con éxito';
+
+                            // Envío de correo igual que antes
+                            $solicitante_data = $this->trabajadorModel->getTrabajadorByDni($dni_solicitante);
+                            if ($solicitante_data && isset($solicitante_data['correo'])) {
+                                $to = $solicitante_data['correo'];
+                                $subject = "SIAR - TECHING - Anticipo N° $numero_anticipo ha sido creado";
+                                $monto_correo = number_format($monto_total_solicitado, 2, ',', '.');
+                                $fecha_correo = date("d-m-Y", strtotime($fecha_solicitud));
+                                $aprobadores = $this->trabajadorModel->getAprobadoresByDepartamento($departamento);
+                                $url_plataforma = 'http://192.168.1.193/proy_anticipos_rendiciones/anticipos';
+
+                                $body = "
+                                    <p><img alt='Logo SIAR' src='{$this->logoBase64}' width='140' /></p>
+                                    <h2>Notificación de Anticipo</h2>
+                                    <p>Estimado/a, {$solicitante_data['nombres']} {$solicitante_data['apellidos']},</p>
+                                    <p>Se ha creado un nuevo anticipo con los siguientes detalles:</p>
+                                    <ul>
+                                        <li><strong>N° Anticipo:</strong> $numero_anticipo</li>
+                                        <li><strong>Motivo:</strong> $motivo_anticipo</li>
+                                        <li><strong>DNI Solicitante:</strong> $dni_solicitante</li>
+                                        <li><strong>Sub sub-centro de costo:</strong> $codigo_sscc</li>
+                                        <li><strong>Nombre del Proyecto:</strong> $nombre_proyecto</li>
+                                        <li><strong>Fecha:</strong> $fecha_correo</li>
+                                        <li><strong>Monto:</strong> $monto_correo</li>
+                                    </ul>
+                                    <p>Recuerde que este anticipo deberá ser autorizado para que se pueda continuar con la atención de su solicitud.</p>
+                                    <hr>
+                                    <p>No es necesario responder a este mensaje. Deberá ingresar a la plataforma SIAR para obtener más detalles del anticipo.</p>
+                                    <a href='{$url_plataforma}'>SIAR - TECHING</a>
+                                ";
+
+                                $this->emailConfig->sendSiarNotification($to, $subject, $body, $aprobadores);
+                            }
+                        } else {
+                            $response['message'] = 'Error al registrar el anticipo.';
+                        }
+                    }
+                }
+            }
+
+            header('Content-Type: application/json');
+            echo json_encode($response);
+            exit;
+        }
+
+        require_once 'src/views/anticipos.php';
+    }
+
 
     public function update() {// here, este es el evento que de edición. Se deberá notificar de igual manera y colocar como nuevo tras editar uno observado.
         header('Content-Type: application/json');

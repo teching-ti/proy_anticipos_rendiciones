@@ -30,7 +30,7 @@ unset($_SESSION['success'], $_SESSION['error']);
             <table class="table table-hover">
                 <thead class="table-head">
                     <tr>
-                        <th style="display: none;">Id</th>
+                        <th>Id. Rendición</th>
                         <th>Id. Anticipo</th>
                         <th>Nombre y apellido</th>
                         <th>Departamento</th>
@@ -50,7 +50,7 @@ unset($_SESSION['success'], $_SESSION['error']);
                     <?php else: ?>
                         <?php foreach ($rendiciones_data as $rendicion): ?>
                         <tr>
-                            <td style="display: none;" data-label="Id"><?php echo htmlspecialchars($rendicion['id'], ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td data-label="Id"><?php echo htmlspecialchars($rendicion['id'], ENT_QUOTES, 'UTF-8'); ?></td>
                             <td data-label="Id. Anticipo"><?php echo htmlspecialchars($rendicion['id_anticipo'], ENT_QUOTES, 'UTF-8'); ?></td>
                             <td data-label="Nombre y Apellido"><?php echo htmlspecialchars($rendicion['solicitante_nombres'] ?? 'N/A', ENT_QUOTES, 'UTF-8'); ?></td>
                             <td data-label="Departamento"><?php echo htmlspecialchars($rendicion['departamento_nombre'], ENT_QUOTES, 'UTF-8'); ?></td>

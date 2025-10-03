@@ -159,7 +159,7 @@ function openComprobanteModal(item, idRendicion, latestEstado) {
     function renderForm(comprobante = null) {
         //console.log('Comprobante a editar:', comprobante); // Depuración
         formContainer.innerHTML = `
-            <input type="file" id="fileUpload" accept=".pdf,.jpg,.jpeg,.png" ${puedeEditar ? 'style="margin-bottom: 16px;"' : 'style="display: none;"'}>
+            <input type="file" id="fileUpload" accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx, .txt" ${puedeEditar ? 'style="margin-bottom: 16px;"' : 'style="display: none;"'}>
             <div id="previewContainer"></div>
             <div class="form-group">
                 <label>Tipo de Comprobante</label>
@@ -202,7 +202,8 @@ function openComprobanteModal(item, idRendicion, latestEstado) {
             previewContainer.innerHTML = '';
             previewContainer.style.display = 'block';
             if (file) {
-                const validExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
+                //const validExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
+                const validExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'xls', 'xlsx', 'txt'];
                 const fileExtension = file.name.split('.').pop().toLowerCase();
                 if (!validExtensions.includes(fileExtension)) {
                     alert('Solo se permiten archivos PDF, JPG, JPEG o PNG.');
@@ -225,10 +226,24 @@ function openComprobanteModal(item, idRendicion, latestEstado) {
                         iframe.style.width = '100%';
                         iframe.style.height = '400px';
                         previewContainer.appendChild(iframe);
-                    } else {
+                    } else if (['jpg','jpeg','png'].includes(fileExtension)) {
                         const img = document.createElement('img');
                         img.src = event.target.result;
+                        img.style.maxWidth = '100%';
                         previewContainer.appendChild(img);
+                    } else if (['xls','xlsx'].includes(fileExtension)) {
+                        const message = document.createElement('p');
+                        message.textContent = `Archivo Excel cargado: ${file.name}`;
+                        previewContainer.appendChild(message);
+                    } else if (fileExtension === 'txt') {
+                        /*const pre = document.createElement('pre');
+                        pre.textContent = event.target.result;
+                        pre.style.maxHeight = '200px';
+                        pre.style.overflowY = 'auto';
+                        previewContainer.appendChild(pre);*/
+                        const message = document.createElement('p');
+                        message.textContent = `Archivo cargado: ${file.name}`;
+                        previewContainer.appendChild(message);
                     }
                 };
                 reader.readAsDataURL(file);
