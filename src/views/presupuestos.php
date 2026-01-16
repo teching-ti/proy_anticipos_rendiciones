@@ -5,7 +5,7 @@ $fun = "presupuestos.js?v=".time();
 include "base.php";
 ?>
 <section class="presupuestos-content">
-    <script src="assets/scripts/modalAlert.js"></script>
+    <script src="assets/scripts/modalAlert.js?v=<?=time();?>"></script>
     
     <section class="section-table">
 

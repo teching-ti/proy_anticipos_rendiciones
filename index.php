@@ -65,6 +65,7 @@ $routes = [
     'anticipos/guardar_adjunto' => ['controller' => 'anticipo', 'action' => 'guardar_adjunto'],
     'anticipos/obtener_adjunto' => ['controller' => 'anticipo', 'action' => 'obtener_adjunto'],
     'anticipos/getAnticipoPendiente' => ['controller' => 'anticipo', 'action' => 'getAnticipoPendiente'],
+    'anticipos/getLatestIdAnticipoCreated' => ['controller' => 'anticipo', 'action' => 'getLatestIdAnticipoCreated'], // funcionalidad para descargar documento de autorización desde la creación del anticipo
     'detallesViaticos' => ['controller' => 'anticipo', 'action' => 'detallesViaticos'],
     'tarifario' => ['controller' => 'tarifario', 'action'=> 'index'],
     'tarifario/cargos' => ['controller' => 'tarifario', 'action' => 'obtenerCargos'], //ruta para obtener los cargos del tarifario
@@ -107,7 +108,8 @@ $routes = [
     'rendiciones/updateComprobante_compra' => ['controller' => 'rendiciones', 'action' => 'updateComprobante_compra'],
     'rendiciones/updateComprobante_viatico' => ['controller' => 'rendiciones', 'action' => 'updateComprobante_viatico'],
     'rendiciones/updateComprobante_transporte' => ['controller' => 'rendiciones', 'action' => 'updateComprobante_transporte'],
-    'rendiciones/getRendicionCompleta' => ['controller' => 'rendiciones', 'action' => 'getRendicionCompleta']
+    'rendiciones/getRendicionCompleta' => ['controller' => 'rendiciones', 'action' => 'getRendicionCompleta'],
+    'rendiciones/eliminarComprobante' => ['controller' => 'rendiciones', 'action' => 'eliminarComprobante']
 ];
 
 // Buscar la ruta en el arreglo de rutas

@@ -7,7 +7,7 @@ include "base.php";
 // Limpiar mensajes de sesión
 unset($_SESSION['success'], $_SESSION['error']);
 ?>
-<section class="rendiciones-content">
+<section class="rendiciones-content" style="display: none;">
     <!-- Incluir alert.js -->
     <script src="assets/scripts/modalAlert.js?v=<?=time();?>"></script>
 
@@ -19,11 +19,84 @@ unset($_SESSION['success'], $_SESSION['error']);
                 <span class="placeholder">Buscar</span>
                 <input type="text" class="form-control" id="input-buscar-rendicion" name="input-buscar-rendicion">
             </div>
+            
             <div class="help-panel-buttons">
                 <div id="btn-refresh" class="btn btn-refresh" title="Actualizar interfaz">
                     <i class="fa-solid fa-arrows-rotate"></i>
                 </div>
             </div>
+        </div>
+
+        <!-- Botón Flotante -->
+        <button id="toggleFilters" class="fab-filter">
+            <i id="icono-filtro" class="fa-solid fa-filter"></i>
+        </button>
+        <div id="tooltip-filtros" class="tooltip-filtros">Mostrar filtros</div>
+
+        <div id="filterPanel" class="filter-panel">
+            <form id="filtersForm" class="filtersForm">
+                <h3>Filtros para rendiciones</h3>
+                <div class="filter-row">
+                    <!-- Filtro Año -->
+                    <div>
+                        <label for="filtro-anio">Año</label>
+                        <select id="filtro-anio">
+                            <option value="">Todos</option>
+                            <option value="2025">2025</option>
+                            <option value="2026">2026</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="filtro-estado">Estado</label>
+                        <select id="filtro-estado">
+                            <option value="">Todos</option>
+                            <option value="nuevo">Nuevo</option>
+                            <option value="observado">Observado</option>
+                            <option value="autorizado">Autorizado</option>
+                            <option value="completado">Completado</option>
+                            <option value="rendido">Rendido</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Fecha inicio -->
+                <div class="filter-box">
+                    <p class="title-filter-date">Fecha de inicio</p>
+                    <div class="filter-row">
+                        <div>
+                            <label>Desde:</label>
+                            <input type="date" id="filtro-inicio-desde">
+                        </div>
+                        <div>
+                            <label>Hasta:</label>
+                            <input type="date" id="filtro-inicio-hasta">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fecha rendición -->
+                <div class="filter-box">
+                    <p class="title-filter-date">Fecha máx. Rendición</p>
+                    <div class="filter-row">
+                        <div>
+                            <label>Desde:</label>
+                            <input type="date" id="filtro-rendicion-desde">
+                        </div>
+                        <div>
+                            <label>Hasta:</label>
+                            <input type="date" id="filtro-rendicion-hasta">
+                        </div>
+                    </div>
+                    
+                </div>
+                
+
+                <!-- Botones -->
+                <div class="filter-buttons-container">
+                    <button type="submit" id="btn-aplicar" class="btn-aplicar">Aplicar</button>
+                    <button id="limpiar-filtros" class="btn-limpiar">Limpiar</button>
+                </div>
+            </form>               
         </div>
 
         <div class="table-responsive">
@@ -36,11 +109,11 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <th>Departamento</th>
                         <th>SSCC</th>
                         <th>Motivo&nbsp;del&nbsp;Anticipo</th>
-                        <th title="Fecha de cuando se registró la rendición automáticamente, tras haber registrado el abono">Inicio</th>
-                        <th title="Fecha máxima en la que el usuario debería de haber terminado de rendir el anticipo correspondiente.">Fecha máx. Rendición</th>
+                        <th id="ordenar-inicio" class="sortable" title="Fecha de cuando se registró la rendición automáticamente, tras haber registrado el abono">Inicio de Rendicion <i id="flecha-inicio" class="fa-solid fa-sort ms-1"></i></th>
+                        <th id="ordenar-rendicion" class="sortable" title="Fecha máxima en la que el usuario debería de haber terminado de rendir el anticipo correspondiente.">Fecha máx. Rendición <i id="flecha-rendicion" class="fa-solid fa-sort ms-1"></i></th>
                         <th>Monto anticipo</th>
                         <th>Monto rendido</th>
-                        <th>Estado</th>
+                        <th id="ordenar-estado" class="sortable">Estado <i id="flecha-estado" class="fa-solid fa-sort ms-1"></i></th>
                         <th title="Cambio de estado más reciente">Ult. Actualizacion</th>
                     </tr>
                 </thead>
@@ -204,6 +277,8 @@ unset($_SESSION['success'], $_SESSION['error']);
                                     <div id="btn-completar-rendicion" data-usuario="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Completado</div> 
                                 <?php endif;?>
                                 <?php if($_SESSION['rol']==2): ?>
+                                    <div id="btn-corregir-rendicion" data-usuario="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Corregir</div>
+                                    <div id="btn-completar-rendicion" data-usuario="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Completado</div> 
                                     <div id="btn-aprobar-rendicion" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8');;?>">Autorizar</div> 
                                 <?php endif;?>
                                 <?php if($_SESSION['rol']==4): ?>
@@ -217,10 +292,18 @@ unset($_SESSION['success'], $_SESSION['error']);
             </form>
         </div>
     </div>
-    
     <!-- Modal de carga -->
     <div id="loadingModal" class="loading-modal" style="display: none;">
         <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Cargando...</p>
+        </div>
+    </div>
+</section>
+
+<section>
+    <div id="loadingModalPage" class="loading-modal-page" style="display: block;">
+        <div class="loading-content-page">
             <div class="spinner"></div>
             <p>Cargando...</p>
         </div>

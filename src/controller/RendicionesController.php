@@ -653,75 +653,75 @@ class RendicionesController {
     }
 
     public function guardarComprobante_compra() {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $id_rendicion = $_POST['id_rendicion'] ?? '';
-        $id_detalle = $_POST['id_detalle'] ?? '';
-        $tipo_comprobante = $_POST['tipo_comprobante'] ?? '';
-        $ruc_emisor = $_POST['ruc_emisor'] ?? '';
-        $serie_numero = $_POST['serie_numero'] ?? '';
-        $doc_receptor = $_POST['doc_receptor'] ?? '';
-        $fecha_emision = $_POST['fecha_emision'] ?? '';
-        $importe_total = $_POST['importe_total'] ?? '0.00';
-        $archivo = $_FILES['archivo'] ?? null;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id_rendicion = $_POST['id_rendicion'] ?? '';
+            $id_detalle = $_POST['id_detalle'] ?? '';
+            $tipo_comprobante = $_POST['tipo_comprobante'] ?? '';
+            $ruc_emisor = $_POST['ruc_emisor'] ?? '';
+            $serie_numero = $_POST['serie_numero'] ?? '';
+            $doc_receptor = $_POST['doc_receptor'] ?? '';
+            $fecha_emision = $_POST['fecha_emision'] ?? '';
+            $importe_total = $_POST['importe_total'] ?? '0.00';
+            $archivo = $_FILES['archivo'] ?? null;
 
-        if (!$id_rendicion || !$id_detalle || !$tipo_comprobante || !$ruc_emisor || !$serie_numero || !$doc_receptor || !$fecha_emision || !$importe_total) {
-            echo json_encode(['success' => false, 'error' => 'Parámetros inválidos, favor de completar todos los campos']);
-            return;
-        }
+            if (!$id_rendicion || !$id_detalle || !$tipo_comprobante || !$ruc_emisor || !$serie_numero || !$doc_receptor || !$fecha_emision || !$importe_total) {
+                echo json_encode(['success' => false, 'error' => 'Parámetros inválidos, favor de completar todos los campos']);
+                return;
+            }
 
-        try {
-            $this->db->beginTransaction();
+            try {
+                $this->db->beginTransaction();
 
-            $archivo_path = null;
-            if ($archivo && $archivo['error'] === UPLOAD_ERR_OK) {
-                $targetDir = "uploads/";
-                if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
-                $fileName = uniqid() . '.' . strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
-                $targetFile = $targetDir . $fileName;
-                if (move_uploaded_file($archivo['tmp_name'], $targetFile)) {
-                    $archivo_path = $fileName;
-                } else {
-                    throw new Exception('Error al subir el archivo');
+                $archivo_path = null;
+                if ($archivo && $archivo['error'] === UPLOAD_ERR_OK) {
+                    $targetDir = "uploads/";
+                    if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
+                    $fileName = uniqid() . '.' . strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
+                    $targetFile = $targetDir . $fileName;
+                    if (move_uploaded_file($archivo['tmp_name'], $targetFile)) {
+                        $archivo_path = $fileName;
+                    } else {
+                        throw new Exception('Error al subir el archivo');
+                    }
                 }
+
+                $query_comprobante = "INSERT INTO tb_comprobantes_compras (id_rendicion, id_detalle, tipo_comprobante, ruc_emisor, serie_numero, doc_receptor, fecha_emision, importe_total, archivo, nombre_archivo) VALUES (:id_rendicion, :id_detalle, :tipo_comprobante, :ruc_emisor, :serie_numero, :doc_receptor, :fecha_emision, :importe_total, :archivo, :nombre_archivo)";
+                $stmt_comprobante = $this->db->prepare($query_comprobante);
+                $success = $stmt_comprobante->execute([
+                    ':id_rendicion' => $id_rendicion,
+                    ':id_detalle' => $id_detalle,
+                    ':tipo_comprobante' => $tipo_comprobante,
+                    ':ruc_emisor' => $ruc_emisor,
+                    ':serie_numero' => $serie_numero,
+                    ':doc_receptor' => $doc_receptor,
+                    ':fecha_emision' => $fecha_emision,
+                    ':importe_total' => $importe_total,
+                    ':archivo' => $archivo_path,
+                    ':nombre_archivo' => $archivo && isset($archivo['name']) ? $archivo['name'] : ''
+                ]);
+
+                if (!$success) {
+                    throw new Exception('Fallo en la ejecución del INSERT: ' . print_r($stmt_comprobante->errorInfo(), true));
+                }
+
+                $lastInsertId = $this->db->lastInsertId();
+                if ($lastInsertId === 0) {
+                    throw new Exception('No se generó un ID válido después del INSERT');
+                }
+
+
+                $this->db->commit();
+                $this->actualizarMontoRendido($id_rendicion);
+                $monto_rendido = $this->rendicionesModel->getMontoTotalRendidoByRendicion($id_rendicion);
+                error_log("Último ID insertado: $lastInsertId"); // Depuración
+                echo json_encode(['success' => true, 'monto_rendido' => $monto_rendido, 'id' => $lastInsertId, 'archivo' => $archivo_path]);
+            } catch (Exception $e) {
+                $this->db->rollBack();
+                error_log('Error al guardar comprobante: ' . $e->getMessage());
+                echo json_encode(['success' => false, 'error' => $e->getMessage()]);
             }
-
-            $query_comprobante = "INSERT INTO tb_comprobantes_compras (id_rendicion, id_detalle, tipo_comprobante, ruc_emisor, serie_numero, doc_receptor, fecha_emision, importe_total, archivo, nombre_archivo) VALUES (:id_rendicion, :id_detalle, :tipo_comprobante, :ruc_emisor, :serie_numero, :doc_receptor, :fecha_emision, :importe_total, :archivo, :nombre_archivo)";
-            $stmt_comprobante = $this->db->prepare($query_comprobante);
-            $success = $stmt_comprobante->execute([
-                ':id_rendicion' => $id_rendicion,
-                ':id_detalle' => $id_detalle,
-                ':tipo_comprobante' => $tipo_comprobante,
-                ':ruc_emisor' => $ruc_emisor,
-                ':serie_numero' => $serie_numero,
-                ':doc_receptor' => $doc_receptor,
-                ':fecha_emision' => $fecha_emision,
-                ':importe_total' => $importe_total,
-                ':archivo' => $archivo_path,
-                ':nombre_archivo' => $archivo && isset($archivo['name']) ? $archivo['name'] : ''
-            ]);
-
-            if (!$success) {
-                throw new Exception('Fallo en la ejecución del INSERT: ' . print_r($stmt_comprobante->errorInfo(), true));
-            }
-
-            $lastInsertId = $this->db->lastInsertId();
-            if ($lastInsertId === 0) {
-                throw new Exception('No se generó un ID válido después del INSERT');
-            }
-
-
-            $this->db->commit();
-            $this->actualizarMontoRendido($id_rendicion);
-            $monto_rendido = $this->rendicionesModel->getMontoTotalRendidoByRendicion($id_rendicion);
-            error_log("Último ID insertado: $lastInsertId"); // Depuración
-            echo json_encode(['success' => true, 'monto_rendido' => $monto_rendido, 'id' => $lastInsertId, 'archivo' => $archivo_path]);
-        } catch (Exception $e) {
-            $this->db->rollBack();
-            error_log('Error al guardar comprobante: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
     }
-}
 
     private function actualizarMontoRendido($id_rendicion) {
         $monto_total = $this->rendicionesModel->getMontoTotalRendidoByRendicion($id_rendicion);
@@ -974,7 +974,6 @@ class RendicionesController {
         }
     }
 
-    // Añade métodos similares para updateComprobante_viatico y updateComprobante_transporte
     public function updateComprobante_viatico() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
@@ -1263,5 +1262,87 @@ class RendicionesController {
         header('Content-Type: application/json');
         echo json_encode(['success' => false, 'error' => 'ID de rendición no proporcionado']);
         exit;
+    }
+
+    public function eliminarComprobante() {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Método no permitido']);
+            exit;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $id = (int)($data['id'] ?? 0);
+        $tipo = strtolower($data['tipo'] ?? '');
+        $id_rendicion = (int)($data['id_rendicion'] ?? 0);
+
+        if ($id <= 0 || !in_array($tipo, ['compra', 'transporte', 'viatico'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Parámetros inválidos']);
+            exit;
+        }
+
+        // Mapear tipo a tabla
+        $tabla = '';
+        switch ($tipo) {
+            case 'compra':
+                $tabla = 'tb_comprobantes_compras';
+                break;
+            case 'transporte':
+                $tabla = 'tb_comprobantes_transportes';
+                break;
+            case 'viatico':
+                $tabla = 'tb_comprobantes_viaticos';
+                break;
+            default:
+                echo json_encode(['success' => false, 'error' => 'Tipo inválido']);
+                exit;
+        }
+
+        try {
+            $this->db->beginTransaction();
+
+            // Por si se desea también obtener el archivo para borrarlo del servidor
+            // $queryArchivo = "SELECT archivo FROM $tabla WHERE id = :id";
+            // $stmtArchivo = $this->db->prepare($queryArchivo);
+            // $stmtArchivo->execute([':id' => $id]);
+            // $archivo = $stmtArchivo->fetchColumn();
+
+            // liminar registro de la base de datos
+            $query = "DELETE FROM $tabla WHERE id = :id";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([':id' => $id]);
+
+            // elimina también el archivo físico
+            // if ($archivo && file_exists("uploads/$archivo")) {
+            //     unlink("uploads/$archivo");
+            // }
+
+            $this->db->commit();
+
+            // Actualizar monto rendido de la rendición
+            if ($id_rendicion > 0) {
+                $this->actualizarMontoRendido($id_rendicion);
+                $monto_rendido = $this->rendicionesModel->getMontoTotalRendidoByRendicion($id_rendicion);
+            } else {
+                $monto_rendido = 0;
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Comprobante eliminado correctamente',
+                'monto_rendido' => $monto_rendido ?? null
+            ]);
+            exit;
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            error_log("Error al eliminar comprobante ID $id ($tipo): " . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => 'Error al eliminar: ' . $e->getMessage()]);
+            exit;
+        }
     }
 }

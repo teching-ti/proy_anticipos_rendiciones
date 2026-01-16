@@ -706,8 +706,8 @@ class AnticipoController {
 
                 // obtener el estado actual del anticipo
                 $latestEstado = $this->anticipoModel->getLatestAnticipoEstado($id_anticipo);
-
-                if (in_array($latestEstado, ['Observado'])) {
+                // Se identifica el ultimo estado del anticipo para en base a ello tomar una decisión
+                if (in_array($latestEstado, ['Observado', 'Autorizado', 'Autorizado por Gerencia'])) {
                     $motivo = $data['motivo_anticipo'];
                     $sscc = $data['codigo_sscc'];
                     $nombreProyecto = $data['nombre_proyecto'];
@@ -715,9 +715,22 @@ class AnticipoController {
                     $dniSolicitante = $_SESSION['dni'];
                     $solicitanteNombre = $_SESSION['trabajador']['nombres'] . " " . $_SESSION['trabajador']['apellidos'];
 
+                    // Se define el comentario en la tabla de historial de anticipo
+                    if ($latestEstado === 'Observado') {
+                        $comentario_historial = 'Anticipo actualizado tras observación';
+                        $mensajeCorreo = 'El anticipo ha sido actualizado tras haber sido marcado como observado.';
 
-                    // Esta notificación deberá darse siempre y cuando el estado actual o anterior sea "obsevado"
-                    if ($this->anticipoModel->updateAnticipoEstado($id_anticipo, 'Nuevo', $_SESSION['id'], 'Anticipo actualizado tras observacioón')) {
+                    } elseif (in_array($latestEstado, ['Autorizado', 'Autorizado por Gerencia'])) {
+                        $comentario_historial = 'Anticipo actualizado tras contar con autorización';
+                        $mensajeCorreo = 'El anticipo ha sido actualizado.';
+                    } else {
+                        $comentario_historial = 'Anticipo actualizado';
+                        $mensajeCorreo = 'El anticipo ha sido actualizado.';
+                    }
+
+                    // Esta notificación deberá darse siempre y cuando el estado actual o anterior sea "obsevado, autorizado o autorizado por gerencia"
+                    // Se actualiza el estado
+                    if ($this->anticipoModel->updateAnticipoEstado($id_anticipo, 'Nuevo', $_SESSION['id'], $comentario_historial)) {
 
                         $aprobadores = $this->trabajadorModel->getAprobadoresByDepartamento($_SESSION['trabajador']['departamento']);
                         //url usada en el correo
@@ -731,11 +744,11 @@ class AnticipoController {
 
                             $to = $correo_solicitante;
                             $subject = "SIAR - TECHING - Anticipo N° $id_anticipo ha sido actualizado";
-
+                            
                             $body = "
                                 <p><img alt='Logo SIAR' src='{$this->logoBase64}' width='140' /></p>
                                 <h2>Notificación de Anticipo</h2>
-                                <p>El anticipo ha sido actualizado tras haber sido marcado como observado. Información del anticipo:</p>
+                                <p>$mensajeCorreo Información del anticipo:</p>
                                 <ul>
                                     <li><strong>N° de Anticipo:</strong> $id_anticipo</li>
                                     <li><strong>Motivo:</strong> $motivo</li>
@@ -745,7 +758,7 @@ class AnticipoController {
                                     <li><strong>Nombre del Proyecto:</strong> $nombreProyecto</li>
                                     <li><strong>Monto:</strong> $montoTotal</li>
                                 </ul>
-                                <p>Recuerde que el anticipo deberá ser autorizado por el área de <b>contabilidad</b> para continuar con la atención de su solicitud.</p>
+                                <p>Recuerde que el anticipo deberá ser autorizado para que se pueda continuar con la atención de su solicitud.</p>
                                 <hr>
                                 <br>
                                 <p>No es necesario responder a este mensaje. Deberá ingresar a la plataforma SIAR para obtener más detalles del anticipo.</p>
@@ -848,12 +861,12 @@ class AnticipoController {
                 exit;
             } else {
                 header('Content-Type: application/json');
-                echo json_encode(['error' => 'Error al mover el archivo.']);
+                echo json_encode(['success' => false, 'error' => 'Error al mover el archivo.']);
                 exit;
             }
         }
         header('Content-Type: application/json');
-        echo json_encode(['error' => 'Solicitud inválida.']);
+        echo json_encode(['success' => false, 'error' => 'Solicitud inválida.']);
         exit;
     }
 
@@ -1680,6 +1693,22 @@ class AnticipoController {
         $anticipoId = $_GET['anticipo_id'];
         $transporte = $this->anticipoModel->getTransporteProvincialByAnticipoId($anticipoId);
         echo json_encode(['success' => true, 'data' => $transporte]);
+        exit;
+    }
+
+    // Funcionalidad para obtener el ultimo anticipo registrado por usuario "Se usa para generar documento de autorización durante la creación del anticipo"
+    public function getLatestIdAnticipoCreated(){
+        header('Content-Type: application/json');
+        
+        if (!isset($_GET['codigo'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'No se pudo obtener el dato del ultimo anticipo para generar documento de autorización']);
+            return;
+        }
+
+        $codigo = $_GET['codigo'];
+        $ssccs = $this->anticipoModel->getLatestIdAnticipoCreated($codigo);
+        echo json_encode($ssccs);
         exit;
     }
 }

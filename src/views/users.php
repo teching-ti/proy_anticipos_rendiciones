@@ -4,7 +4,7 @@ $titulo = "Usuarios";
 $fun = "users.js?v=".time();
 include "base.php";
 ?>
-<script src="assets/scripts/modalAlert.js"></script>
+<script src="assets/scripts/modalAlert.js?v=<?=time();?>"></script>
 <section class="users-content">
     <!-- Habilitación de alerta modal-->
     <?php if (isset($_SESSION['success'])): ?>

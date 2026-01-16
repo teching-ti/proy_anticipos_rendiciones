@@ -1,4 +1,12 @@
 document.addEventListener("DOMContentLoaded", function(){
+    // Funcionalidad para mostrar ícono de carga de la página tras ingresar/ actualizar
+    window.addEventListener("load", function(){
+        let rendicionesContent = document.querySelector(".rendiciones-content");
+        rendicionesContent.style.display = "block";
+        let loadingModalSection = document.getElementById('loadingModalPage');
+        loadingModalSection.style.display = "none";
+    })
+
     // Inician funcionalidades para cambiar de pestañas dentro del modal de rendiciones
     let currentStep = 0;
     const steps = document.querySelectorAll(".form-step");
@@ -291,7 +299,65 @@ function openComprobanteModal(item, idRendicion, latestEstado) {
             const fileLink = comprobante.archivo ? `<a href="http://127.0.0.1/proy_anticipos_rendiciones/uploads/${comprobante.archivo}" target="_blank" style="margin-left: 10px; color: #007bff; text-decoration: underline;">Ver Documento</a>` : '';
             //console.log(comprobante);
             const displayText = `Elemento ${uniqueComprobantes.indexOf(comprobante) + 1} - ${comprobante.tipo_comprobante} - S/ ${parseFloat(comprobante.importe_total).toFixed(2)}`;
-            li.innerHTML = `${displayText} ${fileLink}`;
+            li.innerHTML = `${displayText} ${fileLink} - <span data-id=${comprobante.id} class="btn-remove-comprobante"><i class="fa-regular fa-trash-can"></i></span>`;
+
+            li.querySelector('span[data-id]').addEventListener('click', async function(e) {
+                e.stopPropagation(); // Evitar que se abra el formulario al clickear basura
+
+                const comprobanteId = this.getAttribute('data-id');
+                const tipo = item.type; // 'compra', 'transporte', 'viatico' — viene del item que se pasó a openComprobanteModal
+                console.log(comprobanteId);
+                console.log(tipo);
+
+                // Confirmación
+                if (!confirm(`¿Estás seguro de eliminar este comprobante? Esta acción no se puede deshacer.`)) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`rendiciones/eliminarComprobante`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: comprobanteId,
+                            tipo: tipo,          // 'compra', 'transporte', 'viatico'
+                            id_rendicion: idRendicion,
+                            id_detalle: item.id  // id del detalle (compra, viaje, transporte)
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Eliminar de la lista local
+                        comprobantes = comprobantes.filter(c => c.id !== parseInt(comprobanteId));
+                        renderComprobanteList();
+
+                        // Actualizar monto rendido del detalle y total de rendición
+                        updateRendidoTotal(idRendicion, tipo);
+
+                        showAlert({
+                            title: 'Éxito',
+                            message: 'Comprobante eliminado correctamente.',
+                            type: 'success'
+                        });
+                    } else {
+                        showAlert({
+                            title: 'Error',
+                            message: data.error || 'No se pudo eliminar el comprobante.',
+                            type: 'error'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error al eliminar comprobante:', error);
+                    showAlert({
+                        title: 'Error',
+                        message: 'Ocurrió un error al intentar eliminar.',
+                        type: 'error'
+                    });
+                }
+            });
+
             li.dataset.id = comprobante.id;
             li.addEventListener('click', () => {
                 const foundComprobante = comprobantes.find(c => c.id === comprobante.id);
@@ -1014,7 +1080,7 @@ function updateComprobante(id, comprobante) {
             // Controlar visibilidad del botón "Aprobar"
             const btnAprobar = document.getElementById('btn-aprobar-rendicion');
             if (btnAprobar) {
-                const isEditable = ['Completado', 'Observado'].includes(latestEstado);
+                const isEditable = ['Completado'].includes(latestEstado);
                 btnAprobar.style.display = isEditable ? 'inline-block' : 'none';
                 btnAprobar.style.opacity = isEditable ? '1' : '0';
                 btnAprobar.onclick = isEditable ? () => handleAprobarRendicion(data.id) : null;
@@ -1391,4 +1457,230 @@ function updateComprobante(id, comprobante) {
             row.style.display = rowText.includes(filter) ? "" : "none";
         });
     });
+
+    /** inicia funcionalidad para ordenar tras presionar en fecha maxima de rendición */
+    const th = document.getElementById("ordenar-rendicion");
+    const icon = document.getElementById("flecha-rendicion");
+    const tbody = document.getElementById("table-body");
+
+    let asc = true;  // primer clic = ordenar ASC
+
+    th.style.cursor = "pointer";
+
+    th.addEventListener("click", function () {
+
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+
+        rows.sort((a, b) => {
+            const valA = a.cells[7].textContent.trim();
+            const valB = b.cells[7].textContent.trim();
+
+            const fechaA = valA === "N/A" || valA === "" ? 0 : new Date(valA).getTime();
+            const fechaB = valB === "N/A" || valB === "" ? 0 : new Date(valB).getTime();
+
+            return asc ? fechaA - fechaB : fechaB - fechaA;
+        });
+
+        // actualizar tabla
+        tbody.innerHTML = "";
+        rows.forEach(r => tbody.appendChild(r));
+
+        // Cambiar icono Font Awesome
+        if (asc) {
+            icon.className = "fa-solid fa-sort-up ms-1";    // Ascendente
+        } else {
+            icon.className = "fa-solid fa-sort-down ms-1";  // Descendente
+        }
+
+        asc = !asc; // alternar modo
+    });
+    /**finaliza funcionalidad par ordenar por fecha max de rendición */
+
+    /** Ordenamiento por Fecha de Inicio */
+    const thInicio = document.getElementById("ordenar-inicio");
+    const iconInicio = document.getElementById("flecha-inicio");
+    const tbodyInicio = document.getElementById("table-body");
+
+    let ascInicio = true;
+
+    thInicio.style.cursor = "pointer";
+
+    thInicio.addEventListener("click", function () {
+
+        const rows = Array.from(tbodyInicio.querySelectorAll("tr"));
+
+        rows.sort((a, b) => {
+            const valA = a.cells[6].textContent.trim();
+            const valB = b.cells[6].textContent.trim();
+
+            const fechaA = valA === "N/A" || valA === "" ? 0 : new Date(valA).getTime();
+            const fechaB = valB === "N/A" || valB === "" ? 0 : new Date(valB).getTime();
+
+            return ascInicio ? fechaA - fechaB : fechaB - fechaA;
+        });
+
+        tbodyInicio.innerHTML = "";
+        rows.forEach(r => tbodyInicio.appendChild(r));
+
+        // Cambiar icono
+        iconInicio.className = ascInicio
+            ? "fa-solid fa-sort-up ms-1"
+            : "fa-solid fa-sort-down ms-1";
+
+        ascInicio = !ascInicio;
+    });
+
+    /**finaliza funcionalidad para ordenar por fecha de inicio */
+
+
+    /**Inicia ordenamiento por estado */
+    const estadoOrden = {
+        "Nuevo": 1,
+        "Observado": 2,
+        "Autorizado": 3,
+        "Completado": 4,
+        "Rendido": 5
+    };
+
+    const th1 = document.getElementById("ordenar-estado");
+    const icon1 = document.getElementById("flecha-estado");
+    const tbody1 = document.getElementById("table-body");
+
+    let asc1 = true;
+
+    th1.style.cursor = "pointer";
+
+    th1.addEventListener("click", function () {
+
+        const rows1 = Array.from(tbody1.querySelectorAll("tr"));
+
+        rows1.sort((a, b) => {
+            const estadoA1 = a.cells[10].innerText.trim();
+            const estadoB1 = b.cells[10].innerText.trim();
+
+            const orderA1 = estadoOrden[estadoA1] || 999;
+            const orderB1 = estadoOrden[estadoB1] || 999;
+
+            return asc1 ? orderA1 - orderB1 : orderB1 - orderA1;
+        });
+
+        tbody1.innerHTML = "";
+        rows1.forEach(r => tbody1.appendChild(r));
+
+        if (asc1) {
+            icon1.className = "fa-solid fa-sort-up ms-1";
+        } else {
+            icon1.className = "fa-solid fa-sort-down ms-1";
+        }
+
+        asc1 = !asc1;
+    });
+    /**Finaliza ordenamiento por estado */
+
+    /**Funcionalidad para aplicar filtros */
+    document.getElementById("btn-aplicar").addEventListener("click", function(e) {
+        e.preventDefault();
+
+        const estado = document.getElementById("filtro-estado").value.toLowerCase();
+        const anio = document.getElementById("filtro-anio").value;
+
+        const inicioDesde = document.getElementById("filtro-inicio-desde").value;
+        const inicioHasta = document.getElementById("filtro-inicio-hasta").value;
+
+        const rendicionDesde = document.getElementById("filtro-rendicion-desde").value;
+        const rendicionHasta = document.getElementById("filtro-rendicion-hasta").value;
+
+        const rows = document.querySelectorAll("#table-body tr");
+
+        rows.forEach(row => {
+
+            const colEstado = row.cells[10].innerText.trim().toLowerCase();
+            const colInicio = row.cells[6].innerText.trim();
+            const colRendicion = row.cells[7].innerText.trim();
+
+            const fechaInicio = colInicio ? new Date(colInicio) : null;
+            const fechaRendicion = colRendicion ? new Date(colRendicion) : null;
+
+            let mostrar = true;
+
+            // Filtro estado
+            if (estado && colEstado !== estado) {
+                mostrar = false;
+            }
+
+            // Filtro año (sobre fecha rendicion)
+            if (anio && fechaRendicion && fechaRendicion.getFullYear().toString() !== anio) {
+                mostrar = false;
+            }
+
+            // Rango fecha inicio
+            if (inicioDesde && fechaInicio && fechaInicio < new Date(inicioDesde)) {
+                mostrar = false;
+            }
+            if (inicioHasta && fechaInicio && fechaInicio > new Date(inicioHasta)) {
+                mostrar = false;
+            }
+
+            // Rango fecha rendición
+            if (rendicionDesde && fechaRendicion && fechaRendicion < new Date(rendicionDesde)) {
+                mostrar = false;
+            }
+            if (rendicionHasta && fechaRendicion && fechaRendicion > new Date(rendicionHasta)) {
+                mostrar = false;
+            }
+
+            row.style.display = mostrar ? "" : "none";
+        });
+
+        let panel = document.getElementById("filterPanel");
+        panel.classList.toggle("active");
+        // console.log("Filtrando");
+    });
+
+    // botón para limpiar filtros
+    document.getElementById("limpiar-filtros").addEventListener("click", function(e) {
+        e.preventDefault();
+        document.querySelectorAll(".filtersForm select, .filtersForm input")
+            .forEach(el => el.value = "");
+
+        document.querySelectorAll("#table-body tr").forEach(row => {
+            row.style.display = "";
+        });
+    });
+
+    // Funcionalidad para mostrar el panel de filtros
+    let bloqueado = false; 
+    document.getElementById("toggleFilters").addEventListener("click", function() {
+
+        if (bloqueado) return; // ignora clics repetidos
+
+        bloqueado = true; // se bloquea la ejecución para clics
+
+        let panel = document.getElementById("filterPanel");
+
+        panel.classList.toggle("active");
+
+        setTimeout(() => {
+            bloqueado = false; // se vuelve a habilitar para otro clic
+        }, 600);
+    });
+
+
+    // texto de ayuda para filtros
+    const tooltip = document.getElementById("tooltip-filtros");
+    // funcionalidad para mostrar el texto de ayuda
+    function mostrarTooltip() {
+        tooltip.style.opacity = "1";
+
+        // Ocultar después de 2 segundos
+        setTimeout(() => {
+            tooltip.style.opacity = "0";
+        }, 2000);
+    }
+    // se ejecuta tras agregar la página
+    mostrarTooltip();
+
+    // mostrar el texto en caso de hover
+    document.getElementById("toggleFilters").addEventListener("mouseenter", mostrarTooltip);
+
 })

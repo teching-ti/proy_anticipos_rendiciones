@@ -2,7 +2,6 @@
 $hoja_de_estilos = "anticipoDetallesViajes.css?v=" . time();
 $titulo = "Anticipo Detalles";
 $fun = "anticipoDetallesViajes.js?v=" . time();
-// No incluimos base.php ni footer.php aquí, ya que se inyecta en el modal
 
 // Procesar datos para el informe
 $viaticos = ['transporte' => 0, 'movilidad' => 0, 'hospedaje' => 0];
@@ -43,39 +42,81 @@ if (!empty($info_anticipo['anticipo']) && isset($_GET['id_anticipo'])) {
 ?>
 
 <div class="viaticos-report">
-    <p class="title">Informe de Viáticos - Anticipo #<?php echo $anticipo['anticipo_id'] ?? ''; ?></p>
-    <p class="solicitante">Solicitante: <?php echo $anticipo['solicitante_nombres'] ?? ''; ?> (DNI: <?php echo $anticipo['dni_solicitante'] ?? ''; ?>)</p>
-    <p class="num-cuenta">Número de Cuenta: <?php echo $anticipo['n_cuenta_solicitante'] ?? 'No disponible'; ?></p>
-
-    <p class="resumen">Resumen de Viáticos</p>
-    <table>
-        <tr><th>Concepto</th><th>Monto</th></tr>
-        <tr><td>Transporte Provincial</td><td><?php echo number_format($viaticos['transporte'], 2); ?></td></tr>
-        <tr><td>Movilidad</td><td><?php echo number_format($viaticos['movilidad'], 2); ?></td></tr>
-        <tr><td>Hospedaje</td><td><?php echo number_format($viaticos['hospedaje'], 2); ?></td></tr>
-        <tr><td class="total">Total Viáticos</td><td class="total"><?php echo number_format($viaticos['transporte'] + $viaticos['movilidad'] + $viaticos['hospedaje'], 2); ?></td></tr>
+   
+    <!-- ENCABEZADO EN TABLA A4 -->
+    <table class="info-table">
+        <tr>
+            <th>Fecha Solicitud</th>
+            <td><?php echo $anticipo['fecha_solicitud'] ?? 'No disponible'; ?></td>
+            <th>Centro Costos</th>
+            <td><?php echo $anticipo['codigo_sscc'] ?? 'No disponible'; ?></td>
+            <th>DNI</th>
+            <td><?php echo $anticipo['dni_solicitante'] ?? 'No disponible'; ?></td>
+        </tr>
+        <tr>
+            <th>Solicitante</th>
+            <td colspan="3"><?php echo htmlspecialchars($anticipo['solicitante_nombres'] ?? ''); ?></td>
+            <th>N° Cuenta</th>
+            <td><?php echo $anticipo['n_cuenta_solicitante'] ?? 'No disponible'; ?></td>
+        </tr>
+        <tr>
+            <th>Proyecto</th>
+            <td colspan="5"><?php echo htmlspecialchars($anticipo['nombre_proyecto'] ?? 'No disponible'); ?></td>
+        </tr>
+        <tr>
+            <th>Motivo del Anticipo</th>
+            <td colspan="5" class="motivo-cell"><?php echo nl2br(htmlspecialchars($anticipo['motivo_anticipo'] ?? 'No disponible')); ?></td>
+        </tr>
+        <?php if (!empty($anticipo['fecha_inicio']) && !empty($anticipo['fecha_fin'])): ?>
+        <tr>
+            <th>Fecha Inicio</th>
+            <td><?php echo $anticipo['fecha_inicio']; ?></td>
+            <th>Fecha Fin</th>
+            <td colspan="3"><?php echo $anticipo['fecha_fin']; ?></td>
+        </tr>
+        <?php endif; ?>
     </table>
 
-    <p class="alimentacion">Alimentación por Persona</p>
-    <table>
-        <tr><th>Persona</th><th>Monto</th><th>N° de cuenta</th></tr>
-        <?php foreach ($alimentacion_por_persona as $persona => $monto): 
-            // Buscar la persona en $personas para obtener el n_cuenta
-            $persona_data = array_filter($personas, fn($p) => $p['nombre_persona'] == $persona);
-            $persona_data = reset($persona_data);
-            $n_cuenta = $persona_data ? ($persona_data['n_cuenta'] ?? 'No disponible') : 'No disponible';
-        ?>
-            <tr>
-                <td><?php echo htmlspecialchars($persona); ?></td>
-                <td><?php echo number_format($monto, 2); ?></td>
-                <td><?php echo $n_cuenta; ?></td>
-            </tr>
-        <?php endforeach; ?>
+    <h3 class="section-title">Resumen de Viáticos</h3>
+    <table class="data-table">
+        <thead>
+            <tr><th>Concepto</th><th class="amount">Monto (PEN)</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Transporte Provincial</td><td class="amount"><?php echo number_format($viaticos['transporte'], 2); ?></td></tr>
+            <tr><td>Movilidad</td><td class="amount"><?php echo number_format($viaticos['movilidad'], 2); ?></td></tr>
+            <tr><td>Hospedaje</td><td class="amount"><?php echo number_format($viaticos['hospedaje'], 2); ?></td></tr>
+            <tr class="total-row"><td>Total Viáticos</td><td class="amount"><?php echo number_format($viaticos['transporte'] + $viaticos['movilidad'] + $viaticos['hospedaje'], 2); ?></td></tr>
+        </tbody>
     </table>
 
-    <p class="total-title">Total Anticipo</p>
-    <p class="total">Monto Total: <?php echo number_format($monto_total, 2); ?> PEN</p>
-    <div class="botones-detalles-viaticos">
-        <div class="btn print-viaticos" id="print-viaticos"><i class="fa-solid fa-download"></i> <span>Descargar</span></div>
+    <h3 class="section-title">Alimentación por Persona</h3>
+    <table class="data-table">
+        <thead>
+            <tr><th>Persona</th><th class="amount">Monto (PEN)</th><th>N° Cuenta</th></tr>
+        </thead>
+        <tbody>
+            <?php foreach ($alimentacion_por_persona as $persona => $monto):
+                $persona_data = array_filter($personas, fn($p) => $p['nombre_persona'] == $persona);
+                $persona_data = reset($persona_data);
+                $n_cuenta = $persona_data ? ($persona_data['n_cuenta'] ?? 'No disponible') : 'No disponible';
+            ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($persona); ?></td>
+                    <td class="amount"><?php echo number_format($monto, 2); ?></td>
+                    <td><?php echo $n_cuenta; ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+
+    <div class="total-final">
+        <strong>Monto Total del Anticipo: <?php echo number_format($monto_total, 2); ?> PEN</strong>
+    </div>
+
+    <div class="print-button-container">
+        <button class="btn print-viaticos" id="print-viaticos">
+            <i class="fa-solid fa-download"></i> Descargar PDF
+        </button>
     </div>
 </div>

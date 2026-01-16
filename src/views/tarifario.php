@@ -9,7 +9,7 @@ unset($_SESSION['success'], $_SESSION['error']);
 ?>
 <section>
     <!-- Incluir alert.js -->
-    <script src="assets/scripts/modalAlert.js"></script>
+    <script src="assets/scripts/modalAlert.js?v=<?=time();?>"></script>
 
     <!-- Tabla de Tarifario -->
         <div class="container-table">

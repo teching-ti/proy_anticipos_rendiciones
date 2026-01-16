@@ -117,12 +117,10 @@ class RendicionesModel {
                 a.departamento,
                 a.departamento_nombre,
                 s.scc_codigo
-                FROM tb_rendiciones r
-                LEFT JOIN
-                tb_anticipos a ON r.id_usuario = a.id_usuario
-                LEFT JOIN
-                tb_sscc s ON a.codigo_sscc = s.codigo
-                WHERE r.id = :id_rendicion";
+            FROM tb_rendiciones r
+            LEFT JOIN tb_anticipos a ON r.id_anticipo = a.id
+            LEFT JOIN tb_sscc s ON a.codigo_sscc = s.codigo
+            WHERE r.id = :id_rendicion";
 
             $stmt = $this->db->prepare(($query));
             $stmt->execute(['id_rendicion' => $id_rendicion]);

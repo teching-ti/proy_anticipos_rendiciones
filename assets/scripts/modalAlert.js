@@ -107,10 +107,8 @@ function showAlert({ title = 'Alerta', message, type = 'info', event = ''} = {})
     titleElement.textContent = title;
     // anteriormente estaba colocando de forma directa el messageElement.textContent = message; Se agregó esta condición para mostrar el mensaje.
     if(message=="Anticipo registrado con éxito"){
-        messageElement.innerHTML = `<p style="text-align: left; font-weight: bolder;">Estimado usuario, no olvide adjuntar el documento de autorización de descuento. Para ello debe seguir los siguiente pasos dentro de su anticipo creado:"</p>
+        messageElement.innerHTML = `<p style="text-align: left; font-weight: bolder;">Estimado usuario, favor de descargar y adjuntar el documento de autorización de descuento debidamente completo y firmado."</p>
         <br>
-        <br>
-        <img src="assets/img/recordatorioDocAut.png" style="width: 80%"/>
         <br>
         <p style="font-weight: bolder;">Caso contrario, su anticipo puede ser observado. Muchas gracias.</p>`;
     }else{

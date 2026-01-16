@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión</title>
-    <link rel="stylesheet" href="assets/styles/login.css">
-    <link rel="stylesheet" href="assets/styles/modalAlert.css">
+    <link rel="stylesheet" href="assets/styles/login.css?v=<?=time();?>">
+    <link rel="stylesheet" href="assets/styles/modalAlert.css?v=<?=time();?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans&family=Oswald:wght@200;300;400&family=Quicksand:wght@700&display=swap" rel="stylesheet">

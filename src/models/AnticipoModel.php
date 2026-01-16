@@ -14,7 +14,7 @@ class AnticipoModel {
         $this->rendicionesModel = new RendicionesModel();
     }
 
-    // Obtener anticipos según el rol del usuario
+    // obtener anticipos según el rol del usuario
     public function getAnticiposByRole($user_id, $rol) {
         try {
             $query = "SELECT a.id, a.departamento, a.solicitante_nombres, a.departamento_nombre, a.codigo_sscc, a.solicitante, a.motivo_anticipo, s.nombre AS sscc_nombre, a.fecha_solicitud, 
@@ -1164,7 +1164,7 @@ class AnticipoModel {
 
     public function getDetallesViaticosByAnticipo($id_anticipo) {
         // Datos generales del anticipo
-        $query_anticipo = "SELECT id AS anticipo_id, monto_total_solicitado, solicitante_nombres, dni_solicitante 
+        $query_anticipo = "SELECT id AS anticipo_id, monto_total_solicitado, solicitante_nombres, dni_solicitante, codigo_sscc, nombre_proyecto, fecha_solicitud, motivo_anticipo, fecha_inicio, fecha_fin 
                         FROM tb_anticipos 
                         WHERE id = :id_anticipo";
         $stmt_anticipo = $this->db->prepare($query_anticipo);
@@ -1286,6 +1286,19 @@ class AnticipoModel {
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log('Error al obtener transporte provincial: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getLatestIdAnticipoCreated($codigo){
+        try {
+            $query = "SELECT id_anticipo FROM tb_historial_anticipos WHERE id_usuario = :codigo AND estado = 'Nuevo' ORDER BY fecha DESC LIMIT 1;";
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':codigo',$codigo, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log('Error al obtener codigo del ultimo anticipo solicitado: ' . $e->getMessage());
             return [];
         }
     }

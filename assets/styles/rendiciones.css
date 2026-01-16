@@ -493,7 +493,7 @@
 }
 
 /*MODAL DE CARGA*/
-.loading-modal {
+.loading-modal{
     display: none;
     position: fixed;
     top: 0;
@@ -508,6 +508,14 @@
 
 .loading-content {
     background: white;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+/*Este es el referente a la página completa*/
+.loading-content-page {
+    background: none;
     padding: 20px;
     border-radius: 5px;
     text-align: center;
@@ -531,6 +539,154 @@
 .btn-descargar-rendicion{
     background-color: green;
     color: #fff;
+}
+
+/*Sección de filtros para rendiciones*/
+/* Botón flotante */
+.fab-filter {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 55px;
+    height: 55px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+    z-index: 9999;
+    transition: background 0.2s;
+    outline: none;
+}
+
+.fab-filter:hover {
+    background: #0056b3;
+}
+
+/* Panel de filtros */
+.filter-panel {
+    position: fixed;
+    top: -100%; /* Oculto fuera de pantalla */
+    right: 0;
+    width: 320px;
+    /* background: rgba(117, 172, 226, 0.85); */
+    background-color: rgb(228 241 255 / 90%);
+    padding: 20px;
+    /* box-shadow: 0px 4px 12px rgba(0,0,0,0.2); */
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.6);
+    z-index: 9998;
+    transition: top 0.4s ease;
+    border-radius: .4rem;
+    /* border: solid 2px rgba(117, 172, 226, 1); */
+    border: solid 2px rgb(15, 91, 167);
+}
+
+.filter-panel.active {
+    top: 2rem;
+}
+
+.filter-panel h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.filter-panel form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.filter-box{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Inputs en fila */
+.filter-row {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: .4rem;
+    border-bottom: solid .1rem #353b48;
+}
+
+.title-filter-date{
+    color: #0056b3;
+    font-size: 1.1rem;
+    font-weight: bolder;
+}
+
+.btn-aplicar {
+    padding: .4rem .8rem;
+    background-color: whitesmoke;
+    border: solid 2px #438ce5;
+    border-radius: .4rem;
+    font-size: .9rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.btn-limpiar{
+    padding: .4rem;
+    background-color: whitesmoke;
+    border: solid 2px #cfd1d3;
+    border-radius: .4rem;
+    font-size: .9rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.btn-aplicar:hover {
+    color: white;
+    background-color: #0b5db4;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.btn-limpiar:hover{
+    transform: translateY(-1px);
+    border: solid 2px #b2b3b5;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.filter-buttons-container{
+    display: flex;
+    gap: 1.8rem;
+}
+
+/*texto de ayuda visual para filtros*/
+.tooltip-filtros {
+    position: fixed;
+    bottom: 42px; /* encima del botón */
+    right: 90px;
+    background: #333;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    opacity: 1;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+    z-index: 9999;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+/* Panel de filtros */
+
+.btn-remove-comprobante{
+    background-color: rgb(219, 219, 219);
+    color: red;
+    border-radius: 50%;
+    padding: .2rem .5rem;
+    transition: all ease-in-out .2s;
+}
+
+.btn-remove-comprobante:hover{
+    /* background-color: rgb(124, 123, 123); */
+    background-color: rgb(199, 42, 42);
+    color: whitesmoke;
 }
 
 @keyframes spin {

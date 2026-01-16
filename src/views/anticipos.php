@@ -10,7 +10,7 @@ unset($_SESSION['success'], $_SESSION['error']);
 
 <section class="anticipos-content" style="display: none;">
     <!-- Incluir alert.js -->
-    <script src="assets/scripts/modalAlert.js?v=1.2"></script>
+    <script src="assets/scripts/modalAlert.js?v=<?=time();?>"></script>
 
     <!-- Notificaciones -->
     <?php if (isset($_SESSION['success'])): ?>
@@ -46,19 +46,78 @@ unset($_SESSION['success'], $_SESSION['error']);
                     <i class="fa-solid fa-arrows-rotate"></i>
                 </div>
             </div>
+
+            <!-- Botón Flotante -->
+            <button id="toggleFilters" class="fab-filter">
+                <i id="icono-filtro" class="fa-solid fa-filter"></i>
+            </button>
+            <div id="tooltip-filtros" class="tooltip-filtros">Mostrar filtros</div>
+
+            <div id="filterPanel" class="filter-panel">
+                <form id="filtersForm" class="filtersForm">
+                    <h3>Filtros para anticipos</h3>
+                    <div class="filter-row">
+                        <!-- Filtro Año -->
+                        <div>
+                            <label for="filtro-anio">Año</label>
+                            <select id="filtro-anio">
+                                <option value="">Todos</option>
+                                <option value="2025">2025</option>
+                                <option value="2026">2026</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="filtro-estado">Estado</label>
+                            <select id="filtro-estado">
+                                <option value="">Todos</option>
+                                <option value="nuevo">Nuevo</option>
+                                <option value="autorizado">Autorizado</option>
+                                <option value="autorizado por gerencia">Aut. Gerencia</option>
+                                <option value="autorizado totalmente">Aut. Totalmente</option>
+                                <option value="abonado">Abonado</option>
+                                <option value="observado">Observado</option>
+                                <option value="anulado">Anulado</option>
+                                <option value="rendido">Rendido</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Fecha solicitud -->
+                    <div class="filter-box">
+                        <p class="title-filter-date">Fecha de solicitud</p>
+                        <div class="filter-row">
+                            <div>
+                                <label>Desde:</label>
+                                <input type="date" id="filtro-solicitud-desde">
+                            </div>
+                            <div>
+                                <label>Hasta:</label>
+                                <input type="date" id="filtro-solicitud-hasta">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Botones -->
+                    <div class="filter-buttons-container">
+                        <button type="submit" id="btn-aplicar" class="btn-aplicar">Aplicar</button>
+                        <button id="limpiar-filtros" class="btn-limpiar">Limpiar</button>
+                    </div>
+                </form>               
+            </div>
+
         </div>
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead class="table-head">
                     <tr>
                         <th>ID</th>
-                        <th>Fecha creación</th>
+                        <th id="ordenar-fecha-solicitud" class="sortable">Fecha creación <i id="flecha-fecha-solicitud" class="fa-solid fa-sort ms-1"></i></th>
                         <th>Nombre y apellido</th>
                         <th>Departamento</th>
                         <th>SSCC</th>
                         <th>Motivo&nbsp;del&nbsp;Anticipo</th>
                         <th>Monto</th>
-                        <th>Estado</th>
+                        <th id="ordenar-estado" class="sortable">Estado <i id="flecha-estado" class="fa-solid fa-sort ms-1"></i></th>
                         <th title="Cambio de estado más reciente">Ult. Actualización</th>
                     </tr>
                 </thead>
@@ -100,7 +159,9 @@ unset($_SESSION['success'], $_SESSION['error']);
                     <input type="hidden" name="id_cat_documento" value="1">
                     <!-- 1. Datos del solicitante -->
                     <div class="form-step active" id="step-1">
-
+                        <p class="step-indicator">
+                            <span class="paso-anticipo-actual"><i class="fa-solid fa-id-card-clip"></i> 1. Datos Generales</span><span class="paso-anticipo"><i class="fa-solid fa-cash-register"></i> 2. Datos de compras y/o viáticos</span><span class="paso-anticipo"><i class="fa-solid fa-file-pdf"></i> 3. Documento de autorización</span>
+                        </p>
                         <h3>1. Datos del solicitante</h3>
                         
                         <div class="datos-solicitantes-container">
@@ -185,16 +246,19 @@ unset($_SESSION['success'], $_SESSION['error']);
 
                     <!-- 2. Concepto -->
                     <div class="form-step" id="step-2">
+                        <p class="step-indicator">
+                            <span class="paso-anticipo"><i class="fa-solid fa-id-card-clip"></i> 1. Datos Generales</span><span class="paso-anticipo-actual"><i class="fa-solid fa-cash-register"></i> 2. Datos de compras y/o viáticos</span><span class="paso-anticipo"><i class="fa-solid fa-file-pdf"></i> 3. Documento de autorización</span>
+                        </p>
                         <div class="title-concepto" style="">
                             <h3>2. Concepto</h3>
                             <div class="concepto-categoria">
-                                <div>
+                                <div class="opcion-concepto">
                                     <input type="radio" name="concepto" id="compras-menores" value="compras-menores" checked>
-                                    <label for="compras-menores">Compras</label>
+                                    <label for="compras-menores" class="label-opcion">Compras <i class="fa-solid fa-basket-shopping"></i></label>
                                 </div>
-                                <div>
+                                <div class="opcion-concepto">
                                     <input type="radio" name="concepto" id="viajes" value="viajes">
-                                    <label for="viajes">Viajes</label>
+                                    <label for="viajes" class="label-opcion">Viajes <i class="fa-solid fa-van-shuttle"></i></label>
                                 </div>
                             </div>
                         </div>
@@ -224,7 +288,40 @@ unset($_SESSION['success'], $_SESSION['error']);
                         <hr>
                         <div class="modal-footer">
                             <div class="btn btn-default" onclick="prevStep()"><i class="fa-solid fa-caret-left"></i> Atrás</div>
-                            <button type="submit" class="btn btn-default">Terminar</button>
+                            <div class="btn btn-default" id="btn-guardar-continuar">Guardar y continuar <i class="fa-solid fa-caret-right"></i></div>
+                        </div>
+                    </div>
+
+                    <div class="form-step" id="step-3">
+                        <p class="step-indicator">
+                            <span class="paso-anticipo"><i class="fa-solid fa-id-card-clip"></i> 1. Datos Generales</span><span class="paso-anticipo"><i class="fa-solid fa-cash-register"></i> 2. Datos de compras y/o viáticos</span><span class="paso-anticipo-actual"><i class="fa-solid fa-file-pdf"></i> 3. Documento de autorización</span>
+                        </p>
+                        <h3>3. Adjuntar documento de autorización de descuento</h3>
+                        <div id="contenedor-creacion-adjuntar-autorizacion">
+                            <div id="contenedor-texto-descarga">
+                                <div class="btn">
+                                    Estimado usuario, por favor descargue el documento de autorzación de descuento y adjúntelo en esta sección
+                                </div>
+                                <div class="btn btn-doc-aut-download" id="btn-doc-aut-download">
+                                    Descargar <i class="fa-solid fa-download"></i>
+                                </div>
+                            </div>
+                            
+                            <div id="previewContainer"></div>
+                            
+                            <div id="contenedor-archivo-seleccion">
+                                <!-- Seleccionar archivo -->
+                                <label for="archivo" id="lbl-archivo">Adjuntar archivo</label>
+                                <input type="file" name="archivo" id="archivo" accept=".pdf, .docx" required style="display: none;">
+                                <span id="texto-archivo-seleccionado">Ningún archivo seleccionado</span>
+                                <input type="hidden" name="trabajador_id" id="trabajador_id">
+                                <input type="hidden" name="doc_name" id="doc_name">
+                            </div>
+                            
+                        </div>
+                        <hr>
+                        <div class="modal-footer">
+                            <div class="btn btn-terminar-anticipo bloq-terminar-anticipo" id="btn-terminar-anticipo">Terminar</div>
                         </div>
                     </div>
                 </div>
@@ -330,16 +427,16 @@ unset($_SESSION['success'], $_SESSION['error']);
 
                     <!-- 2. Concepto -->
                     <div class="edit-form-step" id="edit-step-2">
-                        <div class="title-concepto">
+                        <div class="edit-title-concepto">
                             <h3>2. Concepto</h3>
                             <div class="concepto-categoria">
-                                <div>
+                                <div class="opcion-concepto">
                                     <input type="radio" name="edit-concepto" id="edit-compras-menores" value="edit-compras-menores" checked>
-                                    <label for="edit-compras-menores">Compras</label>
+                                    <label for="edit-compras-menores" class="label-opcion">Compras <i class="fa-solid fa-basket-shopping"></i></label>
                                 </div>
-                                <div>
+                                <div class="opcion-concepto">
                                     <input type="radio" name="edit-concepto" id="edit-viajes" value="edit-viajes">
-                                    <label for="edit-viajes">Viajes</label>
+                                    <label for="edit-viajes" class="label-opcion">Viajes <i class="fa-solid fa-van-shuttle"></i></label>
                                 </div>
                             </div>
                         </div>
@@ -372,7 +469,29 @@ unset($_SESSION['success'], $_SESSION['error']);
                         </div>
                         <hr>
                         <div class="modal-footer">
-                            <button type="submit" class="btn btn-default">Terminar</button>
+                            <div class="container-doc-autorizacion">
+                                <p class="edit-doc-autorizacion-title">Documento de autorización de descuento</p>
+                                <div class="edit-doc-autorizacion-elementos">
+                                  
+                                        <div id="get-doc-autorizacion" title="Descargar el documento de autorización para proceder con el anticipo" class="btn btn-default">Descargar <i class="fa-solid fa-download"></i></div>
+                                        
+                                        <div id="edit-set-archivo-autorizacion" class="btn btn-aniadir-autorizacion" title="Adjuntar autorización firmada y completa">
+                                            Adjuntar <i class="fa-solid fa-file-circle-plus"></i>
+                                        </div>
+                                        <div id="editFileInfo">
+                                            <span id="editfileStatus" style="color: gray;">Sin archivo</span>
+                                            <div id="editRemoveFile"><i class="fa-solid fa-xmark fa-lg" style="color: #be3c3c;"></i></div>
+                                        </div>
+                             
+                                    <input type="file" id="edit-archivo-autorizacion" name="edit-archivo-autorizacion" style="display: none;" accept=".pdf,.doc,.docx,.jpg,.png">
+                                    <a href="#" id="edit-enlace-archivo"><p></p><i class="fa-solid fa-file-arrow-down"></i></a>
+                                </div>
+                            </div>                         
+                            <div id="container-descarga"></div>
+                            <hr>
+                            <div id="container-terminar-edicion">
+                                <button type="submit" class="btn btn-default" id="btn-terminar-edicion">Terminar</button>
+                            </div>
                             <div id="container-cambio-estado">
                                 <?php if($_SESSION['rol']==2): ?>
                                     <div class="btn-aprobar-anticipo" title="Se brinda autorización para el anticipo" data-aprobador="<?php echo htmlspecialchars($_SESSION['id'], ENT_QUOTES, 'UTF-8'); ?>">
@@ -398,20 +517,6 @@ unset($_SESSION['success'], $_SESSION['error']);
                                         Anular
                                     </div>
                                 <?php endif;?>
-                            </div>
-                            <hr>
-                            <div id="container-descarga"></div>
-                            <div class="container-doc-autorizacion">
-                                <?php if($_SESSION['rol']==3 || $_SESSION['rol']==2):?>
-                                    <div id="get-doc-autorizacion" title="Descargar el documento de autorización para proceder con el anticipo" class="btn btn-default">Doc. Autorización</div>
-                                <?php endif; ?>
-                                <div id="container-archivo-autorizacion">
-                                    <div class="btn btn-aniadir-autorizacion" title="Adjuntar autorización firmada y completa">
-                                        Adjuntar <i class="fa-solid fa-file-circle-plus"></i>
-                                    </div>
-                                    <input type="file" id="edit-archivo-autorizacion" name="edit-archivo-autorizacion" style="display: none;" accept=".pdf,.doc,.docx,.jpg,.png">
-                                    <a href="#" id="edit-enlace-archivo"><p></p><i class="fa-solid fa-file-arrow-down"></i></a>
-                                </div>
                             </div>
                         </div>
                     </div>

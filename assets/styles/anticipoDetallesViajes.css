@@ -1,65 +1,142 @@
+/* === RESETEO BÁSICO === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* === ESTILO GENERAL PARA PANTALLA === */
 .viaticos-report {
-    margin: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #2c3e50;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 15px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-.title{
+.header {
     text-align: center;
-    font-size: 1.2rem;
-    margin-bottom: .8rem;
-    font-weight: bolder;
-}
-
-.solicitante{
-    text-align: center;
-    font-size: 1.1rem;
-    margin-bottom: .8rem;
-    font-weight: bolder;
-}
-
-.fecha-actual{
-    font-size: .9rem;
-    font-weight: bolder;
-    margin-bottom: .8rem;
-}
-
-.resumen, .alimentacion, .total-title{
-    font-weight: bolder;
-    text-align: center;
-    margin-bottom: 1rem;
-    font-size: 1.1rem;
-}
-
-.viaticos-report table {
-    width: 100%;
-    border-collapse: collapse;
     margin-bottom: 20px;
+    border-bottom: 3px double #2c3e50;
+    padding-bottom: 12px;
 }
 
-.viaticos-report th, .viaticos-report td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
+.title {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #2c3e50;
+    margin-bottom: 5px;
 }
 
-.viaticos-report th {
-    font-weight: bolder;
+.subtitle {
+    font-size: 1.1rem;
+    color: #555;
+    font-weight: normal;
+}
+
+/* === TABLAS GENERALES === */
+.info-table,
+.data-table {
+    width: 100% !important;
+    table-layout: fixed; /* ¡CRUCIAL! Fuerza distribución uniforme */
+    border-collapse: collapse;
+    margin-bottom: 22px;
+    font-size: 0.95rem;
+}
+
+
+.info-table th,
+.data-table th {
     background-color: #f1f2f6;
+    font-weight: bold;
+    text-align: left;
+    padding: 11px 10px;
+    border: 1px solid #ccc;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    width: auto; /* Deja que table-layout lo distribuya */
 }
 
-.total{
-    font-weight: bolder;
+
+.info-table td,
+.data-table td {
+    padding: 11px 10px;
+    border: 1px solid #ccc;
+    background-color: #fdfdfd;
+    word-wrap: break-word; /* Permite salto de línea en textos largos */
+    overflow-wrap: break-word;
+}
+
+
+/* Filas alternas */
+.info-table tr:nth-child(even) td,
+.data-table tr:nth-child(even) td {
+    background-color: #f9f9f9;
+}
+
+/* Celdas fusionadas (como motivo o proyecto) */
+.info-table td[colspan],
+.data-table td[colspan] {
+    width: auto !important;
+}
+
+.motivo-cell {
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+.amount {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+
+.total-row {
+    font-weight: bold;
+    background-color: #f1f2f6 !important;
+}
+
+.total-final {
+    text-align: right;
+    font-size: 1.3rem;
+    margin: 20px 0;
+    padding: 12px;
+    background-color: #e8f4fc;
+    border: 2px solid #2c3e50;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2c3e50;
+    margin: 25px 0 12px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 6px;
+}
+
+.print-button-container {
+    text-align: center;
+    margin-top: 30px;
 }
 
 .print-viaticos {
-    margin-top: 10px;
-    padding: 5px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
     background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
+    font-size: 1rem;
     cursor: pointer;
-    align-items: center;
-    gap: .4rem;
+    transition: background 0.3s;
 }
 
 .print-viaticos:hover {

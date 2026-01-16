@@ -84,6 +84,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById("nombre_proyecto").value=txtNombreProyecto;
     });
 
+    /** here para cuando se edita un anticipo y se requeire cambiar el nombre del sscc */
+    // Agregar Nombre del proyecto
+    document.getElementById("edit-codigo-sscc").addEventListener("change", function(){
+        //console.log("Cambiando");
+        const selectedOption = this.options[this.selectedIndex];
+        const text = selectedOption.text.split(':');// antes aquí había un -
+        const txtNombreProyecto = text[1].trim();
+        document.getElementById("edit-nombre-proyecto").value=txtNombreProyecto;
+    });
+
     // Funcionalidad para cambiar pestañas dentro del formulario de creación de anticipos
     document.querySelectorAll(".form-step").forEach(step => steps.push(step));
     showStep(currentStep);
@@ -179,10 +189,20 @@ function nextStep() {
 
     if (allFieldsValid) {
         if (currentStep < steps.length - 1) {
-            showStep(currentStep + 1);
+            if(currentStep == 1){
+                let monto_total = document.getElementById("monto-total").value;
+                if(monto_total >= 0){
+                    //if(confirm("Estimado usuario, una vez ingrese a la sección 3 no podrá volver a los apartados anteriores, se recomienda que primero verifique que toda la información ingresada sea correcta. ¿Desea continuar hacia la siguiente sección?")){
+                        showStep(currentStep + 1);
+                    //}
+                }else{
+                    alert("Deberá completar los datos de compras y/o viajes para poder continuar.");
+                }        
+            }else{
+                showStep(currentStep + 1);
+            }
         }
     } else {
-        // Opcional: mostrar un mensaje de error si la validación falla
         alert('Por favor, completa todos los campos obligatorios.');
     }
 
@@ -206,6 +226,132 @@ window.prevStep = prevStep;
 function terminar(){
     console.log("Completado");
 }
+
+const inputArchivoAutC = document.getElementById('archivo');
+const textoArchivo = document.getElementById('texto-archivo-seleccionado');
+const previewContainer = document.getElementById('previewContainer');
+
+inputArchivoAutC.addEventListener('change', (e) => {
+
+    let btnTerminarAnticipoActivar = document.getElementById("btn-terminar-anticipo");
+
+    const archivoSeleccionado = e.target.files[0];
+    previewContainer.innerHTML = ''; // limpiar previsualización anterior
+
+    if (archivoSeleccionado) {
+        const validExtensions = ['pdf', 'doc', 'docx'];
+        const fileExtension = archivoSeleccionado.name.split('.').pop().toLowerCase();
+
+        if (!validExtensions.includes(fileExtension)) {
+            alert('Solo se permiten archivos PDF o Word.');
+            inputArchivoAutC.value = '';
+            previewContainer.style.display = 'none';
+            textoArchivo.innerHTML = 'Ningún archivo seleccionado';
+            return;
+        }
+
+        const maxSize = 1 * 1024 * 1024; // 1 MB
+        if (archivoSeleccionado.size > maxSize) {
+            alert('El archivo no debe pesar más de 1 MB.');
+            inputArchivoAutC.value = '';
+            previewContainer.style.display = 'none';
+            textoArchivo.innerHTML = 'Ningún archivo seleccionado';
+            return;
+        }
+
+        // Mostrar spinner mientras se lee
+        previewContainer.innerHTML = '<div class="spinner"></div>';
+        previewContainer.style.display = 'block';
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            // Limpiar spinner y mostrar resultado
+            previewContainer.innerHTML = '';
+
+            // Crear un contenedor para el contenido
+            const fileContainer = document.createElement('div');
+            fileContainer.style.display = 'flex';
+            // fileContainer.style.flexDirection = 'column';
+            fileContainer.style.alignItems = 'center';
+            fileContainer.style.gap = '0.5rem';
+
+            // Crear enlace para abrir o descargar
+            const link = document.createElement('a');
+            link.href = event.target.result;
+            link.target = '_blank';
+            link.download = archivoSeleccionado.name;
+            link.textContent = `Abrir o descargar ${archivoSeleccionado.name}`;
+            link.style.color = '#007bff';
+            link.style.textDecoration = 'underline';
+            link.style.cursor = 'pointer';
+
+            // Mostrar vista previa solo si es PDF
+            if (fileExtension === 'pdf') {
+                const iframe = document.createElement('iframe');
+                iframe.setAttribute("id", "iframe-archivo-cargado");
+                iframe.src = event.target.result;
+                iframe.style.width = '100%';
+                iframe.style.height = '400px';
+                iframe.style.border = '1px solid #ddd';
+                iframe.style.borderRadius = '8px';
+                previewContainer.appendChild(iframe);
+            } else {
+                const message = document.createElement('p');
+                message.textContent = `Archivo Word cargado correctamente.`;
+                previewContainer.appendChild(message);
+            }
+
+            // Agregar enlace y botón eliminar
+            const actions = document.createElement('div');
+            actions.style.display = 'flex';
+            actions.style.gap = '0.8rem';
+            actions.style.alignItems = 'center';
+
+            // Check verde
+            const check = document.createElement('span');
+            check.innerHTML = '✔';
+            check.style.color = 'green';
+            check.style.fontWeight = 'bold';
+            check.style.fontSize = '1.2rem';
+
+            // Botón eliminar
+            const btnEliminar = document.createElement('div');
+            btnEliminar.title = "Eliminar archivo";
+            btnEliminar.innerHTML = `<i class="fa-solid fa-eraser"></i>`;
+            btnEliminar.style.backgroundColor = '#dc3545';
+            btnEliminar.style.color = '#fff';
+            btnEliminar.style.border = 'none';
+            btnEliminar.style.padding = '0.4rem 0.8rem';
+            btnEliminar.style.borderRadius = '4px';
+            btnEliminar.style.cursor = 'pointer';
+            btnEliminar.addEventListener('click', () => {
+                inputArchivoAutC.value = '';
+                textoArchivo.innerHTML = 'Ningún archivo seleccionado';
+                previewContainer.innerHTML = '';
+                previewContainer.style.display = 'none';
+            });
+
+            //actions.appendChild(check);
+            actions.appendChild(btnEliminar);
+
+            // Mostrar nombre del archivo con check
+            textoArchivo.innerHTML = `<span>${archivoSeleccionado.name} </span>`;
+            textoArchivo.appendChild(check);
+
+            // Agregar elementos al contenedor
+            fileContainer.appendChild(link);
+            fileContainer.appendChild(actions);
+            previewContainer.appendChild(fileContainer);
+        };
+        
+        btnTerminarAnticipoActivar.classList.remove("bloq-terminar-anticipo");
+        reader.readAsDataURL(archivoSeleccionado);
+    } else {
+        textoArchivo.textContent = 'Ningún archivo seleccionado';
+        previewContainer.style.display = 'none';
+        btnTerminarAnticipoActivar.classList.add("bloq-terminar-anticipo");
+    }
+});
 
 /*Inicia funcionalidad para tabs de personas viajes*/
 let personaCount = 0;
@@ -1012,7 +1158,7 @@ sccSelect.addEventListener('change', async function() {
     }
 });
 
-document.getElementById('addAnticipoForm').addEventListener('submit', function(e) {
+/*document.getElementById('addAnticipoForm').addEventListener('submit', function(e) {
     e.preventDefault();
     showAlert({
         title: 'Confirmación',
@@ -1049,8 +1195,8 @@ document.getElementById('addAnticipoForm').addEventListener('submit', function(e
                 showAlert({
                     title: data.success ? 'Aviso Importante' : 'Error',
                     message: data.message,
-                    type: data.success ? 'success' : 'error',
-                    event: data.success ? 'envio' : ''
+                    type: data.success ? 'success' : 'error'
+                    // event: data.success ? 'envio' : ''
                 });
             })
             .catch(error => {
@@ -1071,7 +1217,240 @@ document.getElementById('addAnticipoForm').addEventListener('submit', function(e
         modal.style.display = 'none';
     };
 
+});*/
+
+// funcionalidad para guardar anticipo tras dirigirse a la sección 3 del anticipo
+document.getElementById('btn-guardar-continuar').addEventListener('click', function() {
+    const form = document.getElementById('addAnticipoForm');
+    const formData = new FormData(form);
+
+    showAlert({
+        title: 'Confirmación',
+        message: 'Estimado usuario, una vez ingrese a la sección 3 no podrá volver a los apartados anteriores, se recomienda revisar que toda la información ingresada sea correcta. ¿Desea continuar hacia la siguiente sección?',
+        type: 'confirm',
+        event: 'confirm'
+    });
+
+    const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+    const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+    
+    acceptButton.onclick = () => {
+        const modal = document.getElementById('custom-alert-modal');
+        if (modal.style.display !== 'none') {
+            acceptButton.disabled = true;
+            cancelButton.disabled = true;
+
+            const loadingModal = document.getElementById('loadingModal');
+            loadingModal.style.display = 'flex';
+
+            fetch('anticipos/add', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingModal.style.display = 'none';
+                modal.style.display = 'none';
+                acceptButton.disabled = false;
+                cancelButton.disabled = false;
+
+                showAlert({
+                    title: data.success ? 'Aviso Importante' : 'Error',
+                    message: data.message,
+                    type: data.success ? 'success' : 'error'
+                });
+
+                // Si todo salió bien, avanzar al siguiente paso
+                if (data.success) {
+                    nextStep();
+                }
+            })
+            .catch(error => {
+                loadingModal.style.display = 'none';
+                modal.style.display = 'none';
+                acceptButton.disabled = false;
+                cancelButton.disabled = false;
+
+                showAlert({
+                    title: 'Error',
+                    message: 'Error al procesar la solicitud.',
+                    type: 'error'
+                });
+                console.error('Error al guardar anticipo:', error);
+            });
+        }
+    };
+
+    cancelButton.onclick = () => {
+        const modal = document.getElementById('custom-alert-modal');
+        modal.style.display = 'none';
+    };
 });
+
+// funcionalidad para descargar documento de autorización desde la creación del anticipo
+const crearDescargarDocAutorzacion = document.getElementById("btn-doc-aut-download");
+
+if(crearDescargarDocAutorzacion){
+    crearDescargarDocAutorzacion.addEventListener("click", async function(e){
+        e.preventDefault();
+        let elementoUsuario = document.getElementById("user-first-info");//id del usuario de sesion
+        let codigo_us = elementoUsuario.getAttribute("data-user");
+
+        try {
+            const response = await fetch(`anticipos/getLatestIdAnticipoCreated?codigo=${encodeURIComponent(codigo_us)}`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+
+            // Logica para obtener el mes y año actual
+            const hoy = new Date();
+            const dia = hoy.getDate().toString().padStart(2, "0");
+            const meses = [
+                "enero", "febrero", "marzo", "abril", "mayo", "junio",
+                "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+            ];
+            const mes = meses[hoy.getMonth()];
+            const anio = hoy.getFullYear();
+
+            const fechaOriginal = document.getElementById("fecha_finalizacion").value; // "2025-09-02"
+            const partes = fechaOriginal.split("-");
+            const fechaSolicitudFormateada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+            //Objeto con los valores
+            const datos = {
+                id_anticipo: data.id_anticipo,
+                nombre: document.getElementById("solicitante").value,
+                dni: document.getElementById("dni_solicitante").value,
+                motivo: document.getElementById("motivo-anticipo").value,
+                monto: (parseFloat(document.getElementById("monto-total").value) || 0).toFixed(2),
+                fecha_finalizacion: fechaSolicitudFormateada,
+                dia_solicitud: dia,
+                mes_solicitud: mes,
+                nombre2: document.getElementById("solicitante").value,
+                dni2: document.getElementById("dni_solicitante").value,
+                dia_solicitud2: dia,
+                mes_solicitud2: (hoy.getMonth()+1).toString().padStart(2, "0"),
+                anio_solicitud: anio
+            };
+
+            const formDocAutorizacion = document.createElement("form");
+            formDocAutorizacion.method = "POST";
+            formDocAutorizacion.action = "anticipos/getDocAutorizacion";
+
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "datos";
+            input.value = JSON.stringify(datos);
+
+            formDocAutorizacion.appendChild(input);
+            document.body.appendChild(formDocAutorizacion);
+            formDocAutorizacion.submit();
+
+        } catch (error) {
+            console.error(error);
+        }
+
+    })
+}
+
+// Funcionalidad para guardar el documento de autorización desde la parte de de creación de anticipo
+const btnTerminarAnticipo = document.getElementById("btn-terminar-anticipo");
+btnTerminarAnticipo.addEventListener("click", function(e){
+    if(btnTerminarAnticipo.classList.contains("bloq-terminar-anticipo")){
+        return;
+    }else{
+        console.log("Terminando con la creación del anticipo");
+
+        let archivoAutorizacionCargado = document.getElementById("archivo");
+        let fileCargado = archivoAutorizacionCargado.files[0];
+
+        if (fileCargado) {
+
+
+            showAlert({
+                title: 'Confirmación',
+                message: `¿Estás seguro de que desea adjuntar el archivo ${fileCargado.name}?`,
+                type: 'confirm',
+                event: 'confirm'
+            });
+
+            const acceptButton = document.getElementById('custom-alert-btn-aceptar');
+            const cancelButton = document.getElementById('custom-alert-btn-cancelar');
+            
+            acceptButton.onclick = async () => {
+                let elementoUsuario = document.getElementById("user-first-info")
+                let codigo_us = elementoUsuario.getAttribute("data-user");
+                const response = await fetch(`anticipos/getLatestIdAnticipoCreated?codigo=${encodeURIComponent(codigo_us)}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+
+                const formData = new FormData();
+
+                acceptButton.disabled = true;
+                cancelButton.disabled = true;
+
+                formData.append('id_anticipo', data.id_anticipo);
+                formData.append('archivo', fileCargado);
+                formData.append('nombre_original', fileCargado.name);
+
+                // Mostrar el modal de carga
+                const loadingModal = document.getElementById('loadingModal');
+                loadingModal.style.display = 'flex';
+
+                try{
+                    fetch('anticipos/guardar_adjunto', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showAlert({
+                                title: 'Éxito',
+                                message: 'Archivo adjuntado correctamente.',
+                                type: 'success',
+                                event: 'envio'
+                            });
+                            editAnticipoModal.style.display = 'none';
+                        } else {
+                            showAlert({
+                                title: 'Error',
+                                message: data.error || 'No se pudo adjuntar el archivo.',
+                                type: 'error'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        showAlert({
+                            title: 'Error',
+                            message: 'Error al subir el archivo. Intente de nuevo.',
+                            type: 'error'
+                        });
+                        console.error('Error:', error);
+                    });
+                } catch(error){
+                    showAlert({
+                        title: 'Error',
+                        message: `No se pudo adjuntar el documento. Revise que únicamente sea "pdf, word, jpg o png."`,
+                        type: 'error',
+                        event: 'envio'
+                    });
+                } finally {
+                    // Ocultar el modal de carga independientemente del resultado
+                    loadingModal.style.display = 'none';
+                    acceptButton.disabled = false;
+                    cancelButton.disabled = false;
+                }
+            };
+
+            cancelButton.onclick = () => {
+                const modal = document.getElementById('custom-alert-modal');
+                modal.style.display = 'none';
+            };
+        }
+    }
+})
+
+/**Finaliza  la creación de anticipo*/
 
 /**********************************************************************/
 /********************************Desde aquí inicia todo lo correspondiente a la edición de anticipos */
@@ -1079,7 +1458,7 @@ document.getElementById('addAnticipoForm').addEventListener('submit', function(e
 const editAnticipoModal = document.getElementById("editAnticipoModal");
 const editModalTitle = document.getElementById("edit-modal-title");
 const editForm = editAnticipoModal.querySelector("form");
-const editSubmitButton = editForm.querySelector("button[type='submit']");
+const editSubmitButton = document.getElementById("btn-terminar-edicion");
 const colorModeSwitch = editForm.querySelector("#color_mode");
 const editComprasMenoresPanel = document.getElementById("edit-panel-compras-menores");
 const editViajesPanel = document.getElementById("edit-panel-viajes");
@@ -1174,7 +1553,7 @@ function cargarSscc(selectScc, selectSscc, formPrefix = '') {
                 ssccs.forEach(sscc => {
                     const option = document.createElement('option');
                     option.value = sscc.codigo;
-                    option.textContent = `${sscc.codigo} - ${sscc.nombre}`;
+                    option.textContent = `${sscc.codigo} : ${sscc.nombre}`;
                     selectSscc.appendChild(option);
                 });
                 await actualizarTotalGastosEdit(formPrefix);
@@ -1330,9 +1709,15 @@ editAddGastoBtn.addEventListener('click', function() {
     });
 });
 
+let dblClickLock = false;
 // Manejar doble clic en filas de la tabla de anticipos
 document.querySelectorAll('.table.table-hover tbody tr').forEach((e) => {
     e.addEventListener("dblclick", async function() {
+
+        if (dblClickLock) return;// si esta bloqueado ignora todo
+
+        dblClickLock = true; // bloquea tras el primer doble click
+
         const anticipoId = e.querySelector('td[data-label="ID"]').textContent;
         try {
             const res = await fetch(`anticipos/getAnticipoDetails?id_anticipo=${encodeURIComponent(anticipoId)}`);
@@ -1344,6 +1729,9 @@ document.querySelectorAll('.table.table-hover tbody tr').forEach((e) => {
         } catch (error) {
             console.error('Error al cargar detalles del anticipo:', error);
             //alert('No se pudieron cargar los detalles del anticipo.');
+        } finally {
+            //desbloquea el doble click
+            dblClickLock = false;
         }
     });
 });
@@ -1414,10 +1802,15 @@ async function showAnticipoDetails(data) {
     editForm.querySelector("#edit-monto-total").value = (parseFloat(data.monto_total_solicitado) || 0).toFixed(2);
 
     // Probando boton de generar word
-    // Crear un form dinámico para enviar y forzar la descarga
     const btnObtenerDocAutorizacion = document.getElementById("get-doc-autorizacion");
     if(btnObtenerDocAutorizacion){
         btnObtenerDocAutorizacion.addEventListener("click", function() {
+            // Esta es la funcionalidad que deberá editarse para que se pueda descargar el documento de autorización mientras se edita de forma correcta.
+            // Para aprovechar el tiempo, se pretende que desde allí mismo el usuario descargue el documento de autorización y lo adjunte, así como también que se muestre.
+            // En caso haya o no un documento de autorización anterior, deberá 
+            let fechFinalizacionActual = document.getElementById("edit-fecha-finalizacion").value;
+            let motivoAnticipoActual = document.getElementById("edit-motivo-anticipo").value;
+            let montoActual = document.getElementById("edit-monto-total").value;
             
             // Logica para obtener el mes y año actual
             const hoy = new Date();
@@ -1430,21 +1823,21 @@ async function showAnticipoDetails(data) {
             const anio = hoy.getFullYear();
 
             // Logica para formatear la fecha de solicitud
-            const fechaOriginal = data.fecha_fin; // "2025-09-02"
+            const fechaOriginal = fechFinalizacionActual;
             //console.log(fechaOriginal);
             const partes = fechaOriginal.split("-");
             //console.log(partes);
 
-            const fechaSolicitudFormateada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+            const fechaFinalizacionFormateada = `${partes[2]}/${partes[1]}/${partes[0]}`;
 
             //Objeto con los valores
             const datos = {
                 id_anticipo: data.id,
                 nombre: data.solicitante_nombres,
                 dni: data.dni_solicitante,
-                motivo: data.motivo_anticipo,
-                monto: (parseFloat(data.monto_total_solicitado) || 0).toFixed(2),
-                fecha_finalizacion: fechaSolicitudFormateada,
+                motivo: motivoAnticipoActual,
+                monto: (parseFloat(montoActual) || 0).toFixed(2),
+                fecha_finalizacion: fechaFinalizacionFormateada,
                 dia_solicitud: dia,
                 mes_solicitud: mes,
                 nombre2: data.solicitante_nombres,
@@ -1466,6 +1859,7 @@ async function showAnticipoDetails(data) {
             form.appendChild(input);
             document.body.appendChild(form);
             form.submit();
+            
         });
     }
     // termina form dinamico para envios
@@ -1475,95 +1869,73 @@ async function showAnticipoDetails(data) {
     const inputArchivo = document.getElementById('edit-archivo-autorizacion');
     const idAnticipoInput = document.getElementById('edit-id-anticipo');
 
+    const fileInfo = document.getElementById('editFileInfo');
+    const fileStatus  = document.getElementById('editfileStatus');
+    const removeFileBtn = document.getElementById('editRemoveFile');
+
     // Mostrar el input al hacer clic en el botón
     btnAnadirAutorizacion.addEventListener('click', function () {
         inputArchivo.click();
     });
 
-    // Manejar la selección del archivo
+    // Manejar la selección del archivo NEW
     inputArchivo.addEventListener('change', function (e) {
         const file = e.target.files[0];
-        if (file) {
 
-            showAlert({
-                title: 'Confirmación',
-                message: `¿Estás seguro de que desea adjuntar el archivo ${file.name}?`,
-                type: 'confirm',
-                event: 'confirm'
-            });
-
-            const acceptButton = document.getElementById('custom-alert-btn-aceptar');
-            const cancelButton = document.getElementById('custom-alert-btn-cancelar');
-            
-            acceptButton.onclick = () => {
-                const formData = new FormData();
-
-                acceptButton.disabled = true;
-                cancelButton.disabled = true;
-
-                formData.append('id_anticipo', idAnticipoInput.value);
-                formData.append('archivo', file);
-                formData.append('nombre_original', file.name);
-
-                // Mostrar el modal de carga
-                const loadingModal = document.getElementById('loadingModal');
-                loadingModal.style.display = 'flex';
-
-                try{
-                    fetch('anticipos/guardar_adjunto', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showAlert({
-                                title: 'Éxito',
-                                message: 'Archivo adjuntado correctamente.',
-                                type: 'success',
-                                event: 'envio'
-                            });
-                            editAnticipoModal.style.display = 'none';
-                        } else {
-                            showAlert({
-                                title: 'Error',
-                                message: data.error || 'No se pudo adjuntar el archivo.',
-                                type: 'error'
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        showAlert({
-                            title: 'Error',
-                            message: 'Error al subir el archivo. Intente de nuevo.',
-                            type: 'error'
-                        });
-                        console.error('Error:', error);
-                    });
-                } catch(error){
-                    showAlert({
-                        title: 'Error',
-                        message: `No se pudo adjuntar el documento. Revise que únicamente sea "pdf, word, jpg o png."`,
-                        type: 'error',
-                        event: 'envio'
-                    });
-                } finally {
-                    // Ocultar el modal de carga independientemente del resultado
-                    loadingModal.style.display = 'none';
-                    acceptButton.disabled = false;
-                    cancelButton.disabled = false;
-                }
-            };
-
-            cancelButton.onclick = () => {
-                const modal = document.getElementById('custom-alert-modal');
-                modal.style.display = 'none';
-                inputArchivo.value = '';
-            };
+        // s cancela selección
+        if (!file) {
+            mostrarSinArchivo()
+            return;
         }
+
+        // Validar tamaño
+        if (file.size > 1 * 1024 * 1024) {
+            alert("El archivo debe pesar menos de 1MB.");
+            inputArchivo.value = "";
+            mostrarSinArchivo()
+            return;
+        }
+
+        // Validar tipo
+        const formatosAceptados = [
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "image/jpeg",
+            "image/png"
+        ];
+
+        if (!formatosAceptados.includes(file.type)) {
+            alert("Formato no permitido. Debe ser PDF, DOC, DOCX, JPG o PNG.");
+            inputArchivo.value = "";
+            mostrarSinArchivo();
+            return;
+        }
+
+        // Crear URL temporal para visualizar archivo
+        const urlTemporal = URL.createObjectURL(file);
+
+        // Mostrar nombre como enlace
+        fileStatus.innerHTML = `<a href="${urlTemporal}" target="_blank" style="color:#007bff;">${file.name}</a>`;
+        removeFileBtn.style.display = "inline";
+
+        // Mostrar el contenedor visual
+        fileInfo.style.display = "inline-flex";
     });
 
+    // Botón cancelar archivo
+    removeFileBtn.addEventListener('click', function () {
+        inputArchivo.value = ""; // Limpia input
+        mostrarSinArchivo();
+    });
 
+    // Función para ocultar todo
+    function mostrarSinArchivo() {
+         fileStatus.textContent = "Sin archivo";
+        fileStatus.style.color = "gray";
+        removeFileBtn.style.display = "none";
+    }
+    
     const enlaceDescargaArchivoAdjunto = document.getElementById("edit-enlace-archivo");
     fetch(`anticipos/obtener_adjunto?id_anticipo=${data.id}`)
         .then(response => response.json())
@@ -1584,7 +1956,22 @@ async function showAnticipoDetails(data) {
     let idUserAnticipo = document.getElementById("editAnticipoModal").getAttribute("data-user-anticipo");;
     let idActualUser = document.getElementById("user-first-info").getAttribute("data-user");
 
-    if(editForm.querySelector("#edit-estado-anticipo").value != 'Nuevo' && editForm.querySelector("#edit-estado-anticipo").value != 'Observado'){
+    // Visibilidad del switch o boton para editar (Importante)
+    // if(editForm.querySelector("#edit-estado-anticipo").value != 'Nuevo' && editForm.querySelector("#edit-estado-anticipo").value != 'Observado'){
+    //     //console.log(editForm.querySelector("#edit-estado-anticipo").value);
+    //     document.querySelector(".switch").style.display = "none";
+    // }else{
+    //     //console.log(idActualUser);
+    //     if(idUserAnticipo == idActualUser){
+    //         document.querySelector(".switch").style.display = "block";
+    //     }else{
+    //         document.querySelector(".switch").style.display = "none";
+    //     }
+    // }
+
+    // Visibilidad del switch o boton para editar (Importante)
+    let anticipoEstado = editForm.querySelector("#edit-estado-anticipo").value;
+    if(anticipoEstado != 'Nuevo' && anticipoEstado != 'Observado' && anticipoEstado != 'Autorizado' && anticipoEstado != 'Autorizado por Gerencia'){
         //console.log(editForm.querySelector("#edit-estado-anticipo").value);
         document.querySelector(".switch").style.display = "none";
     }else{
@@ -1610,7 +1997,7 @@ async function showAnticipoDetails(data) {
             ssccs.forEach(sscc => {
                 const option = document.createElement('option');
                 option.value = sscc.codigo;
-                option.textContent = `${sscc.codigo} - ${sscc.nombre}`;
+                option.textContent = `${sscc.codigo} : ${sscc.nombre}`;
                 if (sscc.codigo === data.codigo_sscc) {
                     option.selected = true;
                 }
@@ -2430,7 +2817,7 @@ async function showAnticipoDetails(data) {
         colorModeSwitch.checked = false;
     }
     
-    editSubmitButton.disabled = true;
+    // editSubmitButton.disabled = true;
     editAddGastoBtn.style.display = 'none';
     editAddTabBtn.style.display = 'none';    
     toggleEditMode(false);
@@ -2483,18 +2870,15 @@ async function showAnticipoDetails(data) {
     // Probar
     const btnAdjuntarDocAutorizacion = document.querySelector(".btn-aniadir-autorizacion");
     const dniUsuarioBase = document.getElementById("base-dni-user");
-
+    
     if (btnAdjuntarDocAutorizacion && dniUsuarioBase) {
         // Condición combinada: estado correcto Y usuario correcto
         if ((estadoAnticipo === 'Nuevo' || estadoAnticipo === 'Autorizado' || estadoAnticipo === 'Observado' || estadoAnticipo ==='Autorizado por Gerencia') 
-            && dniUsuarioBase.innerText === data.dni_solicitante) {
+            && dniUsuarioBase.innerText !== data.dni_solicitante) {
             
-            btnAdjuntarDocAutorizacion.style.display = "block";
-            btnAdjuntarDocAutorizacion.style.visibility = "visible";
-        } else {
             btnAdjuntarDocAutorizacion.style.display = "none";
             btnAdjuntarDocAutorizacion.style.visibility = "hidden";
-        }
+        } 
     }
 
 
@@ -3201,7 +3585,8 @@ editTabsBody.addEventListener("click", function(e) {
 });
 
 function toggleEditMode(isEditMode) {
-    const isEditable = ['Nuevo', 'Observado'].includes(editForm.querySelector("#edit-estado-anticipo").value);
+    // Elementos cuyo estado deberá estar presente para que se den las ediciones correctamente
+    const isEditable = ['Nuevo', 'Observado', 'Autorizado', 'Autorizado por Gerencia'].includes(editForm.querySelector("#edit-estado-anticipo").value);
     const inputs = editForm.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), select');
 
     inputs.forEach(input => {
@@ -3286,6 +3671,27 @@ function toggleEditMode(isEditMode) {
     document.querySelectorAll(".edit-adding-transp-provincial").forEach(e => {
         e.style.display = (isEditMode && isEditable && e.dataset.persona === '1') ? 'block' : 'none';
     });
+
+    let botonObtenerDocAutorizacion = document.getElementById("get-doc-autorizacion");
+    if(botonObtenerDocAutorizacion){
+        botonObtenerDocAutorizacion.style.display = isEditMode && isEditable ? 'block' : 'none'; 
+    }
+
+    let botonAdjuntarDocAutorizacion = document.getElementById("edit-set-archivo-autorizacion");
+    if(botonAdjuntarDocAutorizacion){
+        botonAdjuntarDocAutorizacion.style.display = isEditMode && isEditable ? 'block' : 'none';
+    }
+    
+    let enlaceParaVisualizarDocumentoAutorizacion = document.getElementById("edit-enlace-archivo");
+    if(enlaceParaVisualizarDocumentoAutorizacion){
+        enlaceParaVisualizarDocumentoAutorizacion.style.display = isEditMode && isEditable ? 'none' : 'flex';
+    }
+
+    let linkVisualizacionDocAutotorizacionEdit = document.getElementById("editFileInfo");
+    if(linkVisualizacionDocAutotorizacionEdit){
+        linkVisualizacionDocAutotorizacionEdit.style.display = isEditMode && isEditable ? 'flex' : 'none';
+    }
+
 }
 
 // Manejar el interruptor de modo, si existe
@@ -3329,6 +3735,20 @@ editAnticipoModal.querySelector('.btn-close-modal').addEventListener('click', fu
 // Manejar envío del formulario
 editForm.addEventListener('submit', async function(event) {
     event.preventDefault();
+    let archivoAutorizacion = document.getElementById("edit-archivo-autorizacion");
+    let idAnticipo = document.getElementById('edit-id-anticipo').value;
+
+    if(archivoAutorizacion.files.length !== 1){
+        //alert("Estimado usuario, favor de cargar su archivo de autorización");
+        showAlert({
+            title: 'Registro incompleto',
+            message: 'Estimado usuario, por favor, adjunte su documento de autorización',
+            type: 'warning',
+            event: 'warning'
+        });
+        return;
+    }
+
     showAlert({
         title: 'Confirmación',
         message: '¿Estás seguro de que desea culminar con la actualización de este anticipo?',
@@ -3340,6 +3760,38 @@ editForm.addEventListener('submit', async function(event) {
     const cancelButton = document.getElementById('custom-alert-btn-cancelar');
 
     acceptButton.onclick = async () => {
+
+        const file = archivoAutorizacion.files[0];
+        const fileData = new FormData();
+
+        fileData.append('id_anticipo', idAnticipo);
+        fileData.append('archivo', file);
+        fileData.append('nombre_original', file.name);
+
+        const uploadResponse = await fetch('anticipos/guardar_adjunto', {
+            method: 'POST',
+            body: fileData
+        });
+
+        const uploadResult = await uploadResponse.json();
+
+        if (!uploadResult.success) {
+            // Cerrar modal de confirmación
+            document.getElementById('custom-alert-modal').style.display = 'none';
+
+            const loadingModal = document.getElementById('loadingModal');
+            loadingModal.style.display = 'none';
+
+            acceptButton.disabled = false;
+            cancelButton.disabled = false;
+
+            showAlert({
+                title: "Error",
+                message: uploadResult.error || "No se pudo adjuntar el archivo.",
+                type: "error"
+            });
+            return;
+        }
 
         const formData = new FormData(this);
 
@@ -3356,7 +3808,7 @@ editForm.addEventListener('submit', async function(event) {
             if (result.success) {
                 showAlert({
                     title: 'Completado',
-                    message: `El anticipo fue actualizado correctamente.`,
+                    message: `Su anticipo fue actualizado correctamente.`,
                     type: 'success',
                     event: 'envio'
                 });
@@ -4051,3 +4503,182 @@ document.querySelectorAll(".btn-close-modal").forEach(button => {
         document.getElementById(modalId).style.display = "none";
     });
 });
+
+/** Ordenamiento por Fecha de solicitud */
+const thSolicitud = document.getElementById("ordenar-fecha-solicitud");
+const iconSolicitud = document.getElementById("flecha-fecha-solicitud");
+const tbodySolicitud = document.getElementById("table-body");
+
+let ascSolicitud = true;
+
+thSolicitud.style.cursor = "pointer";
+
+thSolicitud.addEventListener("click", function () {
+
+    const rows = Array.from(tbodySolicitud.querySelectorAll("tr"));
+
+    rows.sort((a, b) => {
+        const valA = a.cells[1].textContent.trim();
+        const valB = b.cells[1].textContent.trim();
+
+        const fechaA = valA === "N/A" || valA === "" ? 0 : new Date(valA).getTime();
+        const fechaB = valB === "N/A" || valB === "" ? 0 : new Date(valB).getTime();
+
+        return ascSolicitud ? fechaA - fechaB : fechaB - fechaA;
+    });
+
+    tbodySolicitud.innerHTML = "";
+    rows.forEach(r => tbodySolicitud.appendChild(r));
+
+    // Cambiar icono
+    iconSolicitud.className = ascSolicitud
+        ? "fa-solid fa-sort-up ms-1"
+        : "fa-solid fa-sort-down ms-1";
+
+    ascSolicitud = !ascSolicitud;
+});
+/**finaliza funcionalidad para ordenar por fecha de solicitud */
+
+
+/**Inicia ordenamiento por estado */
+const estadoOrden = {
+    "Nuevo": 1,
+    "Observado": 2,
+    "Autorizado": 3,
+    "Autorizado por Gerencia": 4,
+    "Autorizado Totalmente": 5,
+    "Anulado":6,
+    "Abonado": 7,
+    "Rendido": 8
+};
+
+const th1 = document.getElementById("ordenar-estado");
+const icon1 = document.getElementById("flecha-estado");
+const tbody1 = document.getElementById("table-body");
+
+let asc1 = true;
+
+th1.style.cursor = "pointer";
+
+th1.addEventListener("click", function () {
+
+    const rows1 = Array.from(tbody1.querySelectorAll("tr"));
+
+    rows1.sort((a, b) => {
+        const estadoA1 = a.cells[7].innerText.trim();
+        const estadoB1 = b.cells[7].innerText.trim();
+
+        const orderA1 = estadoOrden[estadoA1] || 999;
+        const orderB1 = estadoOrden[estadoB1] || 999;
+
+        return asc1 ? orderA1 - orderB1 : orderB1 - orderA1;
+    });
+
+    tbody1.innerHTML = "";
+    rows1.forEach(r => tbody1.appendChild(r));
+
+    if (asc1) {
+        icon1.className = "fa-solid fa-sort-up ms-1";
+    } else {
+        icon1.className = "fa-solid fa-sort-down ms-1";
+    }
+
+    asc1 = !asc1;
+});
+/**Finaliza ordenamiento por estado */
+
+
+/**Funcionalidad para aplicar filtros */
+document.getElementById("btn-aplicar").addEventListener("click", function(e) {
+    e.preventDefault();
+
+    const estado = document.getElementById("filtro-estado").value.toLowerCase();
+    const anio = document.getElementById("filtro-anio").value;
+
+    const inicioDesde = document.getElementById("filtro-solicitud-desde").value;
+    const inicioHasta = document.getElementById("filtro-solicitud-hasta").value;
+
+    const rows = document.querySelectorAll("#table-body tr");
+
+    rows.forEach(row => {
+
+        const colEstado = row.cells[7].innerText.trim().toLowerCase();
+        const colInicio = row.cells[1].innerText.trim();
+        const colAnticipo = row.cells[1].innerText.trim();
+
+        const fechaInicio = colInicio ? new Date(colInicio) : null;
+        const fechaAnticipo = colAnticipo ? new Date(colAnticipo) : null;
+
+        let mostrar = true;
+
+        // Filtro estado
+        if (estado && colEstado !== estado) {
+            mostrar = false;
+        }
+
+        // Filtro año (sobre fecha rendicion)
+        if (anio && fechaAnticipo && fechaAnticipo.getFullYear().toString() !== anio) {
+            mostrar = false;
+        }
+
+        // Rango fecha inicio
+        if (inicioDesde && fechaInicio && fechaInicio < new Date(inicioDesde)) {
+            mostrar = false;
+        }
+        if (inicioHasta && fechaInicio && fechaInicio > new Date(inicioHasta)) {
+            mostrar = false;
+        }
+
+        row.style.display = mostrar ? "" : "none";
+    });
+
+    let panel = document.getElementById("filterPanel");
+    panel.classList.toggle("active");
+    // console.log("Filtrando");
+});
+
+// botón para limpiar filtros
+document.getElementById("limpiar-filtros").addEventListener("click", function(e) {
+    e.preventDefault();
+    document.querySelectorAll(".filtersForm select, .filtersForm input")
+        .forEach(el => el.value = "");
+
+    document.querySelectorAll("#table-body tr").forEach(row => {
+        row.style.display = "";
+    });
+});
+
+// Funcionalidad para mostrar el panel de filtros
+let bloqueado = false; 
+document.getElementById("toggleFilters").addEventListener("click", function() {
+
+    if (bloqueado) return; // ignora clics repetidos
+
+    bloqueado = true; // se bloquea la ejecución para clics
+
+    let panel = document.getElementById("filterPanel");
+
+    panel.classList.toggle("active");
+
+    setTimeout(() => {
+        bloqueado = false; // se vuelve a habilitar para otro clic
+    }, 600);
+});
+
+
+// texto de ayuda para filtros
+const tooltip = document.getElementById("tooltip-filtros");
+// funcionalidad para mostrar el texto de ayuda
+function mostrarTooltip() {
+    tooltip.style.opacity = "1";
+
+    // Ocultar después de 2 segundos
+    setTimeout(() => {
+        tooltip.style.opacity = "0";
+    }, 2000);
+}
+// se ejecuta tras agregar la página
+mostrarTooltip();
+
+// mostrar el texto en caso de hover
+document.getElementById("toggleFilters").addEventListener("mouseenter", mostrarTooltip);

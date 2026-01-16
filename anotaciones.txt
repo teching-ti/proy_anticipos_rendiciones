@@ -1,8 +1,36 @@
+16012026 - commit
+- Se agregró la funcionalidad completa de eliminar un comprobante de rendicion.
+- Se iniciará con la funcionalidad de correlativos que se reinicien automáticamente por año.
+
+12012026
+- Se están agregando las funcionalidades para eliminar registros de comprobantes de rendiciones. Dentro del archivo de "rendiciones.js" se agregó el trash-icon para luego realizar dicha acción.
+li.innerHTML = `${displayText} ${fileLink} - <i class="fa-regular fa-trash-can"></i>`; (Linea 302)
+
+27102025
+- Se está realizando la mejora para que el usuario adjunte su documento de autorización firmado antes de cerrar la ventana tras registrar el anticipo.
+(Se están implementando mensajes de porcentaje).
+
+14102025
+- // Controlar visibilidad del botón "Aprobar"
+1. Se editó "rendiciones.js" para que sea visible únicamente durante el estado de Completado.
+2. Se editó rendiciones.php para que también sean visibles los botones de autorizar, corregir y completar para aprobadores.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+06102025
+- Se permitió la edición de anticipos en estado autorizado y autorizado por gerencia.
+- Se agregó el cambio de estado y registro en historial de anticipo esta edición.
+- Se agregó notificación por correo electrónico.
+
+/******* Se moidifacron los archivos anticipos.js y AnticipoController.php
+- ******* Pendiente, mensaje de confirmación para hacer recordar que se debe cargar neuvamente el documento dee autorización firmado.
+
+-----------------------------------------------------------------------------------------------------------------------------------
 03102025
 - Se modifició el controlador de AntiicpoController, directamente el metodo Add porque se habían identificado registros con viaticos y compras pero no viajaba la información de los viaticos agregados.
 - Se modificó el archivo de anticipos.js para que la validación de búsqueda por dni no realice un envío de fetch con campo vacio o menos dígitos.
 - Se modificó rendiciones.js para permitir agregar archivos excel y txt. Como comprobantes
 
+-----------------------------------------------------------------------------------------------------------------------------------
 30092025
 - En index.php se creó la ruta para anular el anticipo
 
@@ -17,8 +45,6 @@ return $estado !== false && !in_array($estado, ['Rendido', 'Anulado']);
 - En anticipos.css se agregó el btn para anular anticipo
 
 - En anticipos.js se agregó funcionalidad de envío y confirmación para anulación de anticipo junto con la ruta que se encarga de esta actividad
-
-
 
 -----------------------------------------------------------------------------------------------------------------------------------
 25092025
